@@ -100,7 +100,8 @@ Vicare/cURL was written by Marco Maggi.  Vicare Scheme is an
 R6RS compliant fork of  Ikarus Scheme; originally created by
 Abdulaziz Ghuloum, it is now maintained by Marco Maggi.
 
-  For the authors of cURL, see the source distribution.
+  The main  developer of  cURL is  Daniel Stenberg,  for the
+list of contributors see the source distribution.
 
 
 B. Bugs
