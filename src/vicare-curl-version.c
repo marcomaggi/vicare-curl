@@ -36,28 +36,54 @@
 
 
 /** --------------------------------------------------------------------
- ** Version functions.
+ ** Vicare/cURL version functions.
  ** ----------------------------------------------------------------- */
 
 ikptr
-ikrt_curl_version_interface_current (void)
+ikrt_vicare_curl_version_interface_current (void)
 {
   return IK_FIX(vicare_curl_VERSION_INTERFACE_CURRENT);
 }
 ikptr
-ikrt_curl_version_interface_revision (void)
+ikrt_vicare_curl_version_interface_revision (void)
 {
   return IK_FIX(vicare_curl_VERSION_INTERFACE_REVISION);
 }
 ikptr
-ikrt_curl_version_interface_age (void)
+ikrt_vicare_curl_version_interface_age (void)
 {
   return IK_FIX(vicare_curl_VERSION_INTERFACE_AGE);
 }
 ikptr
-ikrt_curl_version (ikpcb * pcb)
+ikrt_vicare_curl_version (ikpcb * pcb)
 {
   return ika_bytevector_from_cstring(pcb, vicare_curl_VERSION_INTERFACE_STRING);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Vicare/cURL version functions.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_version (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_VERSION
+  return ika_bytevector_from_cstring(pcb, curl_version());
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_version_info (ikrt s_version_code, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_VERSION_INFO
+  CURLversion			version_code = ik_integer_to_int(s_version_code);
+  curl_version_info_data *	info;
+  info = curl_version_info(version_code);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 /* end of file */

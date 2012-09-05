@@ -126,6 +126,11 @@
 (define (vicare-curl-version)
   (ascii->string (capi.vicare-curl-version)))
 
+;;; --------------------------------------------------------------------
+
+(define (curl-version)
+  (ascii->string (capi.curl-version)))
+
 
 ;;;; callback makers
 
@@ -222,12 +227,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-version . args)
-  (define who 'curl-version)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-version-info . args)
   (define who 'curl-version-info)

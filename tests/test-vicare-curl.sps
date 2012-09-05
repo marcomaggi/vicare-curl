@@ -59,6 +59,14 @@
       (string? (vicare-curl-version))
     => #t)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((v (curl-version)))
+;;;(check-pretty-print v)
+	(string? v))
+    => #t)
+
   #t)
 
 

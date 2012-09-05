@@ -214,12 +214,12 @@ to the @curl{}'s documentation for details.
 
 
 @menu
-* plain version::               cURL version informations.
+* plain version::               @curl{} version informations.
 @end menu
 
 @c page
 @node plain version
-@section Tamplate version informations
+@section @curl{} version informations
 
 
 The installed C library follows version numbering as established by the
@@ -240,6 +240,19 @@ Return a fixnum representing a version number.
 
 @defun vicare-curl-version
 Return a Scheme string representing the versio number.
+@end defun
+
+
+@defun curl-version
+Return a string representing the version of @curl{}:
+
+@example
+(import (vicare)
+  (vicare net curl))
+
+(curl-version)
+@result{} "libcurl/7.27.0 OpenSSL/0.9.8n zlib/1.2.5 libidn/1.12"
+@end example
 @end defun
 
 @c page
