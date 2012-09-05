@@ -56,8 +56,8 @@ AC_CHECK_HEADERS([curl/curl.h],,
 AC_CHECK_LIB([curl],[curl_global_init],,
   [AC_MSG_FAILURE([missing cURL library],[2])])
 
-AC_CHECK_HEADER([ioctl.h])
-AC_CHECK_HEADER([time.h])
+dnl AC_CHECK_HEADER([ioctl.h])
+dnl AC_CHECK_HEADER([time.h])
 
 vicare_curl_VERSION_INTERFACE_CURRENT=0
 vicare_curl_VERSION_INTERFACE_REVISION=0

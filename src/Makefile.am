@@ -8,6 +8,11 @@ vicare_curl_VERSION	= $(vicare_curl_CURRENT):$(vicare_curl_REVISION):$(vicare_cu
 lib_LTLIBRARIES			= libvicare-curl.la
 libvicare_curl_la_LDFLAGS	= -version-info $(vicare_curl_VERSION)
 libvicare_curl_la_SOURCES	= \
-	vicare-curl.c
+	vicare-curl-version.c		\
+	vicare-curl-easy.c		\
+	vicare-curl-multi.c		\
+	vicare-curl-misc.c		\
+	\
+	vicare-curl-internals.h
 
 ### end of file

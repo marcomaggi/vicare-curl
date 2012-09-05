@@ -1,6 +1,6 @@
 /*
   Part of: Vicare/cURL
-  Contents: Libcurl for Vicare
+  Contents: Libcurl for Vicare, multi API
   Date: Wed Sep  5, 2012
 
   Abstract
@@ -32,32 +32,12 @@
 #  include <config.h>
 #endif
 #include <vicare.h>
-#include <curl/curl.h>
+#include <vicare-curl-internals.h>
 
 
 /** --------------------------------------------------------------------
- ** Version functions.
+ ** Multi API.
  ** ----------------------------------------------------------------- */
 
-ikptr
-ikrt_curl_version_interface_current (void)
-{
-  return IK_FIX(vicare_curl_VERSION_INTERFACE_CURRENT);
-}
-ikptr
-ikrt_curl_version_interface_revision (void)
-{
-  return IK_FIX(vicare_curl_VERSION_INTERFACE_REVISION);
-}
-ikptr
-ikrt_curl_version_interface_age (void)
-{
-  return IK_FIX(vicare_curl_VERSION_INTERFACE_AGE);
-}
-ikptr
-ikrt_curl_version (ikpcb * pcb)
-{
-  return ika_bytevector_from_cstring(pcb, vicare_curl_VERSION_INTERFACE_STRING);
-}
 
 /* end of file */
