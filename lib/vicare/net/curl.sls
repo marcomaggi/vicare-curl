@@ -36,6 +36,54 @@
     vicare-curl-version-interface-age
     vicare-curl-version
 
+;;; --------------------------------------------------------------------
+
+    ;; still to be implemented
+    curl-version
+    curl-version-info
+    curl-global-init
+    curl-global-init-mem
+    curl-global-cleanup
+    curl-free
+    curl-slist-append
+    curl-slist-free-all
+    curl-formadd
+    curl-formget
+    curl-formfree
+    curl-easy-escape
+    curl-escape
+    curl-easy-unescape
+    curl-unescape
+    curl-getdate
+    curl-share-init
+    curl-share-setopt
+    curl-share-cleanup
+    curl-share-strerror
+    curl-easy-init
+    curl-easy-setopt
+    curl-easy-perform
+    curl-easy-cleanup
+    curl-easy-getinfo
+    curl-easy-duphandle
+    curl-easy-reset
+    curl-easy-recv
+    curl-easy-send
+    curl-easy-strerror
+    curl-easy-pause
+    curl-multi-init
+    curl-multi-add-handle
+    curl-multi-remove-handle
+    curl-multi-fdset
+    curl-multi-perform
+    curl-multi-cleanup
+    curl-multi-info-read
+    curl-multi-strerror
+    curl-multi-socket
+    curl-multi-socket-action
+    curl-multi-socket-all
+    curl-multi-timeout
+    curl-multi-setopt
+    curl-multi-assign
     )
   (import (vicare)
     (vicare net curl constants)
@@ -168,6 +216,282 @@
 
  ;; int (*curl_multi_timer_callback)(CURLM *multi, long timeout_ms, void *userp);
 
+
+
+;;;; still to be implemented
+
+(define-inline (unimplemented who)
+  (assertion-violation who "unimplemented function"))
+
+(define (curl-version . args)
+  (define who 'curl-version)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-version-info . args)
+  (define who 'curl-version-info)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-global-init . args)
+  (define who 'curl-global-init)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-global-init-mem . args)
+  (define who 'curl-global-init-mem)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-global-cleanup . args)
+  (define who 'curl-global-cleanup)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-free . args)
+  (define who 'curl-free)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-slist-append . args)
+  (define who 'curl-slist-append)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-slist-free-all . args)
+  (define who 'curl-slist-free-all)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-formadd . args)
+  (define who 'curl-formadd)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-formget . args)
+  (define who 'curl-formget)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-formfree . args)
+  (define who 'curl-formfree)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-escape . args)
+  (define who 'curl-easy-escape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-escape . args)
+  (define who 'curl-escape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-unescape . args)
+  (define who 'curl-easy-unescape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-unescape . args)
+  (define who 'curl-unescape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-getdate . args)
+  (define who 'curl-getdate)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-share-init . args)
+  (define who 'curl-share-init)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-share-setopt . args)
+  (define who 'curl-share-setopt)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-share-cleanup . args)
+  (define who 'curl-share-cleanup)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-share-strerror . args)
+  (define who 'curl-share-strerror)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-init . args)
+  (define who 'curl-easy-init)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-setopt . args)
+  (define who 'curl-easy-setopt)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-perform . args)
+  (define who 'curl-easy-perform)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-cleanup . args)
+  (define who 'curl-easy-cleanup)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-getinfo . args)
+  (define who 'curl-easy-getinfo)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-duphandle . args)
+  (define who 'curl-easy-duphandle)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-reset . args)
+  (define who 'curl-easy-reset)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-recv . args)
+  (define who 'curl-easy-recv)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-send . args)
+  (define who 'curl-easy-send)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-strerror . args)
+  (define who 'curl-easy-strerror)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-pause . args)
+  (define who 'curl-easy-pause)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-init . args)
+  (define who 'curl-multi-init)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-add-handle . args)
+  (define who 'curl-multi-add-handle)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-remove-handle . args)
+  (define who 'curl-multi-remove-handle)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-fdset . args)
+  (define who 'curl-multi-fdset)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-perform . args)
+  (define who 'curl-multi-perform)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-cleanup . args)
+  (define who 'curl-multi-cleanup)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-info-read . args)
+  (define who 'curl-multi-info-read)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-strerror . args)
+  (define who 'curl-multi-strerror)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket . args)
+  (define who 'curl-multi-socket)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket-action . args)
+  (define who 'curl-multi-socket-action)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket-all . args)
+  (define who 'curl-multi-socket-all)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-timeout . args)
+  (define who 'curl-multi-timeout)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-setopt . args)
+  (define who 'curl-multi-setopt)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-assign . args)
+  (define who 'curl-multi-assign)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
 
 
 ;;;; done

@@ -28,53 +28,369 @@
  ** Still to be interfaced.
  ** ----------------------------------------------------------------- */
 
-curl_version
-curl_version_info
-curl_global_init
-curl_global_init_mem
-curl_global_cleanup
-curl_free
-curl_slist_append
-curl_slist_free_all
-curl_formadd
-curl_formget
-curl_formfree
-curl_easy_escape
-curl_escape
-curl_easy_unescape
-curl_unescape
-curl_getdate
-curl_share_init
-curl_share_setopt
-curl_share_cleanup
-curl_share_strerror
-curl_easy_init
-curl_easy_setopt
-curl_easy_perform
-curl_easy_cleanup
-curl_easy_getinfo
-curl_easy_duphandle
-curl_easy_reset
-curl_easy_recv
-curl_easy_send
-curl_easy_strerror
-curl_easy_pause
-curl_multi_init
-curl_multi_add_handle
-curl_multi_remove_handle
-curl_multi_fdset
-curl_multi_perform
-curl_multi_cleanup
-curl_multi_info_read
-curl_multi_strerror
-curl_multi_socket
-curl_multi_socket_action
-curl_multi_socket_all
-curl_multi_timeout
-curl_multi_setopt
-curl_multi_assign
-
-
-
+#if 0
+ikptr
+ik_curl_version (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_VERSION
+  curl_version();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_version_info (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_VERSION_INFO
+  curl_version_info();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_global_init (ikpcb * pcb)
+#ifdef HAVE_CURL_GLOBAL_INIT
+  curl_global_init();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_global_init_mem (ikpcb * pcb)
+#ifdef HAVE_CURL_GLOBAL_INIT_MEM
+  curl_global_init_mem();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_global_cleanup (ikpcb * pcb)
+#ifdef HAVE_CURL_GLOBAL_CLEANUP
+  curl_global_cleanup();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_free (ikpcb * pcb)
+#ifdef HAVE_CURL_FREE
+  curl_free();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_slist_append (ikpcb * pcb)
+#ifdef HAVE_CURL_SLIST_APPEND
+  curl_slist_append();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_slist_free_all (ikpcb * pcb)
+#ifdef HAVE_CURL_SLIST_FREE_ALL
+  curl_slist_free_all();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_formadd (ikpcb * pcb)
+#ifdef HAVE_CURL_FORMADD
+  curl_formadd();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_formget (ikpcb * pcb)
+#ifdef HAVE_CURL_FORMGET
+  curl_formget();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_formfree (ikpcb * pcb)
+#ifdef HAVE_CURL_FORMFREE
+  curl_formfree();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_escape (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_ESCAPE
+  curl_easy_escape();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_escape (ikpcb * pcb)
+#ifdef HAVE_CURL_ESCAPE
+  curl_escape();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_unescape (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_UNESCAPE
+  curl_easy_unescape();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_unescape (ikpcb * pcb)
+#ifdef HAVE_CURL_UNESCAPE
+  curl_unescape();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_getdate (ikpcb * pcb)
+#ifdef HAVE_CURL_GETDATE
+  curl_getdate();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_share_init (ikpcb * pcb)
+#ifdef HAVE_CURL_SHARE_INIT
+  curl_share_init();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_share_setopt (ikpcb * pcb)
+#ifdef HAVE_CURL_SHARE_SETOPT
+  curl_share_setopt();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_share_cleanup (ikpcb * pcb)
+#ifdef HAVE_CURL_SHARE_CLEANUP
+  curl_share_cleanup();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_share_strerror (ikpcb * pcb)
+#ifdef HAVE_CURL_SHARE_STRERROR
+  curl_share_strerror();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_init (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_INIT
+  curl_easy_init();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_setopt (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_SETOPT
+  curl_easy_setopt();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_perform (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_PERFORM
+  curl_easy_perform();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_cleanup (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_CLEANUP
+  curl_easy_cleanup();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_getinfo (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_GETINFO
+  curl_easy_getinfo();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_duphandle (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_DUPHANDLE
+  curl_easy_duphandle();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_reset (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_RESET
+  curl_easy_reset();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_recv (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_RECV
+  curl_easy_recv();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_send (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_SEND
+  curl_easy_send();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_strerror (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_STRERROR
+  curl_easy_strerror();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_easy_pause (ikpcb * pcb)
+#ifdef HAVE_CURL_EASY_PAUSE
+  curl_easy_pause();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_init (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_INIT
+  curl_multi_init();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_add_handle (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_ADD_HANDLE
+  curl_multi_add_handle();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_remove_handle (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_REMOVE_HANDLE
+  curl_multi_remove_handle();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_fdset (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_FDSET
+  curl_multi_fdset();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_perform (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_PERFORM
+  curl_multi_perform();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_cleanup (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_CLEANUP
+  curl_multi_cleanup();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_info_read (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_INFO_READ
+  curl_multi_info_read();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_strerror (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_STRERROR
+  curl_multi_strerror();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_socket (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_SOCKET
+  curl_multi_socket();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_socket_action (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_SOCKET_ACTION
+  curl_multi_socket_action();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_socket_all (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_SOCKET_ALL
+  curl_multi_socket_all();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_timeout (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_TIMEOUT
+  curl_multi_timeout();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_setopt (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_SETOPT
+  curl_multi_setopt();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ik_curl_multi_assign (ikpcb * pcb)
+#ifdef HAVE_CURL_MULTI_ASSIGN
+  curl_multi_assign();
+#else
+  feature_failure(__func__);
+#endif
+}
+#endif
 
 /* end of file */

@@ -38,6 +38,51 @@
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
+    curl-version
+    curl-version-info
+    curl-global-init
+    curl-global-init-mem
+    curl-global-cleanup
+    curl-free
+    curl-slist-append
+    curl-slist-free-all
+    curl-formadd
+    curl-formget
+    curl-formfree
+    curl-easy-escape
+    curl-escape
+    curl-easy-unescape
+    curl-unescape
+    curl-getdate
+    curl-share-init
+    curl-share-setopt
+    curl-share-cleanup
+    curl-share-strerror
+    curl-easy-init
+    curl-easy-setopt
+    curl-easy-perform
+    curl-easy-cleanup
+    curl-easy-getinfo
+    curl-easy-duphandle
+    curl-easy-reset
+    curl-easy-recv
+    curl-easy-send
+    curl-easy-strerror
+    curl-easy-pause
+    curl-multi-init
+    curl-multi-add-handle
+    curl-multi-remove-handle
+    curl-multi-fdset
+    curl-multi-perform
+    curl-multi-cleanup
+    curl-multi-info-read
+    curl-multi-strerror
+    curl-multi-socket
+    curl-multi-socket-action
+    curl-multi-socket-all
+    curl-multi-timeout
+    curl-multi-setopt
+    curl-multi-assign
     )
   (import (vicare))
 
@@ -70,8 +115,140 @@
 
 ;;;; still to be implemented
 
-#;(define-inline (vicare-curl)
-  (foreign-call "iktr_curl"))
+(define-inline (curl-version)
+  (foreign-call "ik_curl_version"))
+
+(define-inline (curl-version-info)
+  (foreign-call "ik_curl_version_info"))
+
+(define-inline (curl-global-init)
+  (foreign-call "ik_curl_global_init"))
+
+(define-inline (curl-global-init-mem)
+  (foreign-call "ik_curl_global_init_mem"))
+
+(define-inline (curl-global-cleanup)
+  (foreign-call "ik_curl_global_cleanup"))
+
+(define-inline (curl-free)
+  (foreign-call "ik_curl_free"))
+
+(define-inline (curl-slist-append)
+  (foreign-call "ik_curl_slist_append"))
+
+(define-inline (curl-slist-free-all)
+  (foreign-call "ik_curl_slist_free_all"))
+
+(define-inline (curl-formadd)
+  (foreign-call "ik_curl_formadd"))
+
+(define-inline (curl-formget)
+  (foreign-call "ik_curl_formget"))
+
+(define-inline (curl-formfree)
+  (foreign-call "ik_curl_formfree"))
+
+(define-inline (curl-easy-escape)
+  (foreign-call "ik_curl_easy_escape"))
+
+(define-inline (curl-escape)
+  (foreign-call "ik_curl_escape"))
+
+(define-inline (curl-easy-unescape)
+  (foreign-call "ik_curl_easy_unescape"))
+
+(define-inline (curl-unescape)
+  (foreign-call "ik_curl_unescape"))
+
+(define-inline (curl-getdate)
+  (foreign-call "ik_curl_getdate"))
+
+(define-inline (curl-share-init)
+  (foreign-call "ik_curl_share_init"))
+
+(define-inline (curl-share-setopt)
+  (foreign-call "ik_curl_share_setopt"))
+
+(define-inline (curl-share-cleanup)
+  (foreign-call "ik_curl_share_cleanup"))
+
+(define-inline (curl-share-strerror)
+  (foreign-call "ik_curl_share_strerror"))
+
+(define-inline (curl-easy-init)
+  (foreign-call "ik_curl_easy_init"))
+
+(define-inline (curl-easy-setopt)
+  (foreign-call "ik_curl_easy_setopt"))
+
+(define-inline (curl-easy-perform)
+  (foreign-call "ik_curl_easy_perform"))
+
+(define-inline (curl-easy-cleanup)
+  (foreign-call "ik_curl_easy_cleanup"))
+
+(define-inline (curl-easy-getinfo)
+  (foreign-call "ik_curl_easy_getinfo"))
+
+(define-inline (curl-easy-duphandle)
+  (foreign-call "ik_curl_easy_duphandle"))
+
+(define-inline (curl-easy-reset)
+  (foreign-call "ik_curl_easy_reset"))
+
+(define-inline (curl-easy-recv)
+  (foreign-call "ik_curl_easy_recv"))
+
+(define-inline (curl-easy-send)
+  (foreign-call "ik_curl_easy_send"))
+
+(define-inline (curl-easy-strerror)
+  (foreign-call "ik_curl_easy_strerror"))
+
+(define-inline (curl-easy-pause)
+  (foreign-call "ik_curl_easy_pause"))
+
+(define-inline (curl-multi-init)
+  (foreign-call "ik_curl_multi_init"))
+
+(define-inline (curl-multi-add-handle)
+  (foreign-call "ik_curl_multi_add_handle"))
+
+(define-inline (curl-multi-remove-handle)
+  (foreign-call "ik_curl_multi_remove_handle"))
+
+(define-inline (curl-multi-fdset)
+  (foreign-call "ik_curl_multi_fdset"))
+
+(define-inline (curl-multi-perform)
+  (foreign-call "ik_curl_multi_perform"))
+
+(define-inline (curl-multi-cleanup)
+  (foreign-call "ik_curl_multi_cleanup"))
+
+(define-inline (curl-multi-info-read)
+  (foreign-call "ik_curl_multi_info_read"))
+
+(define-inline (curl-multi-strerror)
+  (foreign-call "ik_curl_multi_strerror"))
+
+(define-inline (curl-multi-socket)
+  (foreign-call "ik_curl_multi_socket"))
+
+(define-inline (curl-multi-socket-action)
+  (foreign-call "ik_curl_multi_socket_action"))
+
+(define-inline (curl-multi-socket-all)
+  (foreign-call "ik_curl_multi_socket_all"))
+
+(define-inline (curl-multi-timeout)
+  (foreign-call "ik_curl_multi_timeout"))
+
+(define-inline (curl-multi-setopt)
+  (foreign-call "ik_curl_multi_setopt"))
+
+(define-inline (curl-multi-assign)
+  (foreign-call "ik_curl_multi_assign"))
 
 
 ;;;; done
