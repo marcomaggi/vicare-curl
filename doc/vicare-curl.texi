@@ -120,7 +120,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* version::                     Curl version informations.
+* plain::                       Plain interface.
 
 Appendices
 
@@ -209,8 +209,17 @@ This document contains only a brief description of the functions: refer
 to the @curl{}'s documentation for details.
 
 @c page
-@node version
-@chapter Tamplate version informations
+@node plain
+@chapter Plain interface
+
+
+@menu
+* plain version::               cURL version informations.
+@end menu
+
+@c page
+@node plain version
+@section Tamplate version informations
 
 
 The installed C library follows version numbering as established by the
