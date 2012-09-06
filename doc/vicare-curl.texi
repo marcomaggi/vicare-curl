@@ -217,10 +217,14 @@ to the @curl{}'s documentation for details.
 @chapter Plain interface
 
 
+@cindex @library{vicare net curl}, library
+@cindex Library @library{vicare net curl}
+
 @menu
 * plain version::               @curl{} version informations.
 * plain init::                  Global initialisation and
                                 finalisation.
+* plain misc::                  Miscellaneous functions.
 @end menu
 
 @c page
@@ -509,7 +513,6 @@ handle raw memory allocation:
 (import (vicare)
   (vicare net curl)
   (vicare net curl constants)
-  (vicare syntactic-extensions)
   (prefix (vicare ffi) ffi.))
 
 (curl-global-init-mem CURL_GLOBAL_ALL
@@ -520,6 +523,27 @@ handle raw memory allocation:
    (make-curl-calloc-callback  calloc))
 @result{} CURLE_OK
 @end example
+
+@c page
+@node plain misc
+@section Miscellaneous functions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-free @var{pointer}
+Release memory allocated through a call to the @curl{} library; return
+unspecified values.  @curlman{curl_free}.
+
+@var{pointer} must be @false{} or a pointer object; when @var{pointer}
+is neither @false{} nor @cnull{}: @var{pointer} is mutated to represent
+the @cnull{} pointer.
+
+It is safe to apply this function multiple times to the same
+@var{pointer}.
+@end defun
 
 @c page
 @c ------------------------------------------------------------

@@ -37,13 +37,22 @@
 (check-set-mode! 'report-failed)
 (check-display "*** testing Vicare Libcurl bindings, core functions\n")
 
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
 
 ;;;; helpers
 
 
 
-(parametrise ((check-test-name	'core))
+(parametrise ((check-test-name	'misc))
 
+  (check
+      (curl-free (null-pointer))
+    => (void))
+
+  (check
+      (curl-free #f)
+    => (void))
 
   #t)
 

@@ -92,5 +92,19 @@ ikrt_curl_global_cleanup (ikpcb * pcb)
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 
+ikptr
+ikrt_curl_free (ikptr s_pointer, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FREE
+  void *	ptr = IK_POINTER_FROM_POINTER_OR_FALSE(s_pointer);
+  if (ptr) {
+    curl_free(ptr);
+    IK_POINTER_SET_NULL(s_pointer);
+  }
+  return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
+}
 
 /* end of file */

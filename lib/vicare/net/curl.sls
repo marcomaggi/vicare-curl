@@ -56,10 +56,12 @@
     make-curl-realloc-callback		make-curl-strdup-callback
     make-curl-calloc-callback
 
+    ;; miscellaneous functions
+    curl-free
+
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-free
     curl-slist-append
     curl-slist-free-all
     curl-formadd
@@ -126,6 +128,10 @@
 (define-argument-validation (pointer who obj)
   (pointer? obj)
   (assertion-violation who "expected pointer as argument" obj))
+
+(define-argument-validation (pointer/false who obj)
+  (or (not obj) (pointer? obj))
+  (assertion-violation who "expected false or pointer as argument" obj))
 
 (define-argument-validation (callback who obj)
   (or (not obj) (pointer? obj))
@@ -388,6 +394,15 @@
 		 (user-scheme-callback number-of-items item-size)))))))
 
 
+;;;; miscellaneous functions
+
+(define (curl-free pointer)
+  (define who 'curl-free)
+  (with-arguments-validation (who)
+      ((pointer/false	pointer))
+    (capi.curl-free pointer)))
+
+
 ;;;; callback makers
 
  ;; int (*curl_progress_callback)(void *clientp,
@@ -483,12 +498,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-free . args)
-  (define who 'curl-free)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-slist-append . args)
   (define who 'curl-slist-append)

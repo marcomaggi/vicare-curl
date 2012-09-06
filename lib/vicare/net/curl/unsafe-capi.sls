@@ -40,10 +40,12 @@
     curl-global-init			curl-global-init-mem
     curl-global-cleanup
 
+    ;; miscellaneous functions
+    curl-free
+
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
-    curl-free
     curl-slist-append
     curl-slist-free-all
     curl-formadd
@@ -137,10 +139,13 @@
   (foreign-call "ikrt_curl_global_cleanup"))
 
 
-;;;; still to be implemented
+;;;; miscellaneous functions
 
-(define-inline (curl-free)
-  (foreign-call "ikrt_curl_free"))
+(define-inline (curl-free ptr)
+  (foreign-call "ikrt_curl_free" ptr))
+
+
+;;;; still to be implemented
 
 (define-inline (curl-slist-append)
   (foreign-call "ikrt_curl_slist_append"))
