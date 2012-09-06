@@ -35,12 +35,23 @@
     vicare-curl-version-interface-revision
     vicare-curl-version-interface-age
     vicare-curl-version
+    curl-version			curl-version-info
+    curl-version-info-features->symbols	curl-version-feature?
+
+    ;; version info data structure
+    curl-version-info-data		curl-version-info-data?
+    curl-version-info-data-age		curl-version-info-data-version
+    curl-version-info-data-version-num	curl-version-info-data-host
+    curl-version-info-data-features	curl-version-info-data-ssl-version
+    curl-version-info-data-ssl-version-num
+    curl-version-info-data-libz-version	curl-version-info-data-protocols
+    curl-version-info-data-ares		curl-version-info-data-ares-num
+    curl-version-info-data-libidn	curl-version-info-data-iconv-ver-num
+    curl-version-info-data-libssh-version
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-version
-    curl-version-info
     curl-global-init
     curl-global-init-mem
     curl-global-cleanup
@@ -89,14 +100,20 @@
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi) capi.)
     (vicare syntactic-extensions)
+    (prefix (vicare unsafe-operations)
+	    unsafe.)
     #;(prefix (vicare words) words.))
 
 
 ;;;; arguments validation
 
-#;(define-argument-validation (fixnum who obj)
+(define-argument-validation (fixnum who obj)
   (fixnum? obj)
   (assertion-violation who "expected fixnum as argument" obj))
+
+(define-argument-validation (non-negative-fixnum who obj)
+  (and (fixnum? obj) (unsafe.fx<= 0 obj))
+  (assertion-violation who "expected non-negative fixnum as argument" obj))
 
 #;(define-argument-validation (pointer who obj)
   (pointer? obj)
@@ -110,6 +127,13 @@
   (bytevector? obj)
   (assertion-violation who "expected bytevector as argument" obj))
 
+;;; --------------------------------------------------------------------
+
+(define-argument-validation (curl-version-info-data who obj)
+  (curl-version-info-data? obj)
+  (assertion-violation who
+    "expected instance of \"curl-version-info-data\" as argument"
+    obj))
 
 
 ;;;; version functions
@@ -130,6 +154,137 @@
 
 (define (curl-version)
   (ascii->string (capi.curl-version)))
+
+;;; --------------------------------------------------------------------
+
+(define-struct curl-version-info-data
+  (age
+		;Age of the returned struct.
+   version
+		;A LIBCURL_VERSION constant
+   version-num
+		;The LIBCURL_VERSION_NUM constant.
+   host
+		;OS/host/cpu/machine when configured.
+   features
+		;Bitmask of CURL_VERSION_ constants.
+   ssl-version
+		;Human readable string.
+   ssl-version-num
+		;Not used anymore, always 0.
+   libz-version
+		;Human readable string.
+   protocols
+		;List of protocols is terminated by an entry with a NULL
+		;protoname.
+   ares
+		;
+   ares-num
+		;
+   libidn
+		;
+   iconv-ver-num
+		;Same as '_libiconv_version' if built with HAVE_ICONV.
+   libssh-version
+		;Human readable string.
+   ))
+
+(define (%struct-curl-version-info-data-printer S port sub-printer)
+  (define-inline (%display thing)
+    (display thing port))
+  (define-inline (%write thing)
+    (write thing port))
+  (%display "#[curl-version-info-data")
+  (%display " age=")		(%display (curl-version-info-data-age S))
+  (%display " version=")	(%write   (curl-version-info-data-version S))
+  (%display " version-num=")	(%display (curl-version-info-data-version-num S))
+  (%display " host=")		(%write   (curl-version-info-data-host S))
+  (%display " features=")	(%display (curl-version-info-features->symbols S))
+  (%display " ssl-version=")	(%write	  (curl-version-info-data-ssl-version S))
+  (%display " ssl-version-num=")(%display (curl-version-info-data-ssl-version-num S))
+  (%display " libz-version=")	(%write   (curl-version-info-data-libz-version S))
+  (%display " protocols=")	(%write   (curl-version-info-data-protocols S))
+  (%display " ares=")		(%write   (curl-version-info-data-ares S))
+  (%display " ares-num=")	(%display (curl-version-info-data-ares-num S))
+  (%display " libidn=")		(%write   (curl-version-info-data-libidn S))
+  (%display " iconv-ver-num=")	(%display (curl-version-info-data-iconv-ver-num S))
+  (%display " libssh-version=")	(%write   (curl-version-info-data-libssh-version S))
+  (%display "]"))
+
+(define (curl-version-info version-code)
+  (define who 'curl-version-info)
+  (with-arguments-validation (who)
+      ((non-negative-fixnum	version-code))
+    (let ((rv (capi.curl-version-info (type-descriptor curl-version-info-data) version-code)))
+      (define-inline (b->s S G)
+	(S rv (let ((b (G rv)))
+		(and b (ascii->string b)))))
+      (b->s set-curl-version-info-data-version!
+	    curl-version-info-data-version)
+      (b->s set-curl-version-info-data-host!
+	    curl-version-info-data-host)
+      (b->s set-curl-version-info-data-ssl-version!
+	    curl-version-info-data-ssl-version)
+      (b->s set-curl-version-info-data-libz-version!
+	    curl-version-info-data-libz-version)
+      (b->s set-curl-version-info-data-ares!
+	    curl-version-info-data-ares)
+      (b->s set-curl-version-info-data-libidn!
+	    curl-version-info-data-libidn)
+      (b->s set-curl-version-info-data-libssh-version!
+	    curl-version-info-data-libssh-version)
+      (set-curl-version-info-data-protocols!
+       rv (map ascii->string (curl-version-info-data-protocols rv)))
+      rv)))
+
+(define (curl-version-info-features->symbols S)
+  (define who 'curl-version-info-features->symbols)
+  (with-arguments-validation (who)
+      ((curl-version-info-data	S))
+    (let loop ((result   '())
+	       (features (curl-version-info-data-features S))
+	       (flags	`(,CURL_VERSION_IPV6		,CURL_VERSION_KERBEROS4
+			  ,CURL_VERSION_SSL		,CURL_VERSION_LIBZ
+			  ,CURL_VERSION_NTLM		,CURL_VERSION_GSSNEGOTIATE
+			  ,CURL_VERSION_DEBUG		,CURL_VERSION_ASYNCHDNS
+			  ,CURL_VERSION_SPNEGO		,CURL_VERSION_LARGEFILE
+			  ,CURL_VERSION_IDN		,CURL_VERSION_SSPI
+			  ,CURL_VERSION_CONV		,CURL_VERSION_CURLDEBUG
+			  ,CURL_VERSION_TLSAUTH_SRP	,CURL_VERSION_NTLM_WB)))
+      (if (null? flags)
+	  result
+	(loop (let ((flag (unsafe.car flags)))
+		(if (zero? (bitwise-and flag features))
+		    result
+		  (cons (%curl-version-info-features->symbols flag)
+			result)))
+	      features
+	      (unsafe.cdr flags))))))
+
+(define-exact-integer->symbol-function %curl-version-info-features->symbols
+  (CURL_VERSION_IPV6
+   CURL_VERSION_KERBEROS4
+   CURL_VERSION_SSL
+   CURL_VERSION_LIBZ
+   CURL_VERSION_NTLM
+   CURL_VERSION_GSSNEGOTIATE
+   CURL_VERSION_DEBUG
+   CURL_VERSION_ASYNCHDNS
+   CURL_VERSION_SPNEGO
+   CURL_VERSION_LARGEFILE
+   CURL_VERSION_IDN
+   CURL_VERSION_SSPI
+   CURL_VERSION_CONV
+   CURL_VERSION_CURLDEBUG
+   CURL_VERSION_TLSAUTH_SRP
+   CURL_VERSION_NTLM_WB))
+
+(define (curl-version-feature? S feature)
+  (define who 'curl-version-feature?)
+  (with-arguments-validation (who)
+      ((curl-version-info-data	S)
+       (non-negative-fixnum	feature))
+    (not (zero? (bitwise-and feature (curl-version-info-data-features S))))))
 
 
 ;;;; callback makers
@@ -227,12 +382,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-version-info . args)
-  (define who 'curl-version-info)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-global-init . args)
   (define who 'curl-global-init)
@@ -495,10 +644,14 @@
 
 ;;;; done
 
-#;(set-rtd-printer! (type-descriptor XML_ParsingStatus) %struct-XML_ParsingStatus-printer)
+(set-rtd-printer! (type-descriptor curl-version-info-data)
+		  %struct-curl-version-info-data-printer)
 
 #;(post-gc-hooks (cons %free-allocated-parser (post-gc-hooks)))
 
 )
 
 ;;; end of file
+;;Local Variables:
+;;eval: (put 'set-curl-version-info-data-libssh-version! 'scheme-indent-function 1)
+;;End:

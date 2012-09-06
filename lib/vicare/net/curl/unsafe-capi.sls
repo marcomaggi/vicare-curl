@@ -118,11 +118,11 @@
 (define-inline (curl-version)
   (foreign-call "ikrt_curl_version"))
 
+(define-inline (curl-version-info rtd version-code)
+  (foreign-call "ikrt_curl_version_info" rtd version-code))
+
 
 ;;;; still to be implemented
-
-(define-inline (curl-version-info)
-  (foreign-call "ikrt_curl_version_info"))
 
 (define-inline (curl-global-init)
   (foreign-call "ikrt_curl_global_init"))

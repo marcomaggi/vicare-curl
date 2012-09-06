@@ -255,6 +255,168 @@ Return a string representing the version of @curl{}:
 @end example
 @end defun
 
+
+@deftp {Struct Type} curl-version-info-data
+Data structure mirroring the C language type
+@code{curl_version_info_data}.  It has the following fields:
+
+@table @code
+@item age
+Exact integer, age of the returned struct.
+
+@item version
+An exact integer representing a @code{LIBCURL_VERSION} constant.
+
+@item version-num
+An exact integer representing the @code{LIBCURL_VERSION_NUM} constant.
+
+@item host
+@false{} or a stirng representing OS/host/cpu/machine when the package
+was configured.
+
+@item features
+An exact integer representing a bitmask of @code{CURL_VERSION_}
+constants.
+
+@item ssl-version
+@false{} or a human readable string.
+
+@item ssl-version-num
+Not used anymore, always @code{0}.
+
+@item libz-version
+@false{} or a human readable string.
+
+@item protocols
+A list of protocol strings.
+
+@item ares
+@false{} or a string.
+
+@item ares-num
+An exact integer.
+
+@item libidn
+@false{} or a string.
+
+@item iconv-ver-num
+An exact integer, same as @code{_libiconv_version} if @curl{} was built
+with @code{HAVE_ICONV}.
+
+@item libssh-version
+@false{} or a human readable string.
+@end table
+@end deftp
+
+
+@defun curl-version-info-data? @var{obj}
+Return @true{} if @var{obj} is an instance of
+@code{curl-version-info-data}.
+@end defun
+
+
+@defun curl-version-info-data-age @var{info}
+@defunx curl-version-info-data-version @var{info}
+@defunx curl-version-info-data-version-num @var{info}
+@defunx curl-version-info-data-host @var{info}
+@defunx curl-version-info-data-features @var{info}
+@defunx curl-version-info-data-ssl-version @var{info}
+@defunx curl-version-info-data-ssl-version-num @var{info}
+@defunx curl-version-info-data-libz-version @var{info}
+@defunx curl-version-info-data-protocols @var{info}
+@defunx curl-version-info-data-ares @var{info}
+@defunx curl-version-info-data-ares-num @var{info}
+@defunx curl-version-info-data-libidn @var{info}
+@defunx curl-version-info-data-iconv-ver-num @var{info}
+@defunx curl-version-info-data-libssh-version @var{info}
+Accessors for the fields of @code{curl-version-info-data} instances.
+@end defun
+
+
+@defun curl-version-info @var{version-code}
+Return an instance of @code{curl-version-info-data} representing the
+version number of the features with which @curl{} was built.
+
+@var{version-code} must be a non--negative fixnum representing one of
+the @code{CURLVERSION_} constants, with @code{CURLVERSION_NOW}
+representing the current version.
+
+@example
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(curl-version-info CURLVERSION_NOW)
+@result{} #[curl-version-info-data
+   age=3
+   version="7.27.0"
+   version-num=465664
+   host="i686-pc-linux-gnu"
+   features=(CURL_VERSION_NTLM_WB
+             CURL_VERSION_IDN
+             CURL_VERSION_LARGEFILE
+             CURL_VERSION_NTLM
+             CURL_VERSION_LIBZ
+             CURL_VERSION_SSL
+             CURL_VERSION_IPV6)
+   ssl-version="OpenSSL/0.9.8n"
+   ssl-version-num=0
+   libz-version="1.2.5"
+   protocols=("tftp"    "telnet"   "smtps"
+              "smtp"    "rtsp"     "pop3s"
+              "pop3"    "ldaps"    "ldap"
+              "imaps"   "imap"     "https"
+              "http"    "gopher"   "ftps"
+              "ftp"     "file"     "dict")
+   ares=#f
+   ares-num=0
+   libidn="1.12"
+   iconv-ver-num=0
+   libssh-version=#f]
+@end example
+@end defun
+
+
+@defun curl-version-info-features->symbols @var{info}
+Given an instance of @code{curl-version-info-data}, extract the
+@code{features} field and convert it into a list of symbols representing
+the @code{CURL_VERSION_} constants.
+
+@example
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(curl-version-info-features->symbols
+   (curl-version-info CURLVERSION_NOW))
+@result{} (CURL_VERSION_NTLM_WB
+    CURL_VERSION_IDN
+    CURL_VERSION_LARGEFILE
+    CURL_VERSION_NTLM
+    CURL_VERSION_LIBZ
+    CURL_VERSION_SSL
+    CURL_VERSION_IPV6)
+@end example
+@end defun
+
+
+@defun curl-version-feature? @var{info} @var{feature}
+Given an instance of @code{curl-version-info-data}, extract the
+@code{features} field and bitwise AND it @var{feature}, which must be an
+exact integer representing a @code{CURL_VERSION_} constant; return
+@true{} if the @var{feature} bit is set.
+
+@example
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(curl-version-feature? (curl-version-info CURLVERSION_NOW)
+                       CURL_VERSION_LIBZ)
+@result{} #t
+@end example
+@end defun
+
 @c page
 @c ------------------------------------------------------------
 @c Appendices.

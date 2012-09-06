@@ -74,13 +74,82 @@ ikrt_curl_version (ikpcb * pcb)
   feature_failure(__func__);
 #endif
 }
+
+#define IK_CURL_VERSION_INFO_DATA_AGE(OBJ)		IK_FIELD((OBJ),0)
+#define IK_CURL_VERSION_INFO_DATA_VERSION(OBJ)		IK_FIELD((OBJ),1)
+#define IK_CURL_VERSION_INFO_DATA_VERSION_NUM(OBJ)	IK_FIELD((OBJ),2)
+#define IK_CURL_VERSION_INFO_DATA_HOST(OBJ)		IK_FIELD((OBJ),3)
+#define IK_CURL_VERSION_INFO_DATA_FEATURES(OBJ)		IK_FIELD((OBJ),4)
+#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION(OBJ)	IK_FIELD((OBJ),5)
+#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM(OBJ)	IK_FIELD((OBJ),6)
+#define IK_CURL_VERSION_INFO_DATA_LIBZ_VERSION(OBJ)	IK_FIELD((OBJ),7)
+#define IK_CURL_VERSION_INFO_DATA_PROTOCOLS(OBJ)	IK_FIELD((OBJ),8)
+#define IK_CURL_VERSION_INFO_DATA_ARES(OBJ)		IK_FIELD((OBJ),9)
+#define IK_CURL_VERSION_INFO_DATA_ARES_NUM(OBJ)		IK_FIELD((OBJ),10)
+#define IK_CURL_VERSION_INFO_DATA_LIBIDN(OBJ)		IK_FIELD((OBJ),11)
+#define IK_CURL_VERSION_INFO_DATA_ICONV_VER_NUM(OBJ)	IK_FIELD((OBJ),12)
+#define IK_CURL_VERSION_INFO_DATA_LIBSSH_VERSION(OBJ)	IK_FIELD((OBJ),13)
+
 ikptr
-ikrt_curl_version_info (ikrt s_version_code, ikpcb * pcb)
+ikrt_curl_version_info (ikptr s_rtd, ikptr s_version_code, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_VERSION_INFO
   CURLversion			version_code = ik_integer_to_int(s_version_code);
   curl_version_info_data *	info;
+  ikptr				rv;
   info = curl_version_info(version_code);
+  rv = ika_struct_alloc_and_init(pcb, s_rtd);
+  pcb->root0 = &rv;
+  {
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_AGE(rv),
+	   ika_integer_from_int(pcb, info->age));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_VERSION(rv),
+	   (info->version)? ika_bytevector_from_cstring(pcb, info->version) : IK_FALSE);
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_VERSION_NUM(rv),
+	   ika_integer_from_int(pcb, info->version_num));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_HOST(rv),
+	   (info->host)? ika_bytevector_from_cstring(pcb, info->host) : IK_FALSE);
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_FEATURES(rv),
+	   ika_integer_from_int(pcb, info->features));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_SSL_VERSION(rv),
+	   (info->ssl_version)? \
+	   ika_bytevector_from_cstring(pcb, info->ssl_version) : IK_FALSE);
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM(rv),
+	   ika_integer_from_long(pcb, info->ssl_version_num));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_LIBZ_VERSION(rv),
+	   (info->libz_version)?
+	   ika_bytevector_from_cstring(pcb, info->libz_version) : IK_FALSE);
+    {
+      ikptr	s_protocols = IK_NULL;
+      ikptr	s_pair = IK_NULL;
+      pcb->root1 = &s_protocols;
+      pcb->root2 = &s_pair;
+      {
+      	int	i;
+      	for (i=0; i==100 || info->protocols[i]; ++i) {
+      	  s_pair = ika_pair_alloc(pcb);
+      	  IK_ASS(IK_CAR(s_pair), ika_bytevector_from_cstring(pcb, info->protocols[i]));
+      	  IK_CDR(s_pair) = s_protocols;
+      	  s_protocols = s_pair;
+      	}
+      }
+      pcb->root1 = NULL;
+      IK_ASS(IK_CURL_VERSION_INFO_DATA_PROTOCOLS(rv), s_protocols);
+    }
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_ARES(rv),
+	   (info->ares)? ika_bytevector_from_cstring(pcb, info->ares) : IK_FALSE);
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_ARES_NUM(rv),
+	   ika_integer_from_int(pcb, info->ares_num));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_LIBIDN(rv),
+	   (info->libidn)? ika_bytevector_from_cstring(pcb, info->libidn) : IK_FALSE);
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_ICONV_VER_NUM(rv),
+	   ika_integer_from_int(pcb, info->iconv_ver_num));
+    IK_ASS(IK_CURL_VERSION_INFO_DATA_LIBSSH_VERSION(rv),
+	   (info->libssh_version)? \
+	   ika_bytevector_from_cstring(pcb, info->libssh_version) : IK_FALSE);
+  }
+  pcb->root0 = NULL;
+  return rv;
 #else
   feature_failure(__func__);
 #endif

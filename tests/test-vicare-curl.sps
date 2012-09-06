@@ -67,6 +67,25 @@
 	(string? v))
     => #t)
 
+;;; --------------------------------------------------------------------
+
+  (when #f
+    (check-pretty-print (curl-version-info CURLVERSION_FIRST))
+    (check-pretty-print (curl-version-info CURLVERSION_SECOND))
+    (check-pretty-print (curl-version-info CURLVERSION_THIRD))
+    (check-pretty-print (curl-version-info CURLVERSION_FOURTH)))
+  (when #f
+    (check-pretty-print (curl-version-info CURLVERSION_NOW)))
+
+  (check
+      (for-all symbol?
+	(curl-version-info-features->symbols (curl-version-info CURLVERSION_NOW)))
+    => #t)
+
+  (check
+      (curl-version-feature? (curl-version-info CURLVERSION_NOW) CURL_VERSION_LIBZ)
+    => #t)
+
   #t)
 
 
