@@ -34,6 +34,8 @@
 #include <vicare.h>
 #include <vicare-curl-internals.h>
 
+typedef struct curl_slist	ik_curl_slist_t;
+
 
 /** --------------------------------------------------------------------
  ** Initialisation functions.
@@ -81,6 +83,39 @@ ikrt_curl_global_cleanup (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_GLOBAL_CLEANUP
   curl_global_cleanup();
+  return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
+ ** String lists.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_slist_append (ikptr s_slist, ikptr s_string, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SLIST_APPEND
+  ik_curl_slist_t *	slist  = IK_VOIDP_FROM_POINTER_OR_FALSE(s_slist);
+  const char *		string = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_string);
+  ik_curl_slist_t *	rv;
+  rv = curl_slist_append(slist, string);
+  return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_slist_free_all (ikptr s_slist, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SLIST_FREE_ALL
+  ik_curl_slist_t *	slist  = IK_VOIDP_FROM_POINTER_OR_FALSE(s_slist);
+  if (slist) {
+    curl_slist_free_all(slist);
+    IK_POINTER_SET_NULL(s_slist);
+  }
   return IK_VOID;
 #else
   feature_failure(__func__);

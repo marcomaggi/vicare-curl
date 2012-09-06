@@ -224,6 +224,7 @@ to the @curl{}'s documentation for details.
 * plain version::               @curl{} version informations.
 * plain init::                  Global initialisation and
                                 finalisation.
+* plain slists::                String lists.
 * plain misc::                  Miscellaneous functions.
 @end menu
 
@@ -523,6 +524,59 @@ handle raw memory allocation:
    (make-curl-calloc-callback  calloc))
 @result{} CURLE_OK
 @end example
+
+@c page
+@node plain slists
+@section String lists
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-slist-append @var{string}
+@defunx curl-slist-append @var{slist} @var{string}
+Add a string to a list of strings, possibly creating a new list; if
+successful return a pointer object representing the head of the list,
+else return @false{}.  @curlman{curl_slist_append}.
+
+The returned list must be released by @func{curl-slist-free-all}.
+
+@var{slist} must be @false{} or a pointer object.  When @var{slist} is
+@false{} or the @cnull{} pointer or not given: a new list is allocated.
+
+@var{string} must be a string, @ascii{} bytevector, pointer or
+@code{memory-block}.
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl))
+
+;; assuming no error occurs
+(let* ((slist (curl-slist-append "ciao"))
+       (slist (curl-slist-append slist "hello"))
+       (slist (curl-slist-append slist "salut")))
+  (curl-slist-free-all slist)
+  slist)
+@result{} #<pointer #x00000000>
+@end example
+@end defun
+
+
+@defun curl-slist-free-all @var{slist}
+Release all the resources associated to @var{slist}, which must be the
+return value of a previous call to @func{curl-slist-append}; return
+unspecified values.  @curlman{curl_slist_free_all}.
+
+@var{slist} must be @false{} or a pointer.  When @var{slist} is @false{}
+or a @cnull{} pointer: nothing happens.  When @var{slist} is a
+non--@cnull{} pointer: @var{slist} itself is mutated to represent
+@cnull{}.
+
+It is safe to apply this function multiple times to the same @var{slist}
+argument.
+@end defun
 
 @c page
 @node plain misc

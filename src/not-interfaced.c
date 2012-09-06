@@ -30,24 +30,6 @@
 
 #if 0
 ikptr
-ikrt_curl_slist_append (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SLIST_APPEND
-  curl_slist_append();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_slist_free_all (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SLIST_FREE_ALL
-  curl_slist_free_all();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_formadd (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_FORMADD

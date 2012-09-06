@@ -57,6 +57,44 @@
   #t)
 
 
+(parametrise ((check-test-name	'slists))
+
+  (check
+      (let ((slist (curl-slist-append #f "ciao")))
+	(curl-slist-free-all slist))
+    => (void))
+
+  (check
+      (let ((slist (curl-slist-append (null-pointer) "ciao")))
+	(curl-slist-free-all slist))
+    => (void))
+
+  (check
+      (let ((slist (curl-slist-append "ciao")))
+	(curl-slist-free-all slist))
+    => (void))
+
+  (check
+      (let* ((slist (curl-slist-append "ciao"))
+	     (slist (curl-slist-append slist "hello"))
+	     (slist (curl-slist-append slist "salut")))
+	(curl-slist-free-all slist))
+    => (void))
+
+  (check
+      (let* ((slist (curl-slist-append "ciao"))
+	     (slist (curl-slist-append slist "hello"))
+	     (slist (curl-slist-append slist "salut")))
+	(curl-slist-free-all slist)
+;;;	(check-pretty-print slist)
+	slist)
+    => (null-pointer))
+
+;;; --------------------------------------------------------------------
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

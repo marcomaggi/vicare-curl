@@ -56,14 +56,15 @@
     make-curl-realloc-callback		make-curl-strdup-callback
     make-curl-calloc-callback
 
+    ;; string lists
+    curl-slist-append			curl-slist-free-all
+
     ;; miscellaneous functions
     curl-free
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-slist-append
-    curl-slist-free-all
     curl-formadd
     curl-formget
     curl-formfree
@@ -129,10 +130,6 @@
   (pointer? obj)
   (assertion-violation who "expected pointer as argument" obj))
 
-(define-argument-validation (pointer/false who obj)
-  (or (not obj) (pointer? obj))
-  (assertion-violation who "expected false or pointer as argument" obj))
-
 (define-argument-validation (callback who obj)
   (or (not obj) (pointer? obj))
   (assertion-violation who "expected callback as argument" obj))
@@ -140,6 +137,20 @@
 #;(define-argument-validation (bytevector who obj)
   (bytevector? obj)
   (assertion-violation who "expected bytevector as argument" obj))
+
+;;; --------------------------------------------------------------------
+
+(define-argument-validation (pointer/false who obj)
+  (or (not obj) (pointer? obj))
+  (assertion-violation who "expected false or pointer as argument" obj))
+
+(define-argument-validation (general-string who obj)
+  (or (string? obj)
+      (bytevector? obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected false or pointer as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -162,6 +173,24 @@
   (assertion-violation who
     "expected instance of \"curl-version-info-data\" as argument"
     obj))
+
+
+;;;; helpers
+
+(define-syntax with-general-strings/utf8
+  (syntax-rules ()
+    ((_ ((?var ?arg) ...) ?body0 . ?body)
+     (let ((?var (let ((arg ?arg))
+		   (cond ((string? arg)
+			  (string->utf8 arg))
+			 ((or (bytevector? arg)
+			      (pointer?    arg)
+			      (memory-block? arg))
+			  arg)
+			 (else
+			  (assertion-violation #f "unexpected object" arg)))))
+	   ...)
+       ?body0 . ?body))))
 
 
 ;;;; version functions
@@ -394,6 +423,30 @@
 		 (user-scheme-callback number-of-items item-size)))))))
 
 
+;;;; string lists
+
+(define curl-slist-append
+  (case-lambda
+   ((string)
+    (curl-slist-append #f string))
+   ((slist string)
+    (define who 'curl-slist-append)
+    (with-arguments-validation (who)
+	((pointer/false		slist)
+	 (general-string	string))
+      (with-general-strings/utf8 ((string^ string))
+	(capi.curl-slist-append slist string^))))))
+
+(define (curl-slist-free-all slist)
+  (define who 'curl-slist-free-all)
+  (with-arguments-validation (who)
+      ((pointer/false	slist))
+    (capi.curl-slist-free-all slist)))
+
+;;; --------------------------------------------------------------------
+
+
+
 ;;;; miscellaneous functions
 
 (define (curl-free pointer)
@@ -498,18 +551,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-slist-append . args)
-  (define who 'curl-slist-append)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-slist-free-all . args)
-  (define who 'curl-slist-free-all)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-formadd . args)
   (define who 'curl-formadd)
@@ -745,5 +786,5 @@
 
 ;;; end of file
 ;;Local Variables:
-;;eval: (put 'set-curl-version-info-data-libssh-version! 'scheme-indent-function 1)
+;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
 ;;End:
