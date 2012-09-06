@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Vicare/cURL
-;;;Contents: tests for Libcurl bindings
+;;;Contents: tests for Libcurl bindings, version functions
 ;;;Date: Wed Sep  5, 2012
 ;;;
 ;;;Abstract
@@ -34,7 +34,7 @@
   (vicare checks))
 
 (check-set-mode! 'report-failed)
-(check-display "*** testing Vicare Libcurl bindings\n")
+(check-display "*** testing Vicare Libcurl bindings, version functions\n")
 
 
 ;;;; helpers
