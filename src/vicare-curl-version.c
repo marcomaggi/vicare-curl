@@ -62,7 +62,7 @@ ikrt_vicare_curl_version (ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
- ** Vicare/cURL version functions.
+ ** cURL version functions.
  ** ----------------------------------------------------------------- */
 
 ikptr
@@ -74,22 +74,6 @@ ikrt_curl_version (ikpcb * pcb)
   feature_failure(__func__);
 #endif
 }
-
-#define IK_CURL_VERSION_INFO_DATA_AGE(OBJ)		IK_FIELD((OBJ),0)
-#define IK_CURL_VERSION_INFO_DATA_VERSION(OBJ)		IK_FIELD((OBJ),1)
-#define IK_CURL_VERSION_INFO_DATA_VERSION_NUM(OBJ)	IK_FIELD((OBJ),2)
-#define IK_CURL_VERSION_INFO_DATA_HOST(OBJ)		IK_FIELD((OBJ),3)
-#define IK_CURL_VERSION_INFO_DATA_FEATURES(OBJ)		IK_FIELD((OBJ),4)
-#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION(OBJ)	IK_FIELD((OBJ),5)
-#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM(OBJ)	IK_FIELD((OBJ),6)
-#define IK_CURL_VERSION_INFO_DATA_LIBZ_VERSION(OBJ)	IK_FIELD((OBJ),7)
-#define IK_CURL_VERSION_INFO_DATA_PROTOCOLS(OBJ)	IK_FIELD((OBJ),8)
-#define IK_CURL_VERSION_INFO_DATA_ARES(OBJ)		IK_FIELD((OBJ),9)
-#define IK_CURL_VERSION_INFO_DATA_ARES_NUM(OBJ)		IK_FIELD((OBJ),10)
-#define IK_CURL_VERSION_INFO_DATA_LIBIDN(OBJ)		IK_FIELD((OBJ),11)
-#define IK_CURL_VERSION_INFO_DATA_ICONV_VER_NUM(OBJ)	IK_FIELD((OBJ),12)
-#define IK_CURL_VERSION_INFO_DATA_LIBSSH_VERSION(OBJ)	IK_FIELD((OBJ),13)
-
 ikptr
 ikrt_curl_version_info (ikptr s_rtd, ikptr s_version_code, ikpcb * pcb)
 {

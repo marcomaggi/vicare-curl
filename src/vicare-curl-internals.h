@@ -44,6 +44,26 @@
  ** Handling of Scheme objects.
  ** ----------------------------------------------------------------- */
 
+#define ika_integer_from_curlcode(PCB,CODE) \
+  ika_integer_from_int((PCB),(CODE))
+
+/* Accessors    for    the    fields    of    the    Scheme    structure
+   "curl-version-info-data". */
+#define IK_CURL_VERSION_INFO_DATA_AGE(OBJ)		IK_FIELD((OBJ),0)
+#define IK_CURL_VERSION_INFO_DATA_VERSION(OBJ)		IK_FIELD((OBJ),1)
+#define IK_CURL_VERSION_INFO_DATA_VERSION_NUM(OBJ)	IK_FIELD((OBJ),2)
+#define IK_CURL_VERSION_INFO_DATA_HOST(OBJ)		IK_FIELD((OBJ),3)
+#define IK_CURL_VERSION_INFO_DATA_FEATURES(OBJ)		IK_FIELD((OBJ),4)
+#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION(OBJ)	IK_FIELD((OBJ),5)
+#define IK_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM(OBJ)	IK_FIELD((OBJ),6)
+#define IK_CURL_VERSION_INFO_DATA_LIBZ_VERSION(OBJ)	IK_FIELD((OBJ),7)
+#define IK_CURL_VERSION_INFO_DATA_PROTOCOLS(OBJ)	IK_FIELD((OBJ),8)
+#define IK_CURL_VERSION_INFO_DATA_ARES(OBJ)		IK_FIELD((OBJ),9)
+#define IK_CURL_VERSION_INFO_DATA_ARES_NUM(OBJ)		IK_FIELD((OBJ),10)
+#define IK_CURL_VERSION_INFO_DATA_LIBIDN(OBJ)		IK_FIELD((OBJ),11)
+#define IK_CURL_VERSION_INFO_DATA_ICONV_VER_NUM(OBJ)	IK_FIELD((OBJ),12)
+#define IK_CURL_VERSION_INFO_DATA_LIBSSH_VERSION(OBJ)	IK_FIELD((OBJ),13)
+
 /* Accessors    for    the    fields    of    the    Scheme    structure
    "curl-easy-handle". */
 #define IK_CURL_EASY_POINTER(EASY)	IK_FIELD((EASY),0)

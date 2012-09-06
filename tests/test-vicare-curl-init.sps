@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Vicare/cURL
-;;;Contents: tests for Libcurl bindings, core functions
+;;;Contents: tests for Libcurl bindings, init functions
 ;;;Date: Thu Sep  6, 2012
 ;;;
 ;;;Abstract
@@ -35,15 +35,38 @@
   (vicare checks))
 
 (check-set-mode! 'report-failed)
-(check-display "*** testing Vicare Libcurl bindings, core functions\n")
+(check-display "*** testing Vicare Libcurl bindings, init functions\n")
 
 
 ;;;; helpers
 
 
 
-(parametrise ((check-test-name	'core))
+(parametrise ((check-test-name	'init))
 
+  (check
+      (begin0
+	(curl-global-init CURL_GLOBAL_ALL)
+	(curl-global-cleanup))
+    => CURLE_OK)
+
+  (check
+      (let ((malloc	(make-curl-malloc-callback malloc))
+	    (free	(make-curl-free-callback free))
+	    (realloc	(make-curl-realloc-callback realloc))
+	    (strdup	(make-curl-strdup-callback strdup))
+	    (calloc	(make-curl-calloc-callback calloc)))
+	(unwind-protect
+	    (begin0
+	      (curl-global-init-mem CURL_GLOBAL_ALL
+				    malloc free realloc strdup calloc)
+	      (curl-global-cleanup))
+	  (ffi.free-c-callback malloc)
+	  (ffi.free-c-callback free)
+	  (ffi.free-c-callback realloc)
+	  (ffi.free-c-callback strdup)
+	  (ffi.free-c-callback calloc)))
+    => CURLE_OK)
 
   #t)
 

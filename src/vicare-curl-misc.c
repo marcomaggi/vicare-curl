@@ -36,6 +36,59 @@
 
 
 /** --------------------------------------------------------------------
+ ** Initialisation functions.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_global_init (ikptr s_flags, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_GLOBAL_INIT
+  long		flags = ik_integer_to_long(s_flags);
+  CURLcode	rv;
+  rv = curl_global_init(flags);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_global_init_mem (ikptr s_flags,
+			   ikptr s_malloc_callback,
+			   ikptr s_free_callback,
+			   ikptr s_realloc_callback,
+			   ikptr s_strdup_callback,
+			   ikptr s_calloc_callback,
+			   ikpcb * pcb)
+{
+#ifdef HAVE_CURL_GLOBAL_INIT_MEM
+  long		flags = ik_integer_to_long(s_flags);
+  curl_malloc_callback	malloc_callback  = IK_POINTER_FROM_POINTER_OR_FALSE(s_malloc_callback);
+  curl_free_callback	free_callback    = IK_POINTER_FROM_POINTER_OR_FALSE(s_free_callback);
+  curl_realloc_callback realloc_callback = IK_POINTER_FROM_POINTER_OR_FALSE(s_realloc_callback);
+  curl_strdup_callback	strdup_callback  = IK_POINTER_FROM_POINTER_OR_FALSE(s_strdup_callback);
+  curl_calloc_callback	calloc_callback  = IK_POINTER_FROM_POINTER_OR_FALSE(s_calloc_callback);
+  CURLcode	rv;
+  rv = curl_global_init_mem(flags,
+			    malloc_callback, free_callback, realloc_callback,
+			    strdup_callback, calloc_callback);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_global_cleanup (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_GLOBAL_CLEANUP
+  curl_global_cleanup();
+  return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

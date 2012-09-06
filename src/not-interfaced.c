@@ -30,31 +30,8 @@
 
 #if 0
 ikptr
-ikrt_curl_global_init (ikpcb * pcb)
-#ifdef HAVE_CURL_GLOBAL_INIT
-  curl_global_init();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_global_init_mem (ikpcb * pcb)
-#ifdef HAVE_CURL_GLOBAL_INIT_MEM
-  curl_global_init_mem();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_global_cleanup (ikpcb * pcb)
-#ifdef HAVE_CURL_GLOBAL_CLEANUP
-  curl_global_cleanup();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_free (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_FREE
   curl_free();
 #else
@@ -63,6 +40,7 @@ ikrt_curl_free (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_slist_append (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SLIST_APPEND
   curl_slist_append();
 #else
@@ -71,6 +49,7 @@ ikrt_curl_slist_append (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_slist_free_all (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SLIST_FREE_ALL
   curl_slist_free_all();
 #else
@@ -79,6 +58,7 @@ ikrt_curl_slist_free_all (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_formadd (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_FORMADD
   curl_formadd();
 #else
@@ -87,6 +67,7 @@ ikrt_curl_formadd (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_formget (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_FORMGET
   curl_formget();
 #else
@@ -95,6 +76,7 @@ ikrt_curl_formget (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_formfree (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_FORMFREE
   curl_formfree();
 #else
@@ -103,6 +85,7 @@ ikrt_curl_formfree (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_escape (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_ESCAPE
   curl_easy_escape();
 #else
@@ -111,6 +94,7 @@ ikrt_curl_easy_escape (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_escape (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_ESCAPE
   curl_escape();
 #else
@@ -119,6 +103,7 @@ ikrt_curl_escape (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_unescape (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_UNESCAPE
   curl_easy_unescape();
 #else
@@ -127,6 +112,7 @@ ikrt_curl_easy_unescape (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_unescape (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_UNESCAPE
   curl_unescape();
 #else
@@ -135,6 +121,7 @@ ikrt_curl_unescape (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_getdate (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_GETDATE
   curl_getdate();
 #else
@@ -143,6 +130,7 @@ ikrt_curl_getdate (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_share_init (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SHARE_INIT
   curl_share_init();
 #else
@@ -151,6 +139,7 @@ ikrt_curl_share_init (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_share_setopt (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SHARE_SETOPT
   curl_share_setopt();
 #else
@@ -159,6 +148,7 @@ ikrt_curl_share_setopt (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_share_cleanup (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SHARE_CLEANUP
   curl_share_cleanup();
 #else
@@ -167,6 +157,7 @@ ikrt_curl_share_cleanup (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_share_strerror (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_SHARE_STRERROR
   curl_share_strerror();
 #else
@@ -175,6 +166,7 @@ ikrt_curl_share_strerror (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_init (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_INIT
   curl_easy_init();
 #else
@@ -183,6 +175,7 @@ ikrt_curl_easy_init (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_setopt (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_SETOPT
   curl_easy_setopt();
 #else
@@ -191,6 +184,7 @@ ikrt_curl_easy_setopt (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_perform (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_PERFORM
   curl_easy_perform();
 #else
@@ -199,6 +193,7 @@ ikrt_curl_easy_perform (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_cleanup (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_CLEANUP
   curl_easy_cleanup();
 #else
@@ -207,6 +202,7 @@ ikrt_curl_easy_cleanup (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_getinfo (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_GETINFO
   curl_easy_getinfo();
 #else
@@ -215,6 +211,7 @@ ikrt_curl_easy_getinfo (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_duphandle (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_DUPHANDLE
   curl_easy_duphandle();
 #else
@@ -223,6 +220,7 @@ ikrt_curl_easy_duphandle (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_reset (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_RESET
   curl_easy_reset();
 #else
@@ -231,6 +229,7 @@ ikrt_curl_easy_reset (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_recv (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_RECV
   curl_easy_recv();
 #else
@@ -239,6 +238,7 @@ ikrt_curl_easy_recv (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_send (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_SEND
   curl_easy_send();
 #else
@@ -247,6 +247,7 @@ ikrt_curl_easy_send (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_strerror (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_STRERROR
   curl_easy_strerror();
 #else
@@ -255,6 +256,7 @@ ikrt_curl_easy_strerror (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_easy_pause (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_EASY_PAUSE
   curl_easy_pause();
 #else
@@ -263,6 +265,7 @@ ikrt_curl_easy_pause (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_init (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_INIT
   curl_multi_init();
 #else
@@ -271,6 +274,7 @@ ikrt_curl_multi_init (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_add_handle (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_ADD_HANDLE
   curl_multi_add_handle();
 #else
@@ -279,6 +283,7 @@ ikrt_curl_multi_add_handle (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_remove_handle (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_REMOVE_HANDLE
   curl_multi_remove_handle();
 #else
@@ -287,6 +292,7 @@ ikrt_curl_multi_remove_handle (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_fdset (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_FDSET
   curl_multi_fdset();
 #else
@@ -295,6 +301,7 @@ ikrt_curl_multi_fdset (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_perform (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_PERFORM
   curl_multi_perform();
 #else
@@ -303,6 +310,7 @@ ikrt_curl_multi_perform (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_cleanup (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_CLEANUP
   curl_multi_cleanup();
 #else
@@ -311,6 +319,7 @@ ikrt_curl_multi_cleanup (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_info_read (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_INFO_READ
   curl_multi_info_read();
 #else
@@ -319,6 +328,7 @@ ikrt_curl_multi_info_read (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_strerror (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_STRERROR
   curl_multi_strerror();
 #else
@@ -327,6 +337,7 @@ ikrt_curl_multi_strerror (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_socket (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_SOCKET
   curl_multi_socket();
 #else
@@ -335,6 +346,7 @@ ikrt_curl_multi_socket (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_socket_action (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_SOCKET_ACTION
   curl_multi_socket_action();
 #else
@@ -343,6 +355,7 @@ ikrt_curl_multi_socket_action (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_socket_all (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_SOCKET_ALL
   curl_multi_socket_all();
 #else
@@ -351,6 +364,7 @@ ikrt_curl_multi_socket_all (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_timeout (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_TIMEOUT
   curl_multi_timeout();
 #else
@@ -359,6 +373,7 @@ ikrt_curl_multi_timeout (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_setopt (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_SETOPT
   curl_multi_setopt();
 #else
@@ -367,6 +382,7 @@ ikrt_curl_multi_setopt (ikpcb * pcb)
 }
 ikptr
 ikrt_curl_multi_assign (ikpcb * pcb)
+{
 #ifdef HAVE_CURL_MULTI_ASSIGN
   curl_multi_assign();
 #else

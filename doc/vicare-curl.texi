@@ -11,6 +11,10 @@
 cURL
 @end macro
 
+@macro curlman{FUNC}
+@xref{\FUNC\,\FUNC\,\FUNC\,*manpages*}
+@end macro
+
 @c page
 @c ------------------------------------------------------------
 @c Values.
@@ -215,6 +219,8 @@ to the @curl{}'s documentation for details.
 
 @menu
 * plain version::               @curl{} version informations.
+* plain init::                  Global initialisation and
+                                finalisation.
 @end menu
 
 @c page
@@ -227,8 +233,8 @@ The installed C library follows version numbering as established by the
 @gnu{} Libtool @xref{Libtool versioning, interface, Libtool's versioning
 system, libtool, Shared library support for @gnu{}}.
 
-The following bindings are exported by the @library{vicare net curl}
-library.
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun vicare-curl-version-interface-current
@@ -244,7 +250,8 @@ Return a Scheme string representing the versio number.
 
 
 @defun curl-version
-Return a string representing the version of @curl{}:
+Return a string representing the version of @curl{};
+@curlman{curl_version}.
 
 @example
 (import (vicare)
@@ -336,6 +343,8 @@ Accessors for the fields of @code{curl-version-info-data} instances.
 @defun curl-version-info @var{version-code}
 Return an instance of @code{curl-version-info-data} representing the
 version number of the features with which @curl{} was built.
+@curlman{curl_version_info}.
+
 
 @var{version-code} must be a non--negative fixnum representing one of
 the @code{CURLVERSION_} constants, with @code{CURLVERSION_NOW}
@@ -416,6 +425,101 @@ exact integer representing a @code{CURL_VERSION_} constant; return
 @result{} #t
 @end example
 @end defun
+
+@c page
+@node plain init
+@section Global initialisation and finalisation
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-global-init @var{flags}
+Perform global initialisation for the @curl{} library; if successful
+return @code{CURLE_OK}, else return a @code{CURLE_} error code.
+@curlman{curl_global_init}.
+
+@var{flags} must be an exact integer representing @code{CURL_GLOBAL_ALL}
+or the bitwise inclusive OR combination of: @code{CURL_GLOBAL_SSL},
+@code{CURL_GLOBAL_WIN32}, @code{CURL_GLOBAL_NOTHING}.
+@end defun
+
+
+@defun curl-global-init-mem @var{flags} @var{malloc} @var{free} @var{realloc} @var{strdup} @var{calloc}
+Like @func{curl-global-init}, but allows the application to replace the
+functions used by @curl{} to manage raw memory with supplied callbacks.
+@end defun
+
+
+@defun make-curl-malloc-callback @var{malloc}
+@defunx make-curl-free-callback @var{free}
+@defunx make-curl-realloc-callback @var{realloc}
+@defunx make-curl-strdup-callback @var{strdup}
+@defunx make-curl-calloc-callback @var{calloc}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as argument in calls
+to @func{curl-global-init-mem}; the returned pointer must be released
+with a call to @func{free-c-callback} from @library{vicare ffi}.
+
+Each supplid Scheme function must adhere to appropriate prototype among
+the following:
+
+@example
+void * curl_malloc_callback  (size_t size);
+void   curl_free_callback    (void *ptr);
+void * curl_realloc_callback (void *ptr, size_t size);
+char * curl_strdup_callback  (const char *str);
+void * curl_calloc_callback  (size_t nmemb, size_t size);
+@end example
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; @var{user-scheme-callback} should take care of
+handling its own exceptions.
+
+@item
+If @var{malloc}, @var{realloc}, @var{calloc} or @var{strdup} raise an
+exception: the raised object is discarded and the callback returns the
+return value of @func{null-pointer}.
+
+@item
+If @var{free} raises an exception: the raised object is discarded and
+the callback returns the return value of @func{void}.
+@end itemize
+@end defun
+
+
+@defun curl-global-cleanup
+Releases the resources allocated by @func{curl-global-init} or
+@func{curl-global-init-mem}; return unspecified values.
+@curlman{curl-global-cleanup}.
+@end defun
+
+
+The following is a meaningless example of selecting custom functions to
+handle raw memory allocation:
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (vicare syntactic-extensions)
+  (prefix (vicare ffi) ffi.))
+
+(curl-global-init-mem CURL_GLOBAL_ALL
+   (make-curl-malloc-callback  malloc)
+   (make-curl-free-callback    free)
+   (make-curl-realloc-callback realloc)
+   (make-curl-strdup-callback  strdup)
+   (make-curl-calloc-callback  calloc))
+@result{} CURLE_OK
+@end example
 
 @c page
 @c ------------------------------------------------------------

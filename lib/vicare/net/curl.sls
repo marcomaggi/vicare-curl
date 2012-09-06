@@ -49,12 +49,16 @@
     curl-version-info-data-libidn	curl-version-info-data-iconv-ver-num
     curl-version-info-data-libssh-version
 
+    ;; initialisation and finalisation functions
+    curl-global-init			curl-global-init-mem
+    curl-global-cleanup
+    make-curl-malloc-callback		make-curl-free-callback
+    make-curl-realloc-callback		make-curl-strdup-callback
+    make-curl-calloc-callback
+
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-global-init
-    curl-global-init-mem
-    curl-global-cleanup
     curl-free
     curl-slist-append
     curl-slist-free-all
@@ -98,11 +102,15 @@
     )
   (import (vicare)
     (vicare net curl constants)
-    (prefix (vicare net curl unsafe-capi) capi.)
+    (prefix (vicare net curl unsafe-capi)
+	    capi.)
     (vicare syntactic-extensions)
     (prefix (vicare unsafe-operations)
 	    unsafe.)
-    #;(prefix (vicare words) words.))
+    (prefix (vicare ffi)
+	    ffi.)
+    (prefix (vicare words)
+	    words.))
 
 
 ;;;; arguments validation
@@ -115,17 +123,31 @@
   (and (fixnum? obj) (unsafe.fx<= 0 obj))
   (assertion-violation who "expected non-negative fixnum as argument" obj))
 
-#;(define-argument-validation (pointer who obj)
+(define-argument-validation (pointer who obj)
   (pointer? obj)
   (assertion-violation who "expected pointer as argument" obj))
 
-#;(define-argument-validation (callback who obj)
-  (pointer? obj)
+(define-argument-validation (callback who obj)
+  (or (not obj) (pointer? obj))
   (assertion-violation who "expected callback as argument" obj))
 
 #;(define-argument-validation (bytevector who obj)
   (bytevector? obj)
   (assertion-violation who "expected bytevector as argument" obj))
+
+;;; --------------------------------------------------------------------
+
+(define-argument-validation (signed-int who obj)
+  (words.signed-int? obj)
+  (assertion-violation who
+    "expected exact integer in the range of the C language type \"int\" as argument"
+    obj))
+
+(define-argument-validation (signed-long who obj)
+  (words.signed-long? obj)
+  (assertion-violation who
+    "expected exact integer in the range of the C language type \"long\" as argument"
+    obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -287,6 +309,85 @@
     (not (zero? (bitwise-and feature (curl-version-info-data-features S))))))
 
 
+;;;; global initialisation and finalisation functions
+
+(define (curl-global-init flags)
+  (define who 'curl-global-init)
+  (with-arguments-validation (who)
+      ((signed-long	flags))
+    (capi.curl-global-init flags)))
+
+(define (curl-global-init-mem flags
+			      malloc-callback free-callback realloc-callback
+			      strdup-callback calloc-callback)
+  (define who 'curl-global-init-mem)
+  (with-arguments-validation (who)
+      ((signed-long	flags)
+       (callback	malloc-callback)
+       (callback	free-callback)
+       (callback	realloc-callback)
+       (callback	strdup-callback)
+       (callback	calloc-callback))
+    (capi.curl-global-init-mem flags
+			       malloc-callback free-callback realloc-callback
+			       strdup-callback calloc-callback)))
+
+(define (curl-global-cleanup)
+  (capi.curl-global-cleanup))
+
+;;; --------------------------------------------------------------------
+
+(define make-curl-malloc-callback
+  ;; void *(*curl_malloc_callback)(size_t size)
+  (let ((maker (ffi.make-c-callback-maker 'pointer '(size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (number-of-bytes)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (null-pointer)))
+		 (user-scheme-callback number-of-bytes)))))))
+
+(define make-curl-free-callback
+  ;; void (*curl_free_callback)(void *ptr)
+  (let ((maker (ffi.make-c-callback-maker 'void '(pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (ptr)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (void)))
+		 (user-scheme-callback ptr)))))))
+
+(define make-curl-realloc-callback
+  ;; void *(*curl_realloc_callback)(void *ptr, size_t size)
+  (let ((maker (ffi.make-c-callback-maker 'pointer '(pointer size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (ptr number-of-bytes)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (null-pointer)))
+		 (user-scheme-callback ptr number-of-bytes)))))))
+
+(define make-curl-strdup-callback
+  ;; char *(*curl_strdup_callback)(const char *str)
+  (let ((maker (ffi.make-c-callback-maker 'pointer '(pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (ptr)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (null-pointer)))
+		 (user-scheme-callback ptr)))))))
+
+(define make-curl-calloc-callback
+  ;; void *(*curl_calloc_callback)(size_t nmemb, size_t size)
+  (let ((maker (ffi.make-c-callback-maker 'pointer '(size_t size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (number-of-items item-size)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (null-pointer)))
+		 (user-scheme-callback number-of-items item-size)))))))
+
+
 ;;;; callback makers
 
  ;; int (*curl_progress_callback)(void *clientp,
@@ -382,24 +483,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-global-init . args)
-  (define who 'curl-global-init)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-global-init-mem . args)
-  (define who 'curl-global-init-mem)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-global-cleanup . args)
-  (define who 'curl-global-cleanup)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-free . args)
   (define who 'curl-free)

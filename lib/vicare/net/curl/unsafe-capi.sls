@@ -34,16 +34,15 @@
     vicare-curl-version-interface-revision
     vicare-curl-version-interface-age
     vicare-curl-version
+    curl-version			curl-version-info
 
-    curl-version
+    ;; initialisation functions
+    curl-global-init			curl-global-init-mem
+    curl-global-cleanup
 
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
-    curl-version-info
-    curl-global-init
-    curl-global-init-mem
-    curl-global-cleanup
     curl-free
     curl-slist-append
     curl-slist-free-all
@@ -122,16 +121,23 @@
   (foreign-call "ikrt_curl_version_info" rtd version-code))
 
 
-;;;; still to be implemented
+;;;; initialisation functions
 
-(define-inline (curl-global-init)
-  (foreign-call "ikrt_curl_global_init"))
+(define-inline (curl-global-init flags)
+  (foreign-call "ikrt_curl_global_init" flags))
 
-(define-inline (curl-global-init-mem)
-  (foreign-call "ikrt_curl_global_init_mem"))
+(define-inline (curl-global-init-mem flags
+				     malloc-callback free-callback realloc-callback
+				     strdup-callback calloc-callback)
+  (foreign-call "ikrt_curl_global_init_mem" flags
+		malloc-callback free-callback realloc-callback
+		strdup-callback calloc-callback))
 
 (define-inline (curl-global-cleanup)
   (foreign-call "ikrt_curl_global_cleanup"))
+
+
+;;;; still to be implemented
 
 (define-inline (curl-free)
   (foreign-call "ikrt_curl_free"))
