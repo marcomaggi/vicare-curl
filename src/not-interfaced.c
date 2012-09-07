@@ -30,33 +30,6 @@
 
 #if 0
 ikptr
-ikrt_curl_formadd (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_FORMADD
-  curl_formadd();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_formget (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_FORMGET
-  curl_formget();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_formfree (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_FORMFREE
-  curl_formfree();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_easy_escape (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_EASY_ESCAPE

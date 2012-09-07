@@ -90,9 +90,122 @@
 	slist)
     => (null-pointer))
 
+  #t)
+
+
+(parametrise ((check-test-name	'formdata))
+
+  (check
+      (curl-formfree (make-curl-form-data))
+    => (void))
+
 ;;; --------------------------------------------------------------------
 
-  #t)
+  (check
+      (let* ((data	"")
+	     (cb	(make-curl-formget-callback
+			 (lambda (custom-data cstring.ptr cstring.len)
+			   (set! data (string-append data
+						     (cstring->string cstring.ptr
+								      cstring.len)))
+			   cstring.len)))
+	     (post	(make-curl-form-data))
+	     (last	(null-pointer))
+	     (rv	(curl-formadd post last
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_COPYCONTENTS "contents"
+				      CURLFORM_END)))
+	(unwind-protect
+	    (if (= rv CURL_FORMADD_OK)
+		(curl-formget post #f cb)
+	      rv)
+;;;(check-pretty-print data)
+	  (ffi.free-c-callback cb)
+	  (curl-formfree post)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((data	"")
+	     (cb	(make-curl-formget-callback
+			 (lambda (custom-data cstring.ptr cstring.len)
+			   (set! data (string-append data
+						     (cstring->string cstring.ptr
+								      cstring.len)))
+			   cstring.len)))
+	     (post	(make-curl-form-data))
+	     (last	(null-pointer))
+	     (rv	(curl-formadd post last
+				      CURLFORM_NAMELENGTH (string-length "name")
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_CONTENTSLENGTH (string-length "contents")
+				      CURLFORM_COPYCONTENTS "contents"
+				      CURLFORM_END)))
+	(unwind-protect
+	    (if (= rv CURL_FORMADD_OK)
+		(curl-formget post #f cb)
+	      rv)
+;;;(check-pretty-print data)
+	  (ffi.free-c-callback cb)
+	  (curl-formfree post)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((data	"")
+	     (cb	(make-curl-formget-callback
+			 (lambda (custom-data cstring.ptr cstring.len)
+			   (set! data (string-append data
+						     (cstring->string cstring.ptr
+								      cstring.len)))
+			   cstring.len)))
+	     (post	(make-curl-form-data))
+	     (last	(null-pointer))
+	     (rv	(curl-formadd post last
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_COPYCONTENTS "<html></html>"
+				      CURLFORM_CONTENTTYPE "text/html"
+				      CURLFORM_END)))
+	(unwind-protect
+	    (if (= rv CURL_FORMADD_OK)
+		(curl-formget post #f cb)
+	      rv)
+;;;(check-pretty-print data)
+	  (ffi.free-c-callback cb)
+	  (curl-formfree post)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((data	"")
+	     (cb	(make-curl-formget-callback
+			 (lambda (custom-data cstring.ptr cstring.len)
+			   (set! data (string-append data
+						     (cstring->string cstring.ptr
+								      cstring.len)))
+			   cstring.len)))
+	     (post	(make-curl-form-data))
+	     (last	(null-pointer))
+	     (rv	(curl-formadd post last
+				      CURLFORM_COPYNAME "html_code_with_hole"
+				      CURLFORM_COPYCONTENTS "<html></html>"
+				      CURLFORM_CONTENTSLENGTH (string-length "<html></html>")
+				      CURLFORM_CONTENTTYPE "text/html"
+				      CURLFORM_END)))
+;;;(check-pretty-print post)
+	(unwind-protect
+	    (if (= rv CURL_FORMADD_OK)
+		(curl-formget post #f cb)
+	      rv)
+;;;(check-pretty-print data)
+	  (ffi.free-c-callback cb)
+	  #;(curl-formfree post)))
+    => #f)
+
+  (collect))
 
 
 ;;;; done

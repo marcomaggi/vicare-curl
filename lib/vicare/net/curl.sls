@@ -59,15 +59,21 @@
     ;; string lists
     curl-slist-append			curl-slist-free-all
 
+    ;; multipart/formdata composition
+    curl-formadd			curl-formfree
+    curl-formget			make-curl-formget-callback
+
+    curl-form-data
+    curl-form-data?			curl-form-data?/filled
+    (rename (%make-curl-form-data	make-curl-form-data))
+    curl-form-data-string
+
     ;; miscellaneous functions
     curl-free
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-formadd
-    curl-formget
-    curl-formfree
     curl-easy-escape
     curl-escape
     curl-easy-unescape
@@ -138,6 +144,10 @@
   (bytevector? obj)
   (assertion-violation who "expected bytevector as argument" obj))
 
+(define-argument-validation (vector who obj)
+  (vector? obj)
+  (assertion-violation who "expected vector as argument" obj))
+
 ;;; --------------------------------------------------------------------
 
 (define-argument-validation (pointer/false who obj)
@@ -172,6 +182,18 @@
   (curl-version-info-data? obj)
   (assertion-violation who
     "expected instance of \"curl-version-info-data\" as argument"
+    obj))
+
+(define-argument-validation (curl-form-data who obj)
+  (curl-form-data? obj)
+  (assertion-violation who
+    "expected instance of \"curl-form-data\" as argument"
+    obj))
+
+(define-argument-validation (curl-form-data/filled who obj)
+  (curl-form-data?/filled obj)
+  (assertion-violation who
+    "expected instance of \"curl-form-data\" as argument holding contents"
     obj))
 
 
@@ -443,8 +465,202 @@
       ((pointer/false	slist))
     (capi.curl-slist-free-all slist)))
 
+
+;;;; multipart/formdata composition
+
+(define-struct curl-form-data
+  (pointer))
+
+(define (%struct-curl-form-data-printer S port sub-printer)
+  (define-inline (%display thing)
+    (display thing port))
+  (define-inline (%write thing)
+    (write thing port))
+  (%display "#[curl-form-data")
+  (%display " pointer=")	(%display (curl-form-data-pointer S))
+  (%display " data=")		(%write   (curl-form-data-string  S))
+  (%display "]"))
+
 ;;; --------------------------------------------------------------------
 
+(define (curl-form-data?/filled obj)
+  (and (curl-form-data? obj)
+       (not (pointer-null? (curl-form-data-pointer obj)))))
+
+(define (%make-curl-form-data)
+  (%curl-form-data-guardian (make-curl-form-data (null-pointer))))
+
+(define (curl-form-data-string post)
+  (define who 'curl-form-data-string)
+  (with-arguments-validation (who)
+      ((curl-form-data	post))
+    (if (pointer-null? (curl-form-data-pointer post))
+	""
+      (let* ((data "")
+	     (cb   (make-curl-formget-callback
+		    (lambda (custom-data cstring.ptr cstring.len)
+		      (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
+		      cstring.len))))
+	(unwind-protect
+	    (and (not (curl-formget post #f cb))
+		 data)
+	  (ffi.free-c-callback cb))))))
+
+;;; --------------------------------------------------------------------
+
+(define %curl-form-data-guardian
+  (make-guardian))
+
+(define (%curl-form-data-guardian-destructor)
+  (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
+      ((not P))
+    ;;Try to close and ignore errors.
+    (capi.curl-formfree (curl-form-data-pointer P))
+    (struct-reset P)))
+
+;;; --------------------------------------------------------------------
+
+(module (curl-formadd)
+
+  (define-inline (%normalise-val val)
+    (cond ((words.signed-long? val)
+	   val)
+	  ((string? val)
+	   (string->ascii val))
+	  (else
+	   val)))
+
+  (define-argument-validation (a-value who obj)
+    (or (words.signed-long? obj)
+	(string? obj)
+	(bytevector? obj)
+	(pointer? obj)
+	(memory-block? obj))
+    (assertion-violation who
+      "invalid HTTP form option's value" obj))
+
+  (define curl-formadd
+    (case-lambda
+     ((post last opt1 val1 optend)
+      (arguments-validation-forms
+       (assert (eqv? optend CURLFORM_END)))
+      (curl-formadd post last
+		    opt1 val1))
+
+     ((post last opt1 val1)
+      (define who 'curl-formadd)
+      (with-arguments-validation (who)
+	  ((curl-form-data	post)
+	   (pointer		last)
+	   (signed-int		opt1)
+	   (a-value		val1))
+	(capi.curl-formadd-1 (curl-form-data-pointer post)
+			     last
+			     opt1 (%normalise-val val1))))
+
+     ((post last opt1 val1 opt2 val2 optend)
+      (arguments-validation-forms
+       (assert (eqv? optend CURLFORM_END)))
+      (curl-formadd post last
+		    opt1 val1
+		    opt2 val2))
+
+     ((post last opt1 val1 opt2 val2)
+      (define who 'curl-formadd)
+      (with-arguments-validation (who)
+	  ((curl-form-data	post)
+	   (pointer		last)
+	   (signed-int		opt1)
+	   (a-value		val1)
+	   (signed-int		opt2)
+	   (a-value		val2))
+	(capi.curl-formadd-2 (curl-form-data-pointer post)
+			     last
+			     opt1 (%normalise-val val1)
+			     opt2 (%normalise-val val2))))
+
+     ((post last opt1 val1 opt2 val2 opt3 val3 optend)
+      (arguments-validation-forms
+       (assert (eqv? optend CURLFORM_END)))
+      (curl-formadd post last
+		    opt1 val1
+		    opt2 val2
+		    opt3 val3))
+
+     ((post last opt1 val1 opt2 val2 opt3 val3)
+      (define who 'curl-formadd)
+      (with-arguments-validation (who)
+	  ((curl-form-data	post)
+	   (pointer		last)
+	   (signed-int		opt1)
+	   (a-value		val1)
+	   (signed-int		opt2)
+	   (a-value		val2)
+	   (signed-int		opt3)
+	   (a-value		val3))
+	(capi.curl-formadd-3 (curl-form-data-pointer post)
+			     last
+			     opt1 (%normalise-val val1)
+			     opt2 (%normalise-val val2)
+			     opt3 (%normalise-val val3))))
+
+     ((post last opt1 val1 opt2 val2 opt3 val3 opt4 val4 optend)
+      (arguments-validation-forms
+       (assert (eqv? optend CURLFORM_END)))
+      (curl-formadd post last
+		    opt1 val1
+		    opt2 val2
+		    opt3 val3
+		    opt4 val4))
+
+     ((post last opt1 val1 opt2 val2 opt3 val3 opt4 val4)
+      (define who 'curl-formadd)
+      (with-arguments-validation (who)
+	  ((curl-form-data	post)
+	   (pointer		last)
+	   (signed-int		opt1)
+	   (a-value		val1)
+	   (signed-int		opt2)
+	   (a-value		val2)
+	   (signed-int		opt3)
+	   (a-value		val3)
+	   (signed-int		opt4)
+	   (a-value		val4))
+	(capi.curl-formadd-4 (curl-form-data-pointer post)
+			     last
+			     opt1 (%normalise-val val1)
+			     opt2 (%normalise-val val2)
+			     opt3 (%normalise-val val3)
+			     opt4 (%normalise-val val4))))
+     ))
+
+  #| end of module |# )
+
+(define (curl-formget post custom-data callback)
+  (define who 'curl-formget)
+  (with-arguments-validation (who)
+      ((curl-form-data	post)
+       (pointer/false	custom-data)
+       (callback	callback))
+    (capi.curl-formget (curl-form-data-pointer post) custom-data callback)))
+
+(define (curl-formfree post)
+  (define who 'curl-formfree)
+  (with-arguments-validation (who)
+      ((curl-form-data	post))
+    (capi.curl-formfree (curl-form-data-pointer post))))
+
+;;; --------------------------------------------------------------------
+
+(define make-curl-formget-callback
+  ;; size_t curl_formget_callback (void *arg, const char *buf, size_t len)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer pointer size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data cstring.ptr cstring.len)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback custom-data cstring.ptr cstring.len)))))))
 
 
 ;;;; miscellaneous functions
@@ -525,9 +741,6 @@
  ;;                          enum curl_khmatch, /* libcurl's view on the keys */
  ;;                          void *clientp); /* custom pointer passed from app */
 
- ;; size_t (*curl_formget_callback)(void *arg, const char *buf,
- ;;                                        size_t len);
-
  ;; void (*curl_lock_function)(CURL *handle,
  ;;                                   curl_lock_data data,
  ;;                                   curl_lock_access locktype,
@@ -551,24 +764,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-formadd . args)
-  (define who 'curl-formadd)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-formget . args)
-  (define who 'curl-formget)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-formfree . args)
-  (define who 'curl-formfree)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-easy-escape . args)
   (define who 'curl-easy-escape)
@@ -779,8 +974,11 @@
 
 (set-rtd-printer! (type-descriptor curl-version-info-data)
 		  %struct-curl-version-info-data-printer)
+(set-rtd-printer! (type-descriptor curl-form-data)
+		  %struct-curl-form-data-printer)
 
-#;(post-gc-hooks (cons %free-allocated-parser (post-gc-hooks)))
+(post-gc-hooks (cons %curl-form-data-guardian
+		     (post-gc-hooks)))
 
 )
 

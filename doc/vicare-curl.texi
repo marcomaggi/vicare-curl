@@ -225,6 +225,7 @@ to the @curl{}'s documentation for details.
 * plain init::                  Global initialisation and
                                 finalisation.
 * plain slists::                String lists.
+* plain form::                  Multipart/formdata composition.
 * plain misc::                  Miscellaneous functions.
 @end menu
 
@@ -576,6 +577,147 @@ non--@cnull{} pointer: @var{slist} itself is mutated to represent
 
 It is safe to apply this function multiple times to the same @var{slist}
 argument.
+@end defun
+
+@c page
+@node plain form
+@section Multipart/formdata composition
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@deftp {Struct Type} curl-form-data
+Opaque structure type referencing the first element in a C language
+@code{struct curl_httppost} chain.
+
+Instances of this type must be finalised with @func{curl-formfree}.
+Whenever an instance of this type is garbage collected:
+@func{curl-formfree} is automatically applied to it.
+@end deftp
+
+
+@defun curl-form-data? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-form-data}.
+@end defun
+
+
+@defun curl-form-data?/filled @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-form-data} and
+it holds some contents.
+@end defun
+
+
+@defun make-curl-form-data
+Build and return a new instance of @code{curl-form-data} ready to be
+handed to @func{curl-formadd}.
+@end defun
+
+
+@defun curl-form-data-string @var{post}
+Given an instance of @code{curl-form-data} extract a string representing
+the current contents; if successful return the string, else return
+@false{}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun curl-formadd @var{post} @var{last} @vari{opt} @vari{val}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @var{end}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @var{end}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @var{end}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val}
+@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val} @var{end}
+Add a section to a multipart/formdata @http{} @acronym{POST}; if
+successful return @code{CURL_FORMADD_OK}, else return a
+@code{CURL_FORMADD_} error code.  @curlman{curl_formadd}.
+
+@var{post} must be an instance of @code{curl-form-data}; at the first
+invocation of this function @var{post} must be the return value of
+@func{make-curl-form-data}.
+
+@var{last} must be a pointer object; the first time this function is
+called to compose data, it must be @cnull{} (the return value of
+@func{null-pointer}); this function mutates @var{last} to reference the
+last item in the composed data.
+
+Each @var{opt}/@var{val} couple must be an option/value couple in which
+@var{opt} is one of the @code{CURLFORM_} constants and @var{val} is one
+among: an exact integer in the range of the C language type @code{long},
+a string, an @ascii{} bytevector, a pointer, a @code{memory-block}.
+
+When present @var{end} must be the constant @code{CURLFORM_END}.
+@end defun
+
+
+@defun curl-formfree @var{post}
+Release all the resources associated to @var{post}, which must be an
+instance of @code{curl-form-data}; return unspecified values.
+@curlman{curl_formfree}.
+
+It is safe to apply this function multiple times to the same @var{post}
+argument: the first time the data is finalised, the subsequent times
+nothing happens.
+@end defun
+
+
+@defun curl-formget @var{post} @var{custom-data} @var{callback}
+Invoke a @var{callback} for each line of content in @var{post}; when
+successful return @false{}, else return @true{}.
+
+@var{post} must be an instance of @code{curl-form-data}.
+
+@var{callabck} must be the return value of a call to
+@func{make-curl-formget-callback}.
+
+@var{custom-data} must be @false{} or a pointer object that will be used
+as first argument to @var{callback}; when @false{}, the argument will be
+the @cnull{} pointer.
+@end defun
+
+
+@defun make-curl-formget-callback @var{user-scheme-function}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as @var{callback}
+argument in calls to @func{curl-formget}; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-function} must accept @math{3} arguments:
+
+@enumerate
+@item
+A copy of the argument @var{custom-data} given to @func{curl-formget}.
+
+@item
+A pointer object referencing the line of content.
+
+@item
+An exact integer, in the range of the C language type @code{size_t},
+representing the number of bytes in the content.
+@end enumerate
+
+When successful @var{user-scheme-callback} must return its last
+argument, the number of bytes in the content; else it must return a
+different exact integer in the range of the C language type
+@code{size_t}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; @var{user-scheme-callback} should take care of
+handling its own exceptions.
+
+@item
+If @var{user-scheme-callback} raises an exception: the raised object is
+discarded and the callback returns the fixnum zero.
+@end itemize
 @end defun
 
 @c page

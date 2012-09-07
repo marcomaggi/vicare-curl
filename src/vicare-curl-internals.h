@@ -41,11 +41,19 @@
 
 
 /** --------------------------------------------------------------------
+ ** Type definitions.
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_httppost	ik_curl_http_post_t;
+typedef struct curl_forms	ik_curl_forms_t;
+
+
+/** --------------------------------------------------------------------
  ** Handling of Scheme objects.
  ** ----------------------------------------------------------------- */
 
 #define ika_integer_from_curlcode(PCB,CODE) \
-  ika_integer_from_int((PCB),(CODE))
+  ika_integer_from_int((PCB),(int)(CODE))
 
 /* Accessors    for    the    fields    of    the    Scheme    structure
    "curl-version-info-data". */

@@ -124,6 +124,347 @@ ikrt_curl_slist_free_all (ikptr s_slist, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Form data composition.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_formadd_1 (ikptr s_post, ikptr s_last_item,
+		     ikptr s_option, ikptr s_value,
+		     ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMADD
+  ik_curl_http_post_t *	first_item	= IK_POINTER_DATA_VOIDP(s_post);
+  ik_curl_http_post_t *	last_item	= IK_POINTER_DATA_VOIDP(s_last_item);
+  CURLFORMcode		rv;
+  if (IK_IS_INTEGER(s_value))
+    rv = curl_formadd(&first_item, &last_item,
+		      ik_integer_to_int(s_option),
+		      ik_integer_to_long(s_value),
+		      CURLFORM_END);
+  else
+    rv = curl_formadd(&first_item, &last_item,
+		      ik_integer_to_int(s_option),
+		      IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value),
+		      CURLFORM_END);
+  IK_POINTER_SET(s_post,      first_item);
+  IK_POINTER_SET(s_last_item, last_item);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_formadd_2 (ikptr s_post, ikptr s_last_item,
+		     ikptr s_option_1, ikptr s_value_1,
+		     ikptr s_option_2, ikptr s_value_2,
+		     ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMADD
+  ik_curl_http_post_t *	first_item	= IK_POINTER_DATA_VOIDP(s_post);
+  ik_curl_http_post_t *	last_item	= IK_POINTER_DATA_VOIDP(s_last_item);
+  int			isint1		= IK_IS_INTEGER(s_value_1);
+  int			isint2		= IK_IS_INTEGER(s_value_2);
+  CURLFORMcode		rv;
+  if (isint1 && isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       CURLFORM_END);
+  else if (isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       CURLFORM_END);
+  else if (isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       CURLFORM_END);
+  else
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       CURLFORM_END);
+  IK_POINTER_SET(s_post,      first_item);
+  IK_POINTER_SET(s_last_item, last_item);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_formadd_3 (ikptr s_post, ikptr s_last_item,
+		     ikptr s_option_1, ikptr s_value_1,
+		     ikptr s_option_2, ikptr s_value_2,
+		     ikptr s_option_3, ikptr s_value_3,
+		     ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMADD
+  ik_curl_http_post_t *	first_item	= IK_POINTER_DATA_VOIDP(s_post);
+  ik_curl_http_post_t *	last_item	= IK_POINTER_DATA_VOIDP(s_last_item);
+  int			isint1		= IK_IS_INTEGER(s_value_1);
+  int			isint2		= IK_IS_INTEGER(s_value_2);
+  int			isint3		= IK_IS_INTEGER(s_value_3);
+  CURLFORMcode		rv;
+  if (isint1 && isint2 && isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       CURLFORM_END);
+  else if (isint1 && isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       CURLFORM_END);
+  else if (isint2 && isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       CURLFORM_END);
+  else if (isint3 && isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       CURLFORM_END);
+  else if (isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       CURLFORM_END);
+  else if (isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       CURLFORM_END);
+  else if (isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       CURLFORM_END);
+  else
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       CURLFORM_END);
+  IK_POINTER_SET(s_post,      first_item);
+  IK_POINTER_SET(s_last_item, last_item);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_formadd_4 (ikptr s_post, ikptr s_last_item,
+		     ikptr s_option_1, ikptr s_value_1,
+		     ikptr s_option_2, ikptr s_value_2,
+		     ikptr s_option_3, ikptr s_value_3,
+		     ikptr s_option_4, ikptr s_value_4,
+		     ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMADD
+  ik_curl_http_post_t *	first_item	= IK_POINTER_DATA_VOIDP(s_post);
+  ik_curl_http_post_t *	last_item	= IK_POINTER_DATA_VOIDP(s_last_item);
+  int			isint1		= IK_IS_INTEGER(s_value_1);
+  int			isint2		= IK_IS_INTEGER(s_value_2);
+  int			isint3		= IK_IS_INTEGER(s_value_3);
+  int			isint4		= IK_IS_INTEGER(s_value_4);
+  CURLFORMcode		rv;
+  /* fprintf(stderr, "%s: %d, %d, %d, %d\n", __func__, isint1, isint2, isint3, isint4); */
+  if (isint1 && isint2 && isint3 && isint4)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint1 && isint2 && isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint2 && isint3 && isint4)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint3 && isint4 && isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint4 && isint1 && isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint1 && isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint2 && isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint3 && isint4)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint4 && isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint1 && isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint2 && isint4)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else if (isint1)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint2)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint3)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), ik_integer_to_long(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  else if (isint4)
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), ik_integer_to_long(s_value_4),
+       CURLFORM_END);
+  else
+    rv = curl_formadd
+      (&first_item, &last_item,
+       ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
+       ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
+       ik_integer_to_int(s_option_3), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_3),
+       ik_integer_to_int(s_option_4), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_4),
+       CURLFORM_END);
+  IK_POINTER_SET(s_post,      first_item);
+  IK_POINTER_SET(s_last_item, last_item);
+  /* fprintf(stderr, "%s: exit %d\n", __func__, rv); */
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_formget (ikptr s_post, ikptr s_data, ikptr s_callback, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMGET
+  ik_curl_http_post_t *	post		= IK_POINTER_DATA_VOIDP(s_post);
+  void *		custom_data	= IK_VOIDP_FROM_POINTER_OR_MBLOCK_OR_FALSE(s_data);
+  curl_formget_callback	callback	= IK_VOIDP_FROM_POINTER_OR_FALSE(s_callback);
+  ikptr			sk;
+  int			rv;
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_formget(post, custom_data, callback);
+  }
+  ik_leave_c_function(pcb, sk);
+  return IK_BOOLEAN_FROM_INT(rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_formfree (ikptr s_post, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_FORMFREE
+  ik_curl_http_post_t *	post = IK_VOIDP_FROM_POINTER_OR_FALSE(s_post);
+  if (post) {
+    curl_formfree(post);
+    IK_POINTER_SET_NULL(s_post);
+  }
+  return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

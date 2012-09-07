@@ -43,15 +43,17 @@
     ;; string lists
     curl-slist-append			curl-slist-free-all
 
+    ;; multipart/formdata composition
+    curl-formadd-1			curl-formadd-2
+    curl-formadd-3			curl-formadd-4
+    curl-formget			curl-formfree
+
     ;; miscellaneous functions
     curl-free
 
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
-    curl-formadd
-    curl-formget
-    curl-formfree
     curl-easy-escape
     curl-escape
     curl-easy-unescape
@@ -149,6 +151,47 @@
   (foreign-call "ikrt_curl_slist_free_all" slist))
 
 
+;;;; multipart/formdata composition
+
+(define-inline (curl-formadd-1 post last-item opt val)
+  (foreign-call "ikrt_curl_formadd_1" post last-item opt val))
+
+(define-inline (curl-formadd-2 post last-item
+			       opt1 val1
+			       opt2 val2)
+  (foreign-call "ikrt_curl_formadd_2" post last-item
+		opt1 val1
+		opt2 val2))
+
+(define-inline (curl-formadd-3 post last-item
+			       opt1 val1
+			       opt2 val2
+			       opt3 val3)
+  (foreign-call "ikrt_curl_formadd_3" post last-item
+		opt1 val1
+		opt2 val2
+		opt3 val3))
+
+(define-inline (curl-formadd-4 post last-item
+			       opt1 val1
+			       opt2 val2
+			       opt3 val3
+			       opt4 val4)
+  (foreign-call "ikrt_curl_formadd_4" post last-item
+		opt1 val1
+		opt2 val2
+		opt3 val3
+		opt4 val4))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-formget post custom-data callback)
+  (foreign-call "ikrt_curl_formget" post custom-data callback))
+
+(define-inline (curl-formfree post)
+  (foreign-call "ikrt_curl_formfree" post))
+
+
 ;;;; miscellaneous functions
 
 (define-inline (curl-free ptr)
@@ -156,15 +199,6 @@
 
 
 ;;;; still to be implemented
-
-(define-inline (curl-formadd)
-  (foreign-call "ikrt_curl_formadd"))
-
-(define-inline (curl-formget)
-  (foreign-call "ikrt_curl_formget"))
-
-(define-inline (curl-formfree)
-  (foreign-call "ikrt_curl_formfree"))
 
 (define-inline (curl-easy-escape)
   (foreign-call "ikrt_curl_easy_escape"))
