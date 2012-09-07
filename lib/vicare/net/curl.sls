@@ -73,12 +73,11 @@
     curl-unescape			curl-unescape/string
 
     ;; miscellaneous functions
-    curl-free
+    curl-free				curl-getdate
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-getdate
     curl-share-init
     curl-share-setopt
     curl-share-cleanup
@@ -758,6 +757,13 @@
       ((pointer/false	pointer))
     (capi.curl-free pointer)))
 
+(define (curl-getdate date)
+  (define who 'curl-getdate)
+  (with-arguments-validation (who)
+      ((general-string	date))
+    (with-general-strings/ascii ((date^ date))
+      (capi.curl-getdate date^))))
+
 
 ;;;; callback makers
 
@@ -851,12 +857,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-getdate . args)
-  (define who 'curl-getdate)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-share-init . args)
   (define who 'curl-share-init)

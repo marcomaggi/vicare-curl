@@ -667,6 +667,7 @@ nothing happens.
 @defun curl-formget @var{post} @var{custom-data} @var{callback}
 Invoke a @var{callback} for each line of content in @var{post}; when
 successful return @false{}, else return @true{}.
+@curlman{curl_formget}.
 
 @var{post} must be an instance of @code{curl-form-data}.
 
@@ -739,6 +740,72 @@ the @cnull{} pointer.
 
 It is safe to apply this function multiple times to the same
 @var{pointer}.
+@end defun
+
+
+@defun curl-escape @var{str.data}
+@defunx curl-escape @var{str.data} @var{str.len}
+Obsolete function.  Escape all the characters in the input string to
+make it ready to be a @aurl{} component; if successful return a
+bytevector holding the @ascii{} encoding of the string, else return
+@false{}.  @curlman{curl_escape}.
+
+@var{str.data} must be a string, bytevector, pointer object or
+@code{memory-block} holding the representation of an @ascii{} string.
+
+The optional @var{str.len} must be @false{} or an exact integer, in the
+range of the C language type @code{int}, representing the number of
+bytes in the input string; when @false{} or not given, the length of the
+string is determined with @cfunc{strlen}.  @var{str.len} is always
+ignored but when @var{str.data} is a pointer object.
+@end defun
+
+
+@defun curl-escape/string @var{str.data}
+@defunx curl-escape/string @var{str.data} @var{str.len}
+Like @func{curl-escape} but return a Scheme string.
+@end defun
+
+
+@defun curl-unescape @var{str.data}
+@defunx curl-unescape @var{str.data} @var{str.len}
+Obsolete function.  Unescape all the characters in the input string as
+if it comes from a @aurl{} component; if successful return a bytevector
+holding the @ascii{} encoding of the string, else return @false{}.
+@curlman{curl_unescape}.
+
+@var{str.data} must be a string, bytevector, pointer object or
+@code{memory-block} holding the representation of an @ascii{} string.
+
+The optional @var{str.len} must be @false{} or an exact integer, in the
+range of the C language type @code{int}, representing the number of
+bytes in the input string; when @false{} or not given, the length of the
+string is determined with @cfunc{strlen}.  @var{str.len} is always
+ignored but when @var{str.data} is a pointer object.
+@end defun
+
+
+@defun curl-unescape/string @var{str.data}
+@defunx curl-unescape/string @var{str.data} @var{str.len}
+Like @func{curl-unescape} but return a Scheme string.
+@end defun
+
+
+@defun curl-getdate @var{date}
+Convert a date string to the the number of seconds since the Epoch.
+@curlman{curl_getdate}.
+
+@var{str.data} must be a string, bytevector, pointer object or
+@code{memory-block} holding the representation of the date as @ascii{}
+string.
+
+@example
+(import (vicare)
+  (vicare net curl))
+
+(curl-getdate "Sun Nov 6 94")
+@result{} 784080000
+@end example
 @end defun
 
 @c page

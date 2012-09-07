@@ -52,12 +52,11 @@
     curl-escape				curl-unescape
 
     ;; miscellaneous functions
-    curl-free
+    curl-free				curl-getdate
 
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
-    curl-getdate
     curl-share-init
     curl-share-setopt
     curl-share-cleanup
@@ -209,6 +208,9 @@
 (define-inline (curl-free ptr)
   (foreign-call "ikrt_curl_free" ptr))
 
+(define-inline (curl-getdate date)
+  (foreign-call "ikrt_curl_getdate" date))
+
 
 ;;;; still to be implemented
 
@@ -217,9 +219,6 @@
 
 (define-inline (curl-easy-unescape)
   (foreign-call "ikrt_curl_easy_unescape"))
-
-(define-inline (curl-getdate)
-  (foreign-call "ikrt_curl_getdate"))
 
 (define-inline (curl-share-init)
   (foreign-call "ikrt_curl_share_init"))

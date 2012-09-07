@@ -30,15 +30,6 @@
 
 #if 0
 ikptr
-ikrt_curl_getdate (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_GETDATE
-  curl_getdate();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_share_init (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_SHARE_INIT

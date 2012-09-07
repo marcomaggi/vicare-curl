@@ -482,7 +482,12 @@ ikrt_curl_escape (ikptr s_chars, ikptr s_length, ikpcb * pcb)
   else
     length = IK_MBLOCK_SIZE_T(s_chars);
   rv = curl_escape(chars, length);
-  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
+  if (rv) {
+    ikptr bv = ika_bytevector_from_cstring(pcb, rv);
+    curl_free(rv);
+    return bv;
+  } else
+    return IK_FALSE;
 #else
   feature_failure(__func__);
 #endif
@@ -501,7 +506,12 @@ ikrt_curl_unescape (ikptr s_chars, ikptr s_length, ikpcb * pcb)
   else
     length = IK_MBLOCK_SIZE_T(s_chars);
   rv = curl_unescape(chars, length);
-  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
+  if (rv) {
+    ikptr bv = ika_bytevector_from_cstring(pcb, rv);
+    curl_free(rv);
+    return bv;
+  } else
+    return IK_FALSE;
 #else
   feature_failure(__func__);
 #endif
@@ -522,6 +532,18 @@ ikrt_curl_free (ikptr s_pointer, ikpcb * pcb)
     IK_POINTER_SET_NULL(s_pointer);
   }
   return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_getdate (ikptr s_date, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_GETDATE
+  const char *	date = IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_date);
+  time_t	rv;
+  rv = curl_getdate(date, NULL);
+  return ika_integer_from_sint64(pcb, (int64_t)rv);
 #else
   feature_failure(__func__);
 #endif
