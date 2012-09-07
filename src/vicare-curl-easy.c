@@ -36,9 +36,39 @@
 
 
 /** --------------------------------------------------------------------
- ** Easy API.
+ ** Escaping URL strings.
  ** ----------------------------------------------------------------- */
 
-
+#if 0
+ikptr
+ikrt_curl_easy_escape (ikptr s_easy, ikptr s_chars, ikptr s_length, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_EASY_ESCAPE
+  CURL *	easy	= IK_CURL_EASY(s_easy);
+  const char *	chars	= IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_chars);
+  int		length;
+  char *	rv;
+  if (IK_IS_BYTEVECTOR(s_chars))
+    length = IK_BYTEVECTOR_LENGTH(s_chars);
+  else if (IK_IS_POINTER(s_chars))
+    length = ik_integer_to_int(s_length);
+  else
+    length = IK_MBLOCK_SIZE_T(s_chars);
+  rv = curl_easy_escape(easy, chars, length);
+  return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_easy_unescape (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_EASY_UNESCAPE
+  curl_easy_unescape();
+#else
+  feature_failure(__func__);
+#endif
+}
+#endif
 
 /* end of file */

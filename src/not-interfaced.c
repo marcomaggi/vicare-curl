@@ -30,42 +30,6 @@
 
 #if 0
 ikptr
-ikrt_curl_easy_escape (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_EASY_ESCAPE
-  curl_easy_escape();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_escape (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_ESCAPE
-  curl_escape();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_easy_unescape (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_EASY_UNESCAPE
-  curl_easy_unescape();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_unescape (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_UNESCAPE
-  curl_unescape();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_getdate (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_GETDATE

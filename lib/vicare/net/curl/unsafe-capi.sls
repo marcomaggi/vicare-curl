@@ -48,21 +48,21 @@
     curl-formadd-3			curl-formadd-4
     curl-formget			curl-formfree
 
+    ;; basic URL string escaping
+    curl-escape				curl-unescape
+
     ;; miscellaneous functions
     curl-free
 
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
 
-    curl-easy-escape
-    curl-escape
-    curl-easy-unescape
-    curl-unescape
     curl-getdate
     curl-share-init
     curl-share-setopt
     curl-share-cleanup
     curl-share-strerror
+
     curl-easy-init
     curl-easy-setopt
     curl-easy-perform
@@ -74,6 +74,9 @@
     curl-easy-send
     curl-easy-strerror
     curl-easy-pause
+    curl-easy-escape
+    curl-easy-unescape
+
     curl-multi-init
     curl-multi-add-handle
     curl-multi-remove-handle
@@ -192,6 +195,15 @@
   (foreign-call "ikrt_curl_formfree" post))
 
 
+;;;; basic URL string escaping
+
+(define-inline (curl-escape str.data str.len)
+  (foreign-call "ikrt_curl_escape" str.data str.len))
+
+(define-inline (curl-unescape str.data str.len)
+  (foreign-call "ikrt_curl_unescape" str.data str.len))
+
+
 ;;;; miscellaneous functions
 
 (define-inline (curl-free ptr)
@@ -203,14 +215,8 @@
 (define-inline (curl-easy-escape)
   (foreign-call "ikrt_curl_easy_escape"))
 
-(define-inline (curl-escape)
-  (foreign-call "ikrt_curl_escape"))
-
 (define-inline (curl-easy-unescape)
   (foreign-call "ikrt_curl_easy_unescape"))
-
-(define-inline (curl-unescape)
-  (foreign-call "ikrt_curl_unescape"))
 
 (define-inline (curl-getdate)
   (foreign-call "ikrt_curl_getdate"))

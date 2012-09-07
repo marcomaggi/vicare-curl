@@ -68,21 +68,24 @@
     (rename (%make-curl-form-data	make-curl-form-data))
     curl-form-data-string
 
+    ;; basic URL string escaping
+    curl-escape				curl-escape/string
+    curl-unescape			curl-unescape/string
+
     ;; miscellaneous functions
     curl-free
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-easy-escape
-    curl-escape
-    curl-easy-unescape
-    curl-unescape
     curl-getdate
     curl-share-init
     curl-share-setopt
     curl-share-cleanup
     curl-share-strerror
+
+    curl-easy-escape
+    curl-easy-unescape
     curl-easy-init
     curl-easy-setopt
     curl-easy-perform
@@ -94,6 +97,7 @@
     curl-easy-send
     curl-easy-strerror
     curl-easy-pause
+
     curl-multi-init
     curl-multi-add-handle
     curl-multi-remove-handle
@@ -170,6 +174,12 @@
     "expected exact integer in the range of the C language type \"int\" as argument"
     obj))
 
+(define-argument-validation (signed-int/false who obj)
+  (or (not obj) (words.signed-int? obj))
+  (assertion-violation who
+    "expected false or exact integer in the range of the C language type \"int\" as argument"
+    obj))
+
 (define-argument-validation (signed-long who obj)
   (words.signed-long? obj)
   (assertion-violation who
@@ -205,6 +215,21 @@
      (let ((?var (let ((arg ?arg))
 		   (cond ((string? arg)
 			  (string->utf8 arg))
+			 ((or (bytevector? arg)
+			      (pointer?    arg)
+			      (memory-block? arg))
+			  arg)
+			 (else
+			  (assertion-violation #f "unexpected object" arg)))))
+	   ...)
+       ?body0 . ?body))))
+
+(define-syntax with-general-strings/ascii
+  (syntax-rules ()
+    ((_ ((?var ?arg) ...) ?body0 . ?body)
+     (let ((?var (let ((arg ?arg))
+		   (cond ((string? arg)
+			  (string->ascii arg))
 			 ((or (bytevector? arg)
 			      (pointer?    arg)
 			      (memory-block? arg))
@@ -663,6 +688,68 @@
 		 (user-scheme-callback custom-data cstring.ptr cstring.len)))))))
 
 
+;;;; basic URL string escaping
+
+(define curl-escape
+  (case-lambda
+   ((str.data)
+    (curl-escape str.data #f))
+   ((str.data str.len)
+    (define who 'curl-escape)
+    (with-arguments-validation (who)
+	((general-string	str.data)
+	 (signed-int/false	str.len))
+      (with-general-strings/ascii ((str.data^ str.data))
+	(capi.curl-escape str.data^ str.len))))))
+
+(define curl-unescape
+  (case-lambda
+   ((str.data)
+    (curl-unescape str.data #f))
+   ((str.data str.len)
+    (define who 'curl-unescape)
+    (with-arguments-validation (who)
+	((general-string	str.data)
+	 (signed-int/false	str.len))
+      (with-general-strings/ascii ((str.data^ str.data))
+	(capi.curl-unescape str.data^ str.len))))))
+
+;;; --------------------------------------------------------------------
+
+(define curl-escape/string
+  (case-lambda
+   ((str.data)
+    (curl-escape/string str.data #f))
+   ((str.data str.len)
+    (let ((rv (curl-escape str.data str.len)))
+      (and rv (ascii->string rv))))))
+
+(define curl-unescape/string
+  (case-lambda
+   ((str.data)
+    (curl-unescape/string str.data #f))
+   ((str.data str.len)
+    (let ((rv (curl-unescape str.data str.len)))
+      (and rv (ascii->string rv))))))
+
+
+;;;; easy API
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-escape . args)
+  (define who 'curl-easy-escape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-easy-unescape . args)
+  (define who 'curl-easy-unescape)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+
 ;;;; miscellaneous functions
 
 (define (curl-free pointer)
@@ -764,30 +851,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-easy-escape . args)
-  (define who 'curl-easy-escape)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-escape . args)
-  (define who 'curl-escape)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-unescape . args)
-  (define who 'curl-easy-unescape)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-unescape . args)
-  (define who 'curl-unescape)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-getdate . args)
   (define who 'curl-getdate)
@@ -985,4 +1048,5 @@
 ;;; end of file
 ;;Local Variables:
 ;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
+;;eval: (put 'with-general-strings/ascii 'scheme-indent-function 1)
 ;;End:

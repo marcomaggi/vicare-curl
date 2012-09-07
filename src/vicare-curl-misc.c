@@ -465,6 +465,50 @@ ikrt_curl_formfree (ikptr s_post, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Escaping URL strings.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_escape (ikptr s_chars, ikptr s_length, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_ESCAPE
+  const char *	chars	= IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_chars);
+  int		length;
+  char *	rv;
+  if (IK_IS_BYTEVECTOR(s_chars))
+    length = IK_BYTEVECTOR_LENGTH(s_chars);
+  else if (IK_IS_POINTER(s_chars))
+    length = ik_integer_to_int(s_length);
+  else
+    length = IK_MBLOCK_SIZE_T(s_chars);
+  rv = curl_escape(chars, length);
+  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_unescape (ikptr s_chars, ikptr s_length, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_UNESCAPE
+  const char *	chars	= IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_chars);
+  int		length;
+  char *	rv;
+  if (IK_IS_BYTEVECTOR(s_chars))
+    length = IK_BYTEVECTOR_LENGTH(s_chars);
+  else if (IK_IS_POINTER(s_chars))
+    length = ik_integer_to_int(s_length);
+  else
+    length = IK_MBLOCK_SIZE_T(s_chars);
+  rv = curl_unescape(chars, length);
+  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

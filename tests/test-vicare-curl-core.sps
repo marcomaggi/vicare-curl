@@ -208,6 +208,33 @@
   (collect))
 
 
+(parametrise ((check-test-name	'escaping))
+
+  (check
+      (curl-escape/string "http://www.marco.it/")
+    => "http%3A%2F%2Fwww.marco.it%2F")
+
+  (check
+      (curl-escape/string "ciao")
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check	;dots encoded
+      (curl-unescape/string "http%3A%2F%2Fwww%2Emarco%2Eit%2F")
+    => "http://www.marco.it/")
+
+  (check	;dots not encoded
+      (curl-unescape/string "http%3A%2F%2Fwww.marco.it%2F")
+    => "http://www.marco.it/")
+
+  (check
+      (curl-unescape/string "ciao")
+    => "ciao")
+
+  #t)
+
+
 ;;;; done
 
 (check-report)
