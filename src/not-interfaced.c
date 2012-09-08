@@ -30,42 +30,6 @@
 
 #if 0
 ikptr
-ikrt_curl_share_init (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SHARE_INIT
-  curl_share_init();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_share_setopt (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SHARE_SETOPT
-  curl_share_setopt();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_share_cleanup (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SHARE_CLEANUP
-  curl_share_cleanup();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_share_strerror (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_SHARE_STRERROR
-  curl_share_strerror();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_easy_init (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_EASY_INIT

@@ -519,6 +519,75 @@ ikrt_curl_unescape (ikptr s_chars, ikptr s_length, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Shared option sets.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_share_init (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SHARE_INIT
+  CURLSH	* rv;
+  rv = curl_share_init();
+  return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_share_setopt (ikptr s_share, ikptr s_option, ikptr s_parameter, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SHARE_SETOPT
+  CURLSH *	share	= IK_CURL_SHARE(s_share);
+  CURLSHoption	option	= ik_integer_to_int(s_option);
+  CURLSHcode	rv;
+  switch (option) {
+  case CURLSHOPT_SHARE:
+  case CURLSHOPT_UNSHARE:
+    rv = curl_share_setopt(share, option, ik_integer_to_int(s_parameter));
+    break;
+  default:	/* everything else is a pointer to callback function */
+    rv = curl_share_setopt(share, option, IK_VOIDP_FROM_POINTER_OR_FALSE(s_parameter));
+    break;
+  }
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_share_cleanup (ikptr s_share, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SHARE_CLEANUP
+  ikptr		s_pointer	= IK_CURL_SHARE_POINTER(s_share);
+  CURLSH *	share		= IK_POINTER_DATA_VOIDP(s_pointer);
+  CURLSHcode	rv;
+  if (share) {
+    rv = curl_share_cleanup(share);
+    if (CURLSHE_OK == rv) {
+      IK_POINTER_SET_NULL(s_pointer);
+    }
+  } else
+    rv = CURLSHE_OK;
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_share_strerror (ikptr s_errcode, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_SHARE_STRERROR
+  CURLSHcode	errcode = ik_integer_to_int(s_errcode);
+  const char *	rv;
+  rv = curl_share_strerror(errcode);
+  return ika_bytevector_from_cstring(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

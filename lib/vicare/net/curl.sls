@@ -72,17 +72,21 @@
     curl-escape				curl-escape/string
     curl-unescape			curl-unescape/string
 
+    ;; shared configuration option sets
+    curl-share-init			curl-share-cleanup
+    curl-share-setopt
+    curl-share-strerror			curl-share-strerror/string
+    make-curl-lock-function		make-curl-unlock-function
+
+    curl-share
+    curl-share?				curl-share?/alive
+
     ;; miscellaneous functions
     curl-free				curl-getdate
 
 ;;; --------------------------------------------------------------------
 
     ;; still to be implemented
-    curl-share-init
-    curl-share-setopt
-    curl-share-cleanup
-    curl-share-strerror
-
     curl-easy-escape
     curl-easy-unescape
     curl-easy-init
@@ -205,8 +209,29 @@
     "expected instance of \"curl-form-data\" as argument holding contents"
     obj))
 
+(define-argument-validation (curl-share who obj)
+  (curl-share? obj)
+  (assertion-violation who "expected instance of \"curl-share\" as argument" obj))
+
+(define-argument-validation (curl-share/alive who obj)
+  (curl-share?/alive obj)
+  (assertion-violation who "expected alive instance of \"curl-share\" as argument" obj))
+
+(define-argument-validation (curl-share-parameter who parameter option)
+  (cond ((or (= option CURLSHOPT_SHARE)
+	     (= option CURLSHOPT_UNSHARE))
+	 (words.signed-int? parameter))
+	(else
+	 (callback? parameter)))
+  (assertion-violation who
+    "invalid matching between \"curl-share\" option and parameter"
+    parameter option))
+
 
 ;;;; helpers
+
+(define-inline (callback? ?obj)
+  (or (not ?obj) (pointer? ?obj)))
 
 (define-syntax with-general-strings/utf8
   (syntax-rules ()
@@ -732,6 +757,98 @@
       (and rv (ascii->string rv))))))
 
 
+;;;; shared configuration option sets
+
+(define-struct curl-share
+  (pointer))
+
+(define (%struct-curl-share-printer S port sub-printer)
+  (define-inline (%display thing)
+    (display thing port))
+  (define-inline (%write thing)
+    (write thing port))
+  (%display "#[curl-share")
+  (%display " pointer=")	(%display (curl-share-pointer S))
+  (%display "]"))
+
+(define %curl-share-guardian
+  (make-guardian))
+
+(define (%curl-share-guardian-destructor)
+  (do ((P (%curl-share-guardian) (%curl-share-guardian)))
+      ((not P))
+    ;;Try to close and ignore errors.
+    (capi.curl-share-cleanup (curl-share-pointer P))
+    (struct-reset P)))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-share?/alive obj)
+  (and (curl-share? obj)
+       (not (pointer-null? (curl-share-pointer obj)))))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-share-init)
+  (make-curl-share (capi.curl-share-init)))
+
+(define (curl-share-setopt share option parameter)
+  (define who 'curl-share-setopt)
+  (with-arguments-validation (who)
+      ((curl-share/alive	share)
+       (signed-int		option)
+       (curl-share-parameter	parameter option))
+    (capi.curl-share-setopt share option parameter)))
+
+(define (curl-share-cleanup share)
+  (define who 'curl-share-cleanup)
+  (with-arguments-validation (who)
+      ((curl-share	share))
+    (capi.curl-share-cleanup share)))
+
+(define (curl-share-strerror errcode)
+  (define who 'curl-share-strerror)
+  (with-arguments-validation (who)
+      ((signed-int	errcode))
+    (capi.curl-share-strerror errcode)))
+
+(define (curl-share-strerror/string errcode)
+  (ascii->string (curl-share-strerror errcode)))
+
+;;; --------------------------------------------------------------------
+
+(define make-curl-lock-function
+  ;; void curl_lock_function (CURL *handle, curl_lock_data data,
+  ;;                          curl_lock_access locktype, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'void '(pointer signed-int signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle data locktype userptr)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (void)))
+		 (user-scheme-callback handle
+				       data locktype
+				       (if (pointer-null? userptr)
+					   #f
+					 userptr))
+		 (void)))))))
+
+(define make-curl-unlock-function
+  ;; void curl_unlock_function (CURL *handle, curl_lock_data data, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'void '(pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle data userptr)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  (void)))
+		 (user-scheme-callback handle
+				       data
+				       (if (pointer-null? userptr)
+					   #f
+					 userptr))
+		 (void)))))))
+
+
 ;;;; easy API
 
 ;;; --------------------------------------------------------------------
@@ -834,15 +951,6 @@
  ;;                          enum curl_khmatch, /* libcurl's view on the keys */
  ;;                          void *clientp); /* custom pointer passed from app */
 
- ;; void (*curl_lock_function)(CURL *handle,
- ;;                                   curl_lock_data data,
- ;;                                   curl_lock_access locktype,
- ;;                                   void *userptr);
-
- ;; void (*curl_unlock_function)(CURL *handle,
- ;;                                     curl_lock_data data,
- ;;                                     void *userptr);
-
  ;; int (*curl_socket_callback)(CURL *easy,
  ;;                                    curl_socket_t s,
  ;;                                    int what,
@@ -857,30 +965,6 @@
 
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
-
-(define (curl-share-init . args)
-  (define who 'curl-share-init)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-share-setopt . args)
-  (define who 'curl-share-setopt)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-share-cleanup . args)
-  (define who 'curl-share-cleanup)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-share-strerror . args)
-  (define who 'curl-share-strerror)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
 
 (define (curl-easy-init . args)
   (define who 'curl-easy-init)
@@ -1039,9 +1123,12 @@
 		  %struct-curl-version-info-data-printer)
 (set-rtd-printer! (type-descriptor curl-form-data)
 		  %struct-curl-form-data-printer)
+(set-rtd-printer! (type-descriptor curl-share)
+		  %struct-curl-share-printer)
 
-(post-gc-hooks (cons %curl-form-data-guardian
-		     (post-gc-hooks)))
+(post-gc-hooks (cons* %curl-form-data-guardian
+		      %curl-share-guardian
+		      (post-gc-hooks)))
 
 )
 

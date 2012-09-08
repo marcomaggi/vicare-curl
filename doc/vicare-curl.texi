@@ -225,7 +225,8 @@ to the @curl{}'s documentation for details.
 * plain init::                  Global initialisation and
                                 finalisation.
 * plain slists::                String lists.
-* plain form::                  Multipart/formdata composition.
+* plain forms::                 Multipart/formdata composition.
+* plain shares::                Shared configuration option sets.
 * plain misc::                  Miscellaneous functions.
 @end menu
 
@@ -580,7 +581,7 @@ argument.
 @end defun
 
 @c page
-@node plain form
+@node plain forms
 @section Multipart/formdata composition
 
 
@@ -589,8 +590,13 @@ curl}.
 
 
 @deftp {Struct Type} curl-form-data
+@cindex @var{httppost} argument
+@cindex Argument @var{httppost}
 Opaque structure type referencing the first element in a C language
 @code{struct curl_httppost} chain.
+
+When instances of this type are used as arguments to functions: this
+documentation identifies them as @var{httppost}.
 
 Instances of this type must be finalised with @func{curl-formfree}.
 Whenever an instance of this type is garbage collected:
@@ -615,7 +621,7 @@ handed to @func{curl-formadd}.
 @end defun
 
 
-@defun curl-form-data-string @var{post}
+@defun curl-form-data-string @var{httppost}
 Given an instance of @code{curl-form-data} extract a string representing
 the current contents; if successful return the string, else return
 @false{}.
@@ -623,21 +629,21 @@ the current contents; if successful return the string, else return
 
 @c ------------------------------------------------------------
 
-@defun curl-formadd @var{post} @var{last} @vari{opt} @vari{val}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @var{end}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @var{end}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @var{end}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val}
-@defunx curl-formadd @var{post} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val} @var{end}
+@defun curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @var{end}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @var{end}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @var{end}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val}
+@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val} @var{end}
 Add a section to a multipart/formdata @http{} @acronym{POST}; if
 successful return @code{CURL_FORMADD_OK}, else return a
 @code{CURL_FORMADD_} error code.  @curlman{curl_formadd}.
 
-@var{post} must be an instance of @code{curl-form-data}; at the first
-invocation of this function @var{post} must be the return value of
-@func{make-curl-form-data}.
+@var{httppost} must be an instance of @code{curl-form-data}; at the
+first invocation of this function @var{httppost} must be the return
+value of @func{make-curl-form-data}.
 
 @var{last} must be a pointer object; the first time this function is
 called to compose data, it must be @cnull{} (the return value of
@@ -653,23 +659,23 @@ When present @var{end} must be the constant @code{CURLFORM_END}.
 @end defun
 
 
-@defun curl-formfree @var{post}
-Release all the resources associated to @var{post}, which must be an
+@defun curl-formfree @var{httppost}
+Release all the resources associated to @var{httppost}, which must be an
 instance of @code{curl-form-data}; return unspecified values.
 @curlman{curl_formfree}.
 
-It is safe to apply this function multiple times to the same @var{post}
-argument: the first time the data is finalised, the subsequent times
-nothing happens.
+It is safe to apply this function multiple times to the same
+@var{httppost} argument: the first time the data is finalised, the
+subsequent times nothing happens.
 @end defun
 
 
-@defun curl-formget @var{post} @var{custom-data} @var{callback}
-Invoke a @var{callback} for each line of content in @var{post}; when
+@defun curl-formget @var{httppost} @var{custom-data} @var{callback}
+Invoke a @var{callback} for each line of content in @var{httppost}; when
 successful return @false{}, else return @true{}.
 @curlman{curl_formget}.
 
-@var{post} must be an instance of @code{curl-form-data}.
+@var{httppost} must be an instance of @code{curl-form-data}.
 
 @var{callabck} must be the return value of a call to
 @func{make-curl-formget-callback}.
@@ -718,6 +724,207 @@ handling its own exceptions.
 @item
 If @var{user-scheme-callback} raises an exception: the raised object is
 discarded and the callback returns the fixnum zero.
+@end itemize
+@end defun
+
+@c page
+@node plain shares
+@section Shared configuration option sets
+
+
+@curl{} allows us to collect configuration option in shared sets called
+@dfn{shares}.  The following bindings are exported by the library
+@library{vicare net curl}.
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(define share
+  (curl-share-init))
+
+(curl-share-setopt share CURLSHOPT_SHARE CURL_LOCK_DATA_COOKIE)
+@result{} CURLSHE_OK
+
+(curl-share-setopt share CURLSHOPT_SHARE CURL_LOCK_DATA_DNS)
+@result{} CURLSHE_OK
+
+(curl-share-setopt share CURLSHOPT_USERDATA #f)
+@result{} CURLSHE_OK
+
+(curl-share-setopt share CURLSHOPT_LOCKFUNC
+   (make-curl-lock-function
+     (lambda (easy what-to-lock how-to-lock custom-data)
+       (void))))
+@result{} CURLSHE_OK
+
+(curl-share-setopt share CURLSHOPT_UNLOCKFUNC
+   (make-curl-lock-function
+     (lambda (easy what-to-lock custom-data)
+       (void))))
+@result{} CURLSHE_OK
+@end example
+
+
+@deftp {Struct Type} curl-share
+@cindex @var{share} argument
+@cindex Argument @var{share}
+Opaque structure type used to reference instances of the C language type
+@code{CURLSH}.
+
+When instances of this type are used as arguments to functions: this
+documentation identifies them as @var{share}.
+
+Instances of this type must be finalised with @func{curl-share-cleanup};
+whenever an instance of this type is garbage collected:
+@func{curl-share-cleanup} is automatically applied to it and any error
+ignored.
+@end deftp
+
+
+@defun curl-share? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-share}.
+@end defun
+
+
+@defun curl-share?/alive @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-share} and it
+has not been finalised yet.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun curl-share-init
+Build a new instance of @code{curl-share} object; if successful return
+the instance, else return @false{}.  @curlman{curl_share_cleaup}.
+@end defun
+
+
+@defun curl-shared-cleanup @var{share}
+Attempt to release all the resources associated to @var{share}, which
+must be an instance of @code{curl-share}; if successful return
+@code{CURLSHE_OK}, else return a @code{CURLSHE_} error code.
+@curlman{curl_share_cleanup}.
+
+It is safe to apply this function multiple times to the same @var{share}
+object: the first time the data is finalised, the subsequent times
+nothing happens.
+@end defun
+
+
+@defun curl-share-setopt @var{share} @var{option} @var{parameter}
+Set @var{option} to @var{parameter} for the given @var{share}; if
+succesful return @code{CURLSHE_OK}, else return a @code{CURLSHE_} error
+code.  @curlman{curl_share_setopt}.
+
+@var{option} must be an exact integer representing a @code{CURLSHOPT_}
+constant.
+
+The type of @var{parameter} depends on @var{option}.  Whenever the
+@var{option} requires a pointer value: @var{parameter} can be either a
+pointer object or @false{}, which will be converted to @cnull{}.
+@end defun
+
+
+@defun curl-share-strerror @var{errcode}
+@defunx curl-share-strerror/string @var{errcode}
+Given an exact integer representing a @code{CURLSHE_} error code return
+an @ascii{} bytevector or string describing the associated error.
+@curlman{curl_share_strerror}.
+@end defun
+
+
+@defun make-curl-lock-function @var{user-scheme-function}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as @var{parameter}
+argument in calls to @func{curl-share-setopt} with @var{option} set to
+@code{CURLSHOPT_LOCKFUNC}; the returned pointer must be released with a
+call to @func{free-c-callback} from @library{vicare ffi}.
+
+@var{user-scheme-function} must accept @math{4} arguments:
+
+@enumerate
+@item
+A temporary instance of @code{curl} @strong{not} holding ownership for
+the wrapped @code{CURL} instance.
+
+@item
+An exact integer representing a @code{CURL_LOCK_DATA_} constant.
+
+@item
+An exact integer representing a @code{CURL_LOCK_ACCESS_} constant.
+
+@item
+A copy of the value registered in the associated @var{share} with the
+@var{option} @code{CURLSHOPT_USERDATA}; this is @false{} or a pointer
+object.
+@end enumerate
+
+@var{user-scheme-callback} can return unspecified values.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Whatever value is returned by @var{user-scheme-callback} it is discarded
+and @code{(void)} is returned instead.
+
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; @var{user-scheme-callback} should take care of
+handling its own exceptions.
+
+@item
+If @var{user-scheme-callback} raises an exception: the raised object is
+discarded and the callback returns @code{(void)}.
+@end itemize
+@end defun
+
+
+@defun make-curl-unlock-function @var{user-scheme-function}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as @var{parameter}
+argument in calls to @func{curl-share-setopt} with @var{option} set to
+@code{CURLSHOPT_UNLOCKFUNC}; the returned pointer must be released with
+a call to @func{free-c-callback} from @library{vicare ffi}.
+
+@var{user-scheme-function} must accept @math{3} arguments:
+
+@enumerate
+@item
+A temporary instance of @code{curl} @strong{not} holding ownership for
+the wrapped @code{CURL} instance.
+
+@item
+An exact integer representing a @code{CURL_LOCK_DATA_} constant.
+
+@item
+A copy of the value registered in the associated @var{share} with the
+@var{option} @code{CURLSHOPT_USERDATA}; this is @false{} or a pointer
+object.
+@end enumerate
+
+@var{user-scheme-callback} can return unspecified values.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Whatever value is returned by @var{user-scheme-callback} it is discarded
+and @code{(void)} is returned instead.
+
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; @var{user-scheme-callback} should take care of
+handling its own exceptions.
+
+@item
+If @var{user-scheme-callback} raises an exception: the raised object is
+discarded and the callback returns @code{(void)}.
 @end itemize
 @end defun
 

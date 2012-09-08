@@ -241,6 +241,74 @@
   #t)
 
 
+(parametrise ((check-test-name	'shares))
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-cleanup share))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-cleanup share)
+	(curl-share-cleanup share))
+    => CURLSHE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_SHARE CURL_LOCK_DATA_COOKIE))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_UNSHARE CURL_LOCK_DATA_DNS))
+    => CURLSHE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_USERDATA (null-pointer)))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_USERDATA #f))
+    => CURLSHE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_LOCKFUNC #f))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_LOCKFUNC
+			   (make-curl-lock-function
+			    (lambda (easy what-to-lock how-to-lock custom-data)
+			      (void)))))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_UNLOCKFUNC #f))
+    => CURLSHE_OK)
+
+  (check
+      (let ((share (curl-share-init)))
+	(curl-share-setopt share CURLSHOPT_UNLOCKFUNC
+			   (make-curl-lock-function
+			    (lambda (easy what-to-lock custom-data)
+			      (void)))))
+    => CURLSHE_OK)
+
+  (collect))
+
+
 ;;;; done
 
 (check-report)

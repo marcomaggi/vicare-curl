@@ -51,16 +51,15 @@
     ;; basic URL string escaping
     curl-escape				curl-unescape
 
+    ;; shared configuration option sets
+    curl-share-init			curl-share-cleanup
+    curl-share-setopt			curl-share-strerror
+
     ;; miscellaneous functions
     curl-free				curl-getdate
 
 ;;; --------------------------------------------------------------------
 ;;; still to be implemented
-
-    curl-share-init
-    curl-share-setopt
-    curl-share-cleanup
-    curl-share-strerror
 
     curl-easy-init
     curl-easy-setopt
@@ -203,6 +202,21 @@
   (foreign-call "ikrt_curl_unescape" str.data str.len))
 
 
+;;;; shared configuration option sets
+
+(define-inline (curl-share-init)
+  (foreign-call "ikrt_curl_share_init"))
+
+(define-inline (curl-share-setopt share option parameter)
+  (foreign-call "ikrt_curl_share_setopt" share option parameter))
+
+(define-inline (curl-share-cleanup share)
+  (foreign-call "ikrt_curl_share_cleanup" share))
+
+(define-inline (curl-share-strerror errcode)
+  (foreign-call "ikrt_curl_share_strerror" errcode))
+
+
 ;;;; miscellaneous functions
 
 (define-inline (curl-free ptr)
@@ -219,18 +233,6 @@
 
 (define-inline (curl-easy-unescape)
   (foreign-call "ikrt_curl_easy_unescape"))
-
-(define-inline (curl-share-init)
-  (foreign-call "ikrt_curl_share_init"))
-
-(define-inline (curl-share-setopt)
-  (foreign-call "ikrt_curl_share_setopt"))
-
-(define-inline (curl-share-cleanup)
-  (foreign-call "ikrt_curl_share_cleanup"))
-
-(define-inline (curl-share-strerror)
-  (foreign-call "ikrt_curl_share_strerror"))
 
 (define-inline (curl-easy-init)
   (foreign-call "ikrt_curl_easy_init"))
