@@ -84,23 +84,19 @@
     ;; miscellaneous functions
     curl-free				curl-getdate
 
-;;; --------------------------------------------------------------------
-
-    ;; still to be implemented
-    curl-easy-escape
-    curl-easy-unescape
-    curl-easy-init
-    curl-easy-setopt
-    curl-easy-perform
-    curl-easy-cleanup
-    curl-easy-getinfo
-    curl-easy-duphandle
+    ;; easy API
+    curl-easy-init			curl-easy-cleanup
     curl-easy-reset
-    curl-easy-recv
-    curl-easy-send
-    curl-easy-strerror
-    curl-easy-pause
+    curl-easy-setopt			curl-easy-getinfo
+    curl-easy-perform			curl-easy-duphandle
+    curl-easy-recv			curl-easy-send
+    curl-easy-strerror			curl-easy-pause
+    curl-easy-escape			curl-easy-unescape
 
+    curl
+    curl?				curl?/alive
+
+    ;; multi API
     curl-multi-init
     curl-multi-add-handle
     curl-multi-remove-handle
@@ -167,7 +163,14 @@
       (pointer? obj)
       (memory-block? obj))
   (assertion-violation who
-    "expected false or pointer as argument" obj))
+    "expected string or bytevector or pointer or memory-block as argument" obj))
+
+(define-argument-validation (general-output-buffer who obj)
+  (or (bytevector? obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected bytevector or pointer or memory-block as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -222,15 +225,23 @@
 	     (= option CURLSHOPT_UNSHARE))
 	 (words.signed-int? parameter))
 	(else
-	 (callback? parameter)))
+	 (%callback? parameter)))
   (assertion-violation who
     "invalid matching between \"curl-share\" option and parameter"
     parameter option))
 
+(define-argument-validation (curl who obj)
+  (curl? obj)
+  (assertion-violation who "expected instance of \"curl\" as argument" obj))
+
+(define-argument-validation (curl/alive who obj)
+  (curl?/alive obj)
+  (assertion-violation who "expected alive instance of \"curl\" as argument" obj))
+
 
 ;;;; helpers
 
-(define-inline (callback? ?obj)
+(define-inline (%callback? ?obj)
   (or (not ?obj) (pointer? ?obj)))
 
 (define-syntax with-general-strings/utf8
@@ -826,7 +837,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback handle
+		 (user-scheme-callback (make-curl handle #f)
 				       data locktype
 				       (if (pointer-null? userptr)
 					   #f
@@ -841,7 +852,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback handle
+		 (user-scheme-callback (make-curl handle #f)
 				       data
 				       (if (pointer-null? userptr)
 					   #f
@@ -851,19 +862,142 @@
 
 ;;;; easy API
 
+(define-struct curl
+  (pointer
+		;Pointer object referencing an instance of "CURL".
+   owner?
+		;Boolean,  true   if  this   data  structure   owns  the
+		;referenced "CURL" instance.
+   ))
+
+(define (curl?/alive obj)
+  (and (curl? obj)
+       (not (pointer-null? (curl-pointer obj)))))
+
+(define (%struct-curl-printer S port sub-printer)
+  (define-inline (%display thing)
+    (display thing port))
+  (define-inline (%write thing)
+    (write thing port))
+  (%display "#[curl")
+  (%display " pointer=")	(%display (curl-pointer S))
+  (%display " owner?=")		(%display (curl-owner?  S))
+  (%display "]"))
+
+(define %curl-guardian
+  (make-guardian))
+
+(define (%curl-guardian-destructor)
+  (do ((P (%curl-guardian) (%curl-guardian)))
+      ((not P))
+    ;;Try to close and ignore errors.
+    (when (curl-owner? P)
+      (capi.curl-easy-cleanup (curl-pointer P)))
+    (struct-reset P)))
+
 ;;; --------------------------------------------------------------------
 
-(define (curl-easy-escape . args)
+(define (curl-easy-init)
+  (let ((rv (capi.curl-easy-init)))
+    (and rv (make-curl rv #t))))
+
+(define (curl-easy-cleanup easy)
+  (define who 'curl-easy-cleanup)
+  (with-arguments-validation (who)
+      ((curl	easy))
+    (when (curl-owner?)
+      (capi.curl-easy-cleanup easy))))
+
+(define (curl-easy-reset easy)
+  (define who 'curl-easy-reset)
+  (with-arguments-validation (who)
+      ((curl/alive	easy))
+    (capi.curl-easy-reset easy)))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-setopt easy option parameter)
+  (define who 'curl-easy-setopt)
+  (with-arguments-validation (who)
+      ((curl/alive	easy)
+       (signed-int	option))
+    (capi.curl-easy-setopt easy option parameter)))
+
+(define (curl-easy-getinfo easy info)
+  (define who 'curl-easy-getinfo)
+  (with-arguments-validation (who)
+      ((curl/alive	easy)
+       (signed-int	info))
+    (capi.curl-easy-getinfo easy info)))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-perform easy)
+  (define who 'curl-easy-perform)
+  (with-arguments-validation (who)
+      ((curl/alive	easy))
+    (capi.curl-easy-perform easy)))
+
+(define (curl-easy-duphandle easy)
+  (define who 'curl-easy-duphandle)
+  (with-arguments-validation (who)
+      ((curl/alive	easy))
+    (let ((rv (capi.curl-easy-duphandle easy)))
+      (and rv (make-curl rv #t)))))
+
+(define (curl-easy-pause easy bitmask)
+  (define who 'curl-easy-pause)
+  (with-arguments-validation (who)
+      ((curl/alive	easy)
+       (signed-int	bitmask))
+    (capi.curl-easy-pause easy bitmask)))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-recv easy buffer.data buffer.len)
+  (define who 'curl-easy-recv)
+  (with-arguments-validation (who)
+      ((curl/alive		easy)
+       (general-output-buffer	buffer.data)
+       (signed-int/false	buffer.len))
+    (capi.curl-easy-recv easy buffer.data buffer.len)))
+
+(define (curl-easy-send easy buffer.data buffer.len)
+  (define who 'curl-easy-send)
+  (with-arguments-validation (who)
+      ((curl/alive		easy)
+       (general-string		buffer.data)
+       (signed-int/false	buffer.len))
+    (with-general-strings/utf8 ((buffer.data^ buffer.data))
+      (capi.curl-easy-send easy buffer.data^ buffer.len))))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-escape easy chars.data chars.len)
   (define who 'curl-easy-escape)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl/alive		easy)
+       (general-string		chars.data)
+       (signed-int/false	chars.len))
+    (with-general-strings/utf8 ((chars.data^ chars.data))
+      (capi.curl-easy-escape easy chars.data chars.len))))
 
-(define (curl-easy-unescape . args)
+(define (curl-easy-unescape easy chars.data chars.len)
   (define who 'curl-easy-unescape)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl/alive		easy)
+       (general-string		chars.data)
+       (signed-int/false	chars.len))
+    (with-general-strings/utf8 ((chars.data^ chars.data))
+      (capi.curl-easy-unescape easy chars.data chars.len))))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-strerror code)
+  (define who 'curl-easy-strerror)
+  (with-arguments-validation (who)
+      ((signed-int	code))
+    (capi.curl-easy-strerror code)))
 
 
 ;;;; miscellaneous functions
@@ -966,72 +1100,6 @@
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
 
-(define (curl-easy-init . args)
-  (define who 'curl-easy-init)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-setopt . args)
-  (define who 'curl-easy-setopt)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-perform . args)
-  (define who 'curl-easy-perform)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-cleanup . args)
-  (define who 'curl-easy-cleanup)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-getinfo . args)
-  (define who 'curl-easy-getinfo)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-duphandle . args)
-  (define who 'curl-easy-duphandle)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-reset . args)
-  (define who 'curl-easy-reset)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-recv . args)
-  (define who 'curl-easy-recv)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-send . args)
-  (define who 'curl-easy-send)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-strerror . args)
-  (define who 'curl-easy-strerror)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-easy-pause . args)
-  (define who 'curl-easy-pause)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
 (define (curl-multi-init . args)
   (define who 'curl-multi-init)
   (with-arguments-validation (who)
@@ -1121,13 +1189,13 @@
 
 (set-rtd-printer! (type-descriptor curl-version-info-data)
 		  %struct-curl-version-info-data-printer)
-(set-rtd-printer! (type-descriptor curl-form-data)
-		  %struct-curl-form-data-printer)
-(set-rtd-printer! (type-descriptor curl-share)
-		  %struct-curl-share-printer)
+(set-rtd-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
+(set-rtd-printer! (type-descriptor curl-share)		%struct-curl-share-printer)
+(set-rtd-printer! (type-descriptor curl)		%struct-curl-share-printer)
 
 (post-gc-hooks (cons* %curl-form-data-guardian
 		      %curl-share-guardian
+		      %curl-guardian
 		      (post-gc-hooks)))
 
 )

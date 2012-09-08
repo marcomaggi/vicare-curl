@@ -224,6 +224,7 @@ to the @curl{}'s documentation for details.
 * plain version::               @curl{} version informations.
 * plain init::                  Global initialisation and
                                 finalisation.
+* plain easy::                  Easy operations.
 * plain slists::                String lists.
 * plain forms::                 Multipart/formdata composition.
 * plain shares::                Shared configuration option sets.
@@ -526,6 +527,191 @@ handle raw memory allocation:
    (make-curl-calloc-callback  calloc))
 @result{} CURLE_OK
 @end example
+
+@c page
+@node plain easy
+@section Easy operations
+
+
+@menu
+* plain easy struct::           Easy operations handle.
+* plain easy init::             Easy initialisation and finalisation.
+* plain easy config::           Selecting options for easy operations.
+* plain easy ops::              Performing easy operations.
+* plain easy data::             Sending and receiving data.
+* plain easy escape::           Escaping @aurl{} strings.
+* plain easy misc::             Miscellaneous functions.
+@end menu
+
+@c page
+@node plain easy struct
+@subsection Easy operations handle
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@deftp {Struct Type} curl
+@cindex Argument @var{easy}
+@cindex @var{easy} argument
+Opaque structure type referencing an instance of the C language type
+@code{CURL}.
+
+When instances of this type are used as arguments to functions: this
+documentation identifies them as @var{easy}.
+
+Instances of this type must be finalised with @func{curl-easy-cleanup};
+whenever an instance of this type is garbage collected:
+@func{curl-easy-cleanup} is automatically applied to it and any error
+ignored.
+
+In certain contexts, instances of this type own the referenced
+@code{CURL} value; in other context they do not.  Finalising a
+@code{curl} instance owning the @code{CURL} value, causes finalisation
+of the @code{CURL} value too; finalising a @code{curl} instance
+@strong{not} owning the @code{CURL} value, leaves the @code{CURL}
+untouched.  This should happen transparently.
+@end deftp
+
+
+@defun curl? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl}.
+@end defun
+
+
+@defun curl?/alive @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl} and it has not
+been finalised.
+@end defun
+
+@c page
+@node plain easy init
+@subsection Easy initialisation and finalisation
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-init
+  @curlman{curl_easy_init}.
+@end defun
+
+
+@defun curl-easy-cleanup
+  @curlman{curl_easy_cleanup}.
+
+If this function is applied to an @var{easy} value not owning the
+underlying @code{CURL} value: @var{easy} is finalised, but the
+@code{CURL} value is left alone.
+@end defun
+
+
+@defun curl-easy-reset
+  @curlman{curl_easy_reset}.
+
+@end defun
+
+@c page
+@node plain easy config
+@subsection Selecting options for easy operations
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-setopt
+  @curlman{curl_easy_setopt}.
+
+@end defun
+
+
+@defun curl-easy-getinfo
+  @curlman{curl_easy_getinfo}.
+
+@end defun
+
+@c page
+@node plain easy ops
+@subsection Performing easy operations
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-perform
+  @curlman{curl_easy_perform}.
+
+@end defun
+
+
+@defun curl-easy-duphandle
+  @curlman{curl_easy_duphandle}.
+
+@end defun
+
+
+@defun curl-easy-pause
+  @curlman{curl_easy_pause}.
+
+@end defun
+
+@c page
+@node plain easy data
+@subsection Sending and receiving data
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-recv
+  @curlman{curl_easy_recv}.
+
+@end defun
+
+
+@defun curl-easy-send
+  @curlman{curl_easy_send}.
+
+@end defun
+
+@c page
+@node plain easy escape
+@subsection Escaping @aurl{} strings
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-escape
+  @curlman{curl_easy_escape}.
+
+@end defun
+
+
+@defun curl-easy-unescape
+  @curlman{curl_easy_unescape}.
+
+@end defun
+
+@c page
+@node plain easy misc
+@subsection Miscellaneous functions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-strerror
+  @curlman{curl_easy_strerror}.
+
+@end defun
 
 @c page
 @node plain slists

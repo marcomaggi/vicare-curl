@@ -28,10 +28,6 @@
  ** Headers.
  ** ----------------------------------------------------------------- */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-#include <vicare.h>
 #include <vicare-curl-internals.h>
 
 

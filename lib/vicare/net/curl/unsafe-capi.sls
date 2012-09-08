@@ -58,29 +58,22 @@
     ;; miscellaneous functions
     curl-free				curl-getdate
 
-;;; --------------------------------------------------------------------
-;;; still to be implemented
-
-    curl-easy-init
-    curl-easy-setopt
-    curl-easy-perform
-    curl-easy-cleanup
-    curl-easy-getinfo
-    curl-easy-duphandle
+    ;; easy API
+    curl-easy-init			curl-easy-cleanup
     curl-easy-reset
-    curl-easy-recv
-    curl-easy-send
-    curl-easy-strerror
-    curl-easy-pause
-    curl-easy-escape
-    curl-easy-unescape
+    curl-easy-setopt			curl-easy-getinfo
+    curl-easy-perform			curl-easy-duphandle
+    curl-easy-recv			curl-easy-send
+    curl-easy-strerror			curl-easy-pause
+    curl-easy-escape			curl-easy-unescape
 
+    ;; multi API
     curl-multi-init
+    curl-multi-cleanup
     curl-multi-add-handle
     curl-multi-remove-handle
     curl-multi-fdset
     curl-multi-perform
-    curl-multi-cleanup
     curl-multi-info-read
     curl-multi-strerror
     curl-multi-socket
@@ -226,46 +219,59 @@
   (foreign-call "ikrt_curl_getdate" date))
 
 
-;;;; still to be implemented
-
-(define-inline (curl-easy-escape)
-  (foreign-call "ikrt_curl_easy_escape"))
-
-(define-inline (curl-easy-unescape)
-  (foreign-call "ikrt_curl_easy_unescape"))
+;;;; easy API
 
 (define-inline (curl-easy-init)
   (foreign-call "ikrt_curl_easy_init"))
 
-(define-inline (curl-easy-setopt)
-  (foreign-call "ikrt_curl_easy_setopt"))
+(define-inline (curl-easy-cleanup easy)
+  (foreign-call "ikrt_curl_easy_cleanup" easy))
 
-(define-inline (curl-easy-perform)
-  (foreign-call "ikrt_curl_easy_perform"))
+(define-inline (curl-easy-reset easy)
+  (foreign-call "ikrt_curl_easy_reset" easy))
 
-(define-inline (curl-easy-cleanup)
-  (foreign-call "ikrt_curl_easy_cleanup"))
+;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-getinfo)
-  (foreign-call "ikrt_curl_easy_getinfo"))
+(define-inline (curl-easy-setopt easy option parameter)
+  (foreign-call "ikrt_curl_easy_setopt" easy option parameter))
 
-(define-inline (curl-easy-duphandle)
-  (foreign-call "ikrt_curl_easy_duphandle"))
+(define-inline (curl-easy-getinfo easy info)
+  (foreign-call "ikrt_curl_easy_getinfo" easy info))
 
-(define-inline (curl-easy-reset)
-  (foreign-call "ikrt_curl_easy_reset"))
+;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-recv)
-  (foreign-call "ikrt_curl_easy_recv"))
+(define-inline (curl-easy-perform easy)
+  (foreign-call "ikrt_curl_easy_perform" easy))
 
-(define-inline (curl-easy-send)
-  (foreign-call "ikrt_curl_easy_send"))
+(define-inline (curl-easy-duphandle easy)
+  (foreign-call "ikrt_curl_easy_duphandle" easy))
 
-(define-inline (curl-easy-strerror)
-  (foreign-call "ikrt_curl_easy_strerror"))
+(define-inline (curl-easy-pause easy bitmask)
+  (foreign-call "ikrt_curl_easy_pause" easy bitmask))
 
-(define-inline (curl-easy-pause)
-  (foreign-call "ikrt_curl_easy_pause"))
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-easy-recv easy buffer.data buffer.len)
+  (foreign-call "ikrt_curl_easy_recv" easy buffer.data buffer.len))
+
+(define-inline (curl-easy-send easy buffer.data buffer.len)
+  (foreign-call "ikrt_curl_easy_send" easy buffer.data buffer.len))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-easy-escape easy chars.data chars.len)
+  (foreign-call "ikrt_curl_easy_escape" easy chars.data chars.len))
+
+(define-inline (curl-easy-unescape easy chars.data chars.len)
+  (foreign-call "ikrt_curl_easy_unescape" easy chars.data chars.len))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-easy-strerror code)
+  (foreign-call "ikrt_curl_easy_strerror" code))
+
+
+;;;; multi API
 
 (define-inline (curl-multi-init)
   (foreign-call "ikrt_curl_multi_init"))
