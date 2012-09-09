@@ -48,7 +48,7 @@
 
 
 (parametrise ((check-test-name			'init)
-	      (curl-easy-garbage-collection-log	#t))
+	      (curl-easy-garbage-collection-log	#f))
 
   (check
       (let ((easy (curl-easy-init)))
@@ -76,6 +76,17 @@
   	(curl-easy-cleanup easy)
   	(curl-easy?/alive easy))
     => #f)
+
+;;; --------------------------------------------------------------------
+;;; destructor
+
+  (check
+      (with-result
+       (let ((easy (curl-easy-init)))
+	 (set-curl-easy-destructor! easy (lambda (easy)
+					   (add-result 123)))
+	 (curl-easy-cleanup easy)))
+    => `(,(void) (123)))
 
   (collect))
 

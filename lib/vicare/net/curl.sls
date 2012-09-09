@@ -988,7 +988,7 @@
   (do ((P (%curl-easy-guardian) (%curl-easy-guardian)))
       ((not P))
     (%guardian-destructor-debugging-log P curl-easy-garbage-collection-log)
-    (capi.curl-easy-cleanup P)
+    (%unsafe.curl-easy-cleanup P)
     (struct-reset P)))
 
 (define curl-easy-garbage-collection-log
@@ -1008,7 +1008,7 @@
   (define who 'curl-easy-cleanup)
   (with-arguments-validation (who)
       ((curl-easy	easy))
-    (capi.curl-easy-cleanup easy)))
+    (%unsafe.curl-easy-cleanup easy)))
 
 (define (curl-easy-reset easy)
   (define who 'curl-easy-reset)

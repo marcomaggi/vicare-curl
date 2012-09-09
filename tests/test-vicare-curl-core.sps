@@ -230,6 +230,17 @@
 	  #;(curl-formfree post)))
     => #f)
 
+;;; --------------------------------------------------------------------
+;;; destructor
+
+  (check
+      (with-result
+       (let ((httppost (make-curl-form-data)))
+	 (set-curl-form-data-destructor! httppost (lambda (httppost)
+						    (add-result 123)))
+	 (curl-formfree httppost)))
+    => `(,(void) (123)))
+
   (collect))
 
 
@@ -330,6 +341,16 @@
 			      (void)))))
     => CURLSHE_OK)
 
+;;; --------------------------------------------------------------------
+;;; destructor
+
+  (check
+      (with-result
+       (let ((share (curl-share-init)))
+	 (set-curl-share-destructor! share (lambda (share)
+					     (add-result 123)))
+	 (curl-share-cleanup share)))
+    => `(,CURLSHE_OK (123)))
   (collect))
 
 
