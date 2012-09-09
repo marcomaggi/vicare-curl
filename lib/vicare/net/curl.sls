@@ -68,6 +68,7 @@
     curl-form-data?			curl-form-data?/filled
     (rename (%make-curl-form-data	make-curl-form-data))
     curl-form-data-string
+    curl-form-data-destructor		set-curl-form-data-destructor!
 
     ;; basic URL string escaping
     curl-escape				curl-escape/string
@@ -81,6 +82,7 @@
 
     curl-share
     curl-share?				curl-share?/alive
+    curl-share-destructor		set-curl-share-destructor!
 
     ;; miscellaneous functions
     curl-free				curl-getdate
@@ -96,6 +98,7 @@
 
     curl-easy
     curl-easy?				curl-easy?/alive
+    curl-easy-destructor		set-curl-easy-destructor!
 
     ;; multi API
     curl-multi-init
@@ -574,7 +577,7 @@
 ;;;; multipart/formdata composition
 
 (define-struct curl-form-data
-  (pointer))
+  (pointer destructor))
 
 (define (%struct-curl-form-data-printer S port sub-printer)
   (define-inline (%display thing)
@@ -586,6 +589,14 @@
   (%display " data=")		(%write   (curl-form-data-string  S))
   (%display "]"))
 
+(define (%unsafe.curl-formfree post)
+  (let ((destructor (curl-form-data-destructor post)))
+    (when destructor
+      (guard (E (else (void)))
+	(destructor post)))
+    (set-curl-form-data-destructor! post #f))
+  (capi.curl-formfree post))
+
 ;;; --------------------------------------------------------------------
 
 (define %curl-form-data-guardian
@@ -595,7 +606,7 @@
   (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
       ((not P))
     (%guardian-destructor-debugging-log P curl-form-data-garbage-collection-log)
-    (capi.curl-formfree P)
+    (%unsafe.curl-formfree P)
     (struct-reset P)))
 
 (define curl-form-data-garbage-collection-log
@@ -609,7 +620,7 @@
        (not (pointer-null? (curl-form-data-pointer obj)))))
 
 (define (%make-curl-form-data)
-  (%curl-form-data-guardian (make-curl-form-data (null-pointer))))
+  (%curl-form-data-guardian (make-curl-form-data (null-pointer) #f)))
 
 (define (curl-form-data-string post)
   (define who 'curl-form-data-string)
@@ -753,7 +764,7 @@
   (define who 'curl-formfree)
   (with-arguments-validation (who)
       ((curl-form-data	post))
-    (capi.curl-formfree post)))
+    (%unsafe.curl-formfree post)))
 
 ;;; --------------------------------------------------------------------
 
@@ -816,7 +827,7 @@
 ;;;; shared configuration option sets
 
 (define-struct curl-share
-  (pointer))
+  (pointer destructor))
 
 (define (%struct-curl-share-printer S port sub-printer)
   (define-inline (%display thing)
@@ -827,6 +838,14 @@
   (%display " pointer=")	(%display (curl-share-pointer S))
   (%display "]"))
 
+(define (%unsafe.curl-share-cleanup share)
+  (let ((destructor (curl-share-destructor share)))
+    (when destructor
+      (guard (E (else (void)))
+	(destructor share)))
+    (set-curl-share-destructor! share #f))
+  (capi.curl-share-cleanup share))
+
 ;;; --------------------------------------------------------------------
 
 (define %curl-share-guardian
@@ -836,7 +855,7 @@
   (do ((P (%curl-share-guardian) (%curl-share-guardian)))
       ((not P))
     (%guardian-destructor-debugging-log P curl-share-garbage-collection-log)
-    (capi.curl-share-cleanup P)
+    (%unsafe.curl-share-cleanup P)
     (struct-reset P)))
 
 (define curl-share-garbage-collection-log
@@ -852,7 +871,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
-  (%curl-share-guardian (make-curl-share (capi.curl-share-init))))
+  (%curl-share-guardian (make-curl-share (capi.curl-share-init) #f)))
 
 (define (curl-share-setopt share option parameter)
   (define who 'curl-share-setopt)
@@ -866,7 +885,7 @@
   (define who 'curl-share-cleanup)
   (with-arguments-validation (who)
       ((curl-share	share))
-    (capi.curl-share-cleanup share)))
+    (%unsafe.curl-share-cleanup share)))
 
 (define (curl-share-strerror errcode)
   (define who 'curl-share-strerror)
@@ -919,6 +938,7 @@
    owner?
 		;Boolean,  true   if  this   data  structure   owns  the
 		;referenced "CURL" instance.
+   destructor
    ))
 
 (define (curl-easy?/alive obj)
@@ -935,6 +955,16 @@
   (%display " owner?=")		(%display (curl-easy-owner?  S))
   (%display "]"))
 
+(define (%unsafe.curl-easy-cleanup easy)
+  (let ((destructor (curl-easy-destructor easy)))
+    (when destructor
+      (guard (E (else (void)))
+	(destructor easy)))
+    (set-curl-easy-destructor! easy #f))
+  (capi.curl-easy-cleanup easy))
+
+;;; --------------------------------------------------------------------
+
 (define %curl-easy-guardian
   (make-guardian))
 
@@ -950,7 +980,7 @@
     %garbage-collector-debugging-log-validator))
 
 (define (%make-curl-easy pointer owner?)
-  (%curl-easy-guardian (make-curl-easy pointer owner?)))
+  (%curl-easy-guardian (make-curl-easy pointer owner? #f)))
 
 ;;; --------------------------------------------------------------------
 

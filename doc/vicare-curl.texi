@@ -586,6 +586,37 @@ Return @true{} if @var{obj} is an instance of @code{curl-easy} and it
 has not been finalised.
 @end defun
 
+
+@defun curl-easy-destructor @var{easy}
+@defunx set-curl-easy-destructor! @var{easy} @var{func}
+Retrieve or set a destructor function associated to @var{easy}.
+
+Whenever the @var{easy} is finalised, either explicitly with
+@func{curl-easy-cleanup} or implicitly by the garbage collector,
+@var{func} is applied to @var{easy} before the internal state of
+@var{easy} is finalised.
+
+Notice that @var{func} can do anything, not only destroy some state
+associated to @var{easy}; if we do:
+
+@example
+(define easy ...)
+(set-curl-easy-destructor! easy
+  (let ((state (make-some-data-struct)))
+    (case-lambda
+      ((easy)
+       (destroy state))
+      (()
+       state))))
+
+(let ((state ((curl-easy-destructor easy))))
+  (do-something-with easy state))
+@end example
+
+@noindent
+we can easily associate values to @var{easy}.
+@end defun
+
 @c page
 @node plain easy init
 @subsection Easy initialisation and finalisation
@@ -835,6 +866,37 @@ It is safe to apply this function multiple times to the same
 subsequent times nothing happens.
 @end defun
 
+
+@defun curl-form-data-destructor @var{httppost}
+@defunx set-curl-form-data-destructor! @var{httppost} @var{func}
+Retrieve or set a destructor function associated to the @var{httppost}.
+
+Whenever the @var{httppost} is finalised, either explicitly with
+@func{curl-formfree} or implicitly by the garbage collector, @var{func}
+is applied to @var{httppost} before the internal state of @var{httppost}
+is finalised.
+
+Notice that @var{func} can do anything, not only destroy some state
+associated to @var{httppost}; if we do:
+
+@example
+(define httppost ...)
+(set-curl-form-data-destructor! httppost
+  (let ((state (make-some-data-struct)))
+    (case-lambda
+      ((httppost)
+       (destroy state))
+      (()
+       state))))
+
+(let ((state ((curl-form-data-destructor httppost))))
+  (do-something-with httppost state))
+@end example
+
+@noindent
+we can easily associate values to @var{httppost}.
+@end defun
+
 @c page
 @node plain forms adding
 @subsection Adding data to @http{} post
@@ -1031,6 +1093,37 @@ Return @true{} if @var{obj} is an instance of @code{curl-share}.
 @defun curl-share?/alive @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-share} and it
 has not been finalised yet.
+@end defun
+
+
+@defun curl-share-destructor @var{share}
+@defunx set-curl-share-destructor! @var{share} @var{func}
+Retrieve or set a destructor function associated to the @var{share}.
+
+Whenever the @var{share} is finalised, either explicitly with
+@func{curl-share-cleanup} or implicitly by the garbage collector,
+@var{func} is applied to @var{share} before the internal state of
+@var{share} is finalised.
+
+Notice that @var{func} can do anything, not only destroy some state
+associated to @var{share}; if we do:
+
+@example
+(define share ...)
+(set-curl-share-destructor! share
+  (let ((state (make-some-data-struct)))
+    (case-lambda
+      ((share)
+       (destroy state))
+      (()
+       state))))
+
+(let ((state ((curl-share-destructor share))))
+  (do-something-with share state))
+@end example
+
+@noindent
+we can easily associate values to @var{share}.
 @end defun
 
 @c page
