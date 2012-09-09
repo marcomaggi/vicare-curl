@@ -54,8 +54,14 @@ ikrt_curl_easy_cleanup (ikptr s_easy, ikpcb * pcb)
   CURL *	easy		= IK_POINTER_DATA_VOIDP(s_pointer);
   int		owner		= IK_BOOLEAN_TO_INT(IK_CURL_EASY_OWNER(s_easy));
   /* fprintf(stderr, "%s: enter easy=%p, owner=%d\n", __func__, (void*)easy, owner); */
-  if (easy && owner)
-    curl_easy_cleanup(easy);
+  if (easy && owner) {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      curl_easy_cleanup(easy);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
   if (owner)
     IK_POINTER_SET_NULL(s_pointer);
   /* fprintf(stderr, "%s: leave\n", __func__); */
@@ -69,7 +75,12 @@ ikrt_curl_easy_reset (ikptr s_easy, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_EASY_RESET
   CURL *	easy = IK_CURL_EASY(s_easy);
-  curl_easy_reset(easy);
+  ikptr	sk;
+  sk = ik_enter_c_function(pcb);
+  {
+    curl_easy_reset(easy);
+  }
+  ik_leave_c_function(pcb, sk);
   return IK_VOID;
 #else
   feature_failure(__func__);
