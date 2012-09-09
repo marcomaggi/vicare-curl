@@ -42,6 +42,7 @@
 
     ;; string lists
     curl-slist-append			curl-slist-free-all
+    curl-slist->list
 
     ;; multipart/formdata composition
     curl-formadd-1			curl-formadd-2
@@ -143,6 +144,9 @@
 
 (define-inline (curl-slist-free-all slist)
   (foreign-call "ikrt_curl_slist_free_all" slist))
+
+(define-inline (curl-slist->list slist)
+  (foreign-call "ikrt_curl_slist_to_bytevectors" slist))
 
 
 ;;;; multipart/formdata composition

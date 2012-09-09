@@ -96,11 +96,29 @@
 	slist)
     => (null-pointer))
 
-  #t)
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((slist (curl-slist-append "ciao")))
+	(curl-slist->list slist))
+    => '("ciao"))
+
+  (check
+      (let* ((slist (curl-slist-append "ciao"))
+	     (slist (curl-slist-append slist "hello"))
+	     (slist (curl-slist-append slist "salut")))
+	(curl-slist->list slist))
+    => '("ciao" "hello" "salut"))
+
+  (check
+      (curl-slist->list (list->curl-slist '("ciao" "hello" "salut")))
+    => '("ciao" "hello" "salut"))
+
+  (collect))
 
 
-(parametrise ((check-test-name			'formdata)
-	      (curl-form-garbage-collection-log	#f))
+(parametrise ((check-test-name				'formdata)
+	      (curl-form-data-garbage-collection-log	#f))
 
   (check
       (curl-formfree (make-curl-form-data))
@@ -243,7 +261,8 @@
 
 
 (parametrise ((check-test-name				'shares)
-	      (curl-share-garbage-collection-log	#f))
+	      (curl-share-garbage-collection-log	#f)
+	      (curl-easy-garbage-collection-log		#f))
 
   (check
       (let ((share (curl-share-init)))
@@ -288,11 +307,14 @@
     => CURLSHE_OK)
 
   (check
-      (let ((share (curl-share-init)))
-	(curl-share-setopt share CURLSHOPT_LOCKFUNC
-			   (make-curl-lock-function
-			    (lambda (easy what-to-lock how-to-lock custom-data)
-			      (void)))))
+      (let ((share	(curl-share-init))
+	    (cb		(make-curl-lock-function
+			 (lambda (easy what-to-lock how-to-lock custom-data)
+			   (void)))))
+	(unwind-protect
+	    (curl-share-setopt share CURLSHOPT_LOCKFUNC cb)
+	  (curl-share-cleanup share)
+	  (ffi.free-c-callback cb)))
     => CURLSHE_OK)
 
   (check

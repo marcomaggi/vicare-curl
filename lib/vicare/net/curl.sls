@@ -58,6 +58,7 @@
 
     ;; string lists
     curl-slist-append			curl-slist-free-all
+    curl-slist->list			list->curl-slist
 
     ;; multipart/formdata composition
     curl-formadd			curl-formfree
@@ -114,7 +115,7 @@
 
     ;; debugging
     curl-easy-garbage-collection-log
-    curl-form-garbage-collection-log
+    curl-form-data-garbage-collection-log
     curl-share-garbage-collection-log)
   (import (vicare)
     (vicare net curl constants)
@@ -175,6 +176,11 @@
       (memory-block? obj))
   (assertion-violation who
     "expected bytevector or pointer or memory-block as argument" obj))
+
+(define-argument-validation (list-of-strings who obj)
+  (and (list? obj)
+       (for-all string? obj))
+  (assertion-violation who "expected list of strings as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -550,6 +556,20 @@
       ((pointer/false	slist))
     (capi.curl-slist-free-all slist)))
 
+(define (curl-slist->list slist)
+  (define who 'curl-slist->list)
+  (with-arguments-validation (who)
+      ((pointer/false	slist))
+    (map ascii->string (reverse (capi.curl-slist->list slist)))))
+
+(define (list->curl-slist list-of-strings)
+  (define who 'list->curl-slist)
+  (with-arguments-validation (who)
+      ((list-of-strings	list-of-strings))
+    (fold-left (lambda (slist str)
+		 (curl-slist-append slist str))
+      #f list-of-strings)))
+
 
 ;;;; multipart/formdata composition
 
@@ -574,11 +594,11 @@
 (define (%curl-form-data-guardian-destructor)
   (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
       ((not P))
-    (%guardian-destructor-debugging-log P curl-form-garbage-collection-log)
+    (%guardian-destructor-debugging-log P curl-form-data-garbage-collection-log)
     (capi.curl-formfree P)
     (struct-reset P)))
 
-(define curl-form-garbage-collection-log
+(define curl-form-data-garbage-collection-log
   (make-parameter #f
     %garbage-collector-debugging-log-validator))
 
@@ -806,6 +826,8 @@
   (%display "#[curl-share")
   (%display " pointer=")	(%display (curl-share-pointer S))
   (%display "]"))
+
+;;; --------------------------------------------------------------------
 
 (define %curl-share-guardian
   (make-guardian))

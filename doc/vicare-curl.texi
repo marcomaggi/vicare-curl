@@ -767,6 +767,12 @@ It is safe to apply this function multiple times to the same @var{slist}
 argument.
 @end defun
 
+
+@defun curl-slist->list @var{slist}
+@defunx list->curl-slist @var{list-of-strings}
+Convert a list of strings to and from a @code{curl-list}.
+@end defun
+
 @c page
 @node plain forms
 @section Multipart/formdata composition
@@ -998,6 +1004,10 @@ must be an instance of @code{curl-share}; if successful return
 It is safe to apply this function multiple times to the same @var{share}
 object: the first time the data is finalised, the subsequent times
 nothing happens.
+
+@strong{NOTE} When this function actually finalises a @code{CURLSH}
+object the registered callbacks may be called; be careful not to release
+them before finalising @var{share}.
 @end defun
 
 
@@ -1235,7 +1245,7 @@ the operation.
 @end deffn
 
 
-@deffn Parameter curl-form-garbage-collection-log
+@deffn Parameter curl-form-data-garbage-collection-log
 Whenever an instance of @code{curl-form} is garbage collected, it is
 handed to a dedicated guardian.  When this parameter is set to @false{}:
 nothing happens.  When this parameter is set to true, one of the

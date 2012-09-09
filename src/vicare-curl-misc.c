@@ -97,6 +97,7 @@ ikrt_curl_slist_append (ikptr s_slist, ikptr s_string, ikpcb * pcb)
   ik_curl_slist_t *	slist  = IK_VOIDP_FROM_POINTER_OR_FALSE(s_slist);
   const char *		string = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_string);
   ik_curl_slist_t *	rv;
+  /* fprintf(stderr, "%s: enter %s\n", __func__, string); */
   rv = curl_slist_append(slist, string);
   return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
 #else
@@ -116,6 +117,34 @@ ikrt_curl_slist_free_all (ikptr s_slist, ikpcb * pcb)
 #else
   feature_failure(__func__);
 #endif
+}
+ikptr
+ikrt_curl_slist_to_bytevectors (ikptr s_slist, ikpcb * pcb)
+{
+  ik_curl_slist_t *	slist  = IK_VOIDP_FROM_POINTER_OR_FALSE(s_slist);
+  if (slist) {
+    ikptr		s_strings = IK_NULL;
+    ikptr		s_pair    = IK_NULL;
+    ik_curl_slist_t *	next;
+    pcb->root0 = &s_strings;
+    pcb->root1 = &s_pair;
+    {
+      for (next=slist; next; next = next->next) {
+	s_pair = ika_pair_alloc(pcb);
+	if (next->data) {
+	  IK_ASS(IK_CAR(s_pair), ika_bytevector_from_cstring(pcb, next->data));
+	} else {
+	  IK_CAR(s_pair) = IK_FALSE;
+	}
+	IK_CDR(s_pair) = s_strings;
+	s_strings      = s_pair;
+      }
+    }
+    pcb->root1 = NULL;
+    pcb->root0 = NULL;
+    return s_strings;
+  } else
+    return IK_NULL;
 }
 
 
@@ -564,13 +593,20 @@ ikrt_curl_share_cleanup (ikptr s_share, ikpcb * pcb)
   ikptr		s_pointer	= IK_CURL_SHARE_POINTER(s_share);
   CURLSH *	share		= IK_POINTER_DATA_VOIDP(s_pointer);
   CURLSHcode	rv;
+  /* fprintf(stderr, "%s: enter %p\n", __func__, (void*)share); */
   if (share) {
-    rv = curl_share_cleanup(share);
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_share_cleanup(share);
+    }
+    ik_leave_c_function(pcb, sk);
     if (CURLSHE_OK == rv) {
       IK_POINTER_SET_NULL(s_pointer);
     }
   } else
     rv = CURLSHE_OK;
+  /* fprintf(stderr, "%s: leave %d %p\n", __func__, rv, IK_CURL_SHARE(s_share)); */
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
