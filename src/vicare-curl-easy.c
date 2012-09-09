@@ -193,7 +193,12 @@ ikrt_curl_easy_perform (ikptr s_easy, ikpcb * pcb)
 #ifdef HAVE_CURL_EASY_PERFORM
   CURL *	easy = IK_CURL_EASY(s_easy);
   CURLcode	rv;
-  rv = curl_easy_perform(easy);
+  ikptr		sk;
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_easy_perform(easy);
+  }
+  ik_leave_c_function(pcb, sk);
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -205,7 +210,12 @@ ikrt_curl_easy_duphandle (ikptr s_easy, ikpcb * pcb)
 #ifdef HAVE_CURL_EASY_DUPHANDLE
   CURL *	easy = IK_CURL_EASY(s_easy);
   CURL *	rv;
-  rv = curl_easy_duphandle(easy);
+  ikptr		sk;
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_easy_duphandle(easy);
+  }
+  ik_leave_c_function(pcb, sk);
   return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
 #else
   feature_failure(__func__);
@@ -218,7 +228,12 @@ ikrt_curl_easy_pause (ikptr s_easy, ikptr s_bitmask, ikpcb * pcb)
   CURL *	easy	= IK_CURL_EASY(s_easy);
   int		bitmask	= ik_integer_to_int(s_bitmask);
   CURLcode	rv;
-  rv = curl_easy_pause(easy, bitmask);
+  ikptr		sk;
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_easy_pause(easy, bitmask);
+  }
+  ik_leave_c_function(pcb, sk);
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -239,13 +254,18 @@ ikrt_curl_easy_recv (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
   size_t	buflen;
   size_t	received;
   CURLcode	rv;
+  ikptr		sk;
   if (IK_IS_BYTEVECTOR(s_buffer))
     buflen = IK_BYTEVECTOR_LENGTH(s_buffer);
   else if (IK_IS_POINTER(s_buffer))
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
-  rv = curl_easy_recv(easy, buffer, buflen, &received);
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_easy_recv(easy, buffer, buflen, &received);
+  }
+  ik_leave_c_function(pcb, sk);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
@@ -270,13 +290,18 @@ ikrt_curl_easy_send (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
   size_t	buflen;
   size_t	sent;
   CURLcode	rv;
+  ikptr		sk;
   if (IK_IS_BYTEVECTOR(s_buffer))
     buflen = IK_BYTEVECTOR_LENGTH(s_buffer);
   else if (IK_IS_POINTER(s_buffer))
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
-  rv = curl_easy_send(easy, buffer, buflen, &sent);
+  sk = ik_enter_c_function(pcb);
+  {
+    rv = curl_easy_send(easy, buffer, buflen, &sent);
+  }
+  ik_leave_c_function(pcb, sk);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
