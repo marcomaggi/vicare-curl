@@ -577,7 +577,14 @@
 ;;;; multipart/formdata composition
 
 (define-struct curl-form-data
-  (pointer destructor))
+  (pointer
+		;Pointer  object  referencing  an  instance  of  "struct
+		;curl_httppost".
+   destructor
+		;False or a user-supplied function to be called whenever
+		;this instance  is finalised.  The function  must accept
+		;at least one argument being the data structure itself.
+   ))
 
 (define (%struct-curl-form-data-printer S port sub-printer)
   (define-inline (%display thing)
@@ -827,7 +834,13 @@
 ;;;; shared configuration option sets
 
 (define-struct curl-share
-  (pointer destructor))
+  (pointer
+		;Pointer object referencing an instance of "CURLSH".
+   destructor
+		;False or a user-supplied function to be called whenever
+		;this instance  is finalised.  The function  must accept
+		;at least one argument being the data structure itself.
+   ))
 
 (define (%struct-curl-share-printer S port sub-printer)
   (define-inline (%display thing)
@@ -939,6 +952,9 @@
 		;Boolean,  true   if  this   data  structure   owns  the
 		;referenced "CURL" instance.
    destructor
+		;False or a user-supplied function to be called whenever
+		;this instance  is finalised.  The function  must accept
+		;at least one argument being the data structure itself.
    ))
 
 (define (curl-easy?/alive obj)
