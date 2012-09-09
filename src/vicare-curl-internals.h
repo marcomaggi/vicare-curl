@@ -75,13 +75,19 @@ typedef struct curl_forms	ik_curl_forms_t;
 /* Accessors    for    the    fields    of    the    Scheme    structure
    "curl-easy-handle". */
 #define IK_CURL_EASY_POINTER(EASY)	IK_FIELD((EASY),0)
+#define IK_CURL_EASY_OWNER(EASY)	IK_FIELD((EASY),1)
 #define IK_CURL_EASY(EASY)		\
   IK_POINTER_DATA_VOIDP(IK_CURL_EASY_POINTER(EASY))
 
-/* Accessors for the fields of the Scheme structure "curl-shre". */
+/* Accessors for the fields of the Scheme structure "curl-share". */
 #define IK_CURL_SHARE_POINTER(SHARE)	IK_FIELD((SHARE),0)
 #define IK_CURL_SHARE(SHARE)		\
   IK_POINTER_DATA_VOIDP(IK_CURL_SHARE_POINTER(SHARE))
+
+/* Accessors for the fields of the Scheme structure "curl-form-data". */
+#define IK_CURL_FORM_DATA_POINTER(FORM)	IK_FIELD((FORM),0)
+#define IK_CURL_FORM_DATA(FORM)		\
+  IK_POINTER_DATA_VOIDP(IK_CURL_FORM_DATA_POINTER(FORM))
 
 
 /** --------------------------------------------------------------------

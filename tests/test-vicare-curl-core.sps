@@ -99,7 +99,8 @@
   #t)
 
 
-(parametrise ((check-test-name	'formdata))
+(parametrise ((check-test-name			'formdata)
+	      (curl-form-garbage-collection-log	#f))
 
   (check
       (curl-formfree (make-curl-form-data))
@@ -241,7 +242,8 @@
   #t)
 
 
-(parametrise ((check-test-name	'shares))
+(parametrise ((check-test-name				'shares)
+	      (curl-share-garbage-collection-log	#f))
 
   (check
       (let ((share (curl-share-init)))

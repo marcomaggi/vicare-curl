@@ -51,11 +51,14 @@ ikrt_curl_easy_cleanup (ikptr s_easy, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_EASY_CLEANUP
   ikptr		s_pointer	= IK_CURL_EASY_POINTER(s_easy);
-  CURL *	easy		= IK_POINTER_DATA_VOIDP(s_easy);
-  if (easy) {
+  CURL *	easy		= IK_POINTER_DATA_VOIDP(s_pointer);
+  int		owner		= IK_BOOLEAN_TO_INT(IK_CURL_EASY_OWNER(s_easy));
+  /* fprintf(stderr, "%s: enter easy=%p, owner=%d\n", __func__, (void*)easy, owner); */
+  if (easy && owner)
     curl_easy_cleanup(easy);
+  if (owner)
     IK_POINTER_SET_NULL(s_pointer);
-  }
+  /* fprintf(stderr, "%s: leave\n", __func__); */
   return IK_VOID;
 #else
   feature_failure(__func__);

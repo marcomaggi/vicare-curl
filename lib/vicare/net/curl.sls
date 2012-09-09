@@ -93,8 +93,8 @@
     curl-easy-strerror			curl-easy-pause
     curl-easy-escape			curl-easy-unescape
 
-    curl
-    curl?				curl?/alive
+    curl-easy
+    curl-easy?				curl-easy?/alive
 
     ;; multi API
     curl-multi-init
@@ -111,7 +111,11 @@
     curl-multi-timeout
     curl-multi-setopt
     curl-multi-assign
-    )
+
+    ;; debugging
+    curl-easy-garbage-collection-log
+    curl-form-garbage-collection-log
+    curl-share-garbage-collection-log)
   (import (vicare)
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi)
@@ -230,16 +234,37 @@
     "invalid matching between \"curl-share\" option and parameter"
     parameter option))
 
-(define-argument-validation (curl who obj)
-  (curl? obj)
-  (assertion-violation who "expected instance of \"curl\" as argument" obj))
+(define-argument-validation (curl-easy who obj)
+  (curl-easy? obj)
+  (assertion-violation who "expected instance of \"curl-easy\" as argument" obj))
 
-(define-argument-validation (curl/alive who obj)
-  (curl?/alive obj)
-  (assertion-violation who "expected alive instance of \"curl\" as argument" obj))
+(define-argument-validation (curl-easy/alive who obj)
+  (curl-easy?/alive obj)
+  (assertion-violation who "expected alive instance of \"curl-easy\" as argument" obj))
 
 
 ;;;; helpers
+
+(define (%guardian-destructor-debugging-log struct-instance log-param)
+  (let ((obj (log-param)))
+    (define (%print port)
+      (fprintf port "Vicare/cURL: guardian finalising ~a\n" struct-instance))
+    (cond ((output-port? obj)
+	   (%print obj))
+	  ((procedure? obj)
+	   (guard (E (else (void)))
+	     (obj struct-instance)))
+	  (obj
+	   (%print (current-error-port))))))
+
+(define (%garbage-collector-debugging-log-validator obj)
+  (cond ((or (output-port? obj)
+	     (procedure? obj))
+	 obj)
+	(obj	#t)
+	(else	#f)))
+
+;;; --------------------------------------------------------------------
 
 (define-inline (%callback? ?obj)
   (or (not ?obj) (pointer? ?obj)))
@@ -543,6 +568,22 @@
 
 ;;; --------------------------------------------------------------------
 
+(define %curl-form-data-guardian
+  (make-guardian))
+
+(define (%curl-form-data-guardian-destructor)
+  (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
+      ((not P))
+    (%guardian-destructor-debugging-log P curl-form-garbage-collection-log)
+    (capi.curl-formfree P)
+    (struct-reset P)))
+
+(define curl-form-garbage-collection-log
+  (make-parameter #f
+    %garbage-collector-debugging-log-validator))
+
+;;; --------------------------------------------------------------------
+
 (define (curl-form-data?/filled obj)
   (and (curl-form-data? obj)
        (not (pointer-null? (curl-form-data-pointer obj)))))
@@ -565,18 +606,6 @@
 	    (and (not (curl-formget post #f cb))
 		 data)
 	  (ffi.free-c-callback cb))))))
-
-;;; --------------------------------------------------------------------
-
-(define %curl-form-data-guardian
-  (make-guardian))
-
-(define (%curl-form-data-guardian-destructor)
-  (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
-      ((not P))
-    ;;Try to close and ignore errors.
-    (capi.curl-formfree (curl-form-data-pointer P))
-    (struct-reset P)))
 
 ;;; --------------------------------------------------------------------
 
@@ -614,8 +643,7 @@
 	   (pointer		last)
 	   (signed-int		opt1)
 	   (a-value		val1))
-	(capi.curl-formadd-1 (curl-form-data-pointer post)
-			     last
+	(capi.curl-formadd-1 post last
 			     opt1 (%normalise-val val1))))
 
      ((post last opt1 val1 opt2 val2 optend)
@@ -634,8 +662,7 @@
 	   (a-value		val1)
 	   (signed-int		opt2)
 	   (a-value		val2))
-	(capi.curl-formadd-2 (curl-form-data-pointer post)
-			     last
+	(capi.curl-formadd-2 post last
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2))))
 
@@ -658,8 +685,7 @@
 	   (a-value		val2)
 	   (signed-int		opt3)
 	   (a-value		val3))
-	(capi.curl-formadd-3 (curl-form-data-pointer post)
-			     last
+	(capi.curl-formadd-3 post last
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2)
 			     opt3 (%normalise-val val3))))
@@ -686,8 +712,7 @@
 	   (a-value		val3)
 	   (signed-int		opt4)
 	   (a-value		val4))
-	(capi.curl-formadd-4 (curl-form-data-pointer post)
-			     last
+	(capi.curl-formadd-4 post last
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2)
 			     opt3 (%normalise-val val3)
@@ -702,13 +727,13 @@
       ((curl-form-data	post)
        (pointer/false	custom-data)
        (callback	callback))
-    (capi.curl-formget (curl-form-data-pointer post) custom-data callback)))
+    (capi.curl-formget post custom-data callback)))
 
 (define (curl-formfree post)
   (define who 'curl-formfree)
   (with-arguments-validation (who)
       ((curl-form-data	post))
-    (capi.curl-formfree (curl-form-data-pointer post))))
+    (capi.curl-formfree post)))
 
 ;;; --------------------------------------------------------------------
 
@@ -788,9 +813,13 @@
 (define (%curl-share-guardian-destructor)
   (do ((P (%curl-share-guardian) (%curl-share-guardian)))
       ((not P))
-    ;;Try to close and ignore errors.
-    (capi.curl-share-cleanup (curl-share-pointer P))
+    (%guardian-destructor-debugging-log P curl-share-garbage-collection-log)
+    (capi.curl-share-cleanup P)
     (struct-reset P)))
+
+(define curl-share-garbage-collection-log
+  (make-parameter #f
+    %garbage-collector-debugging-log-validator))
 
 ;;; --------------------------------------------------------------------
 
@@ -801,7 +830,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
-  (make-curl-share (capi.curl-share-init)))
+  (%curl-share-guardian (make-curl-share (capi.curl-share-init))))
 
 (define (curl-share-setopt share option parameter)
   (define who 'curl-share-setopt)
@@ -837,7 +866,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (make-curl handle #f)
+		 (user-scheme-callback (%make-curl-easy handle #f)
 				       data locktype
 				       (if (pointer-null? userptr)
 					   #f
@@ -852,7 +881,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (make-curl handle #f)
+		 (user-scheme-callback (%make-curl-easy handle #f)
 				       data
 				       (if (pointer-null? userptr)
 					   #f
@@ -862,7 +891,7 @@
 
 ;;;; easy API
 
-(define-struct curl
+(define-struct curl-easy
   (pointer
 		;Pointer object referencing an instance of "CURL".
    owner?
@@ -870,48 +899,53 @@
 		;referenced "CURL" instance.
    ))
 
-(define (curl?/alive obj)
-  (and (curl? obj)
-       (not (pointer-null? (curl-pointer obj)))))
+(define (curl-easy?/alive obj)
+  (and (curl-easy? obj)
+       (not (pointer-null? (curl-easy-pointer obj)))))
 
-(define (%struct-curl-printer S port sub-printer)
+(define (%struct-curl-easy-printer S port sub-printer)
   (define-inline (%display thing)
     (display thing port))
   (define-inline (%write thing)
     (write thing port))
-  (%display "#[curl")
-  (%display " pointer=")	(%display (curl-pointer S))
-  (%display " owner?=")		(%display (curl-owner?  S))
+  (%display "#[curl-easy")
+  (%display " pointer=")	(%display (curl-easy-pointer S))
+  (%display " owner?=")		(%display (curl-easy-owner?  S))
   (%display "]"))
 
-(define %curl-guardian
+(define %curl-easy-guardian
   (make-guardian))
 
-(define (%curl-guardian-destructor)
-  (do ((P (%curl-guardian) (%curl-guardian)))
+(define (%curl-easy-guardian-destructor)
+  (do ((P (%curl-easy-guardian) (%curl-easy-guardian)))
       ((not P))
-    ;;Try to close and ignore errors.
-    (when (curl-owner? P)
-      (capi.curl-easy-cleanup (curl-pointer P)))
+    (%guardian-destructor-debugging-log P curl-easy-garbage-collection-log)
+    (capi.curl-easy-cleanup P)
     (struct-reset P)))
+
+(define curl-easy-garbage-collection-log
+  (make-parameter #f
+    %garbage-collector-debugging-log-validator))
+
+(define (%make-curl-easy pointer owner?)
+  (%curl-easy-guardian (make-curl-easy pointer owner?)))
 
 ;;; --------------------------------------------------------------------
 
 (define (curl-easy-init)
   (let ((rv (capi.curl-easy-init)))
-    (and rv (make-curl rv #t))))
+    (and rv (%make-curl-easy rv #t))))
 
 (define (curl-easy-cleanup easy)
   (define who 'curl-easy-cleanup)
   (with-arguments-validation (who)
-      ((curl	easy))
-    (when (curl-owner?)
-      (capi.curl-easy-cleanup easy))))
+      ((curl-easy	easy))
+    (capi.curl-easy-cleanup easy)))
 
 (define (curl-easy-reset easy)
   (define who 'curl-easy-reset)
   (with-arguments-validation (who)
-      ((curl/alive	easy))
+      ((curl-easy/alive	easy))
     (capi.curl-easy-reset easy)))
 
 ;;; --------------------------------------------------------------------
@@ -919,14 +953,14 @@
 (define (curl-easy-setopt easy option parameter)
   (define who 'curl-easy-setopt)
   (with-arguments-validation (who)
-      ((curl/alive	easy)
+      ((curl-easy/alive	easy)
        (signed-int	option))
     (capi.curl-easy-setopt easy option parameter)))
 
 (define (curl-easy-getinfo easy info)
   (define who 'curl-easy-getinfo)
   (with-arguments-validation (who)
-      ((curl/alive	easy)
+      ((curl-easy/alive	easy)
        (signed-int	info))
     (capi.curl-easy-getinfo easy info)))
 
@@ -935,20 +969,20 @@
 (define (curl-easy-perform easy)
   (define who 'curl-easy-perform)
   (with-arguments-validation (who)
-      ((curl/alive	easy))
+      ((curl-easy/alive	easy))
     (capi.curl-easy-perform easy)))
 
 (define (curl-easy-duphandle easy)
   (define who 'curl-easy-duphandle)
   (with-arguments-validation (who)
-      ((curl/alive	easy))
+      ((curl-easy/alive	easy))
     (let ((rv (capi.curl-easy-duphandle easy)))
-      (and rv (make-curl rv #t)))))
+      (and rv (%make-curl-easy rv #t)))))
 
 (define (curl-easy-pause easy bitmask)
   (define who 'curl-easy-pause)
   (with-arguments-validation (who)
-      ((curl/alive	easy)
+      ((curl-easy/alive	easy)
        (signed-int	bitmask))
     (capi.curl-easy-pause easy bitmask)))
 
@@ -957,7 +991,7 @@
 (define (curl-easy-recv easy buffer.data buffer.len)
   (define who 'curl-easy-recv)
   (with-arguments-validation (who)
-      ((curl/alive		easy)
+      ((curl-easy/alive		easy)
        (general-output-buffer	buffer.data)
        (signed-int/false	buffer.len))
     (capi.curl-easy-recv easy buffer.data buffer.len)))
@@ -965,7 +999,7 @@
 (define (curl-easy-send easy buffer.data buffer.len)
   (define who 'curl-easy-send)
   (with-arguments-validation (who)
-      ((curl/alive		easy)
+      ((curl-easy/alive		easy)
        (general-string		buffer.data)
        (signed-int/false	buffer.len))
     (with-general-strings/utf8 ((buffer.data^ buffer.data))
@@ -976,7 +1010,7 @@
 (define (curl-easy-escape easy chars.data chars.len)
   (define who 'curl-easy-escape)
   (with-arguments-validation (who)
-      ((curl/alive		easy)
+      ((curl-easy/alive		easy)
        (general-string		chars.data)
        (signed-int/false	chars.len))
     (with-general-strings/utf8 ((chars.data^ chars.data))
@@ -985,7 +1019,7 @@
 (define (curl-easy-unescape easy chars.data chars.len)
   (define who 'curl-easy-unescape)
   (with-arguments-validation (who)
-      ((curl/alive		easy)
+      ((curl-easy/alive		easy)
        (general-string		chars.data)
        (signed-int/false	chars.len))
     (with-general-strings/utf8 ((chars.data^ chars.data))
@@ -1191,11 +1225,11 @@
 		  %struct-curl-version-info-data-printer)
 (set-rtd-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
 (set-rtd-printer! (type-descriptor curl-share)		%struct-curl-share-printer)
-(set-rtd-printer! (type-descriptor curl)		%struct-curl-share-printer)
+(set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
 
-(post-gc-hooks (cons* %curl-form-data-guardian
-		      %curl-share-guardian
-		      %curl-guardian
+(post-gc-hooks (cons* %curl-form-data-guardian-destructor
+		      %curl-share-guardian-destructor
+		      %curl-easy-guardian-destructor
 		      (post-gc-hooks)))
 
 )

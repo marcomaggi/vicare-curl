@@ -44,13 +44,15 @@ TESTS_ENVIRONMENT	= VICARE_CHECK_QUIET=yes $(VICARE_TEST_RUN)
 TESTS			= \
 	test-vicare-curl-version.sps		\
 	test-vicare-curl-init.sps		\
-	test-vicare-curl-core.sps
+	test-vicare-curl-core.sps		\
+	test-vicare-curl-easy.sps
 
 
 EXTRA_DIST = \
 	test-vicare-curl-version.sps		\
 	test-vicare-curl-init.sps		\
 	test-vicare-curl-core.sps		\
+	test-vicare-curl-easy.sps		\
 	\
 	demo-for-documentation.sps
 
