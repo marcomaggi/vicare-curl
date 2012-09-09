@@ -778,6 +778,17 @@ Convert a list of strings to and from a @code{curl-list}.
 @section Multipart/formdata composition
 
 
+@menu
+* plain forms structs::         @http{} post data structures.
+* plain forms adding::          Adding data to @http{} post.
+* plain forms inspect::         Inspecting @http{} post data.
+@end menu
+
+@c page
+@node plain forms structs
+@subsection @http{} post data structures
+
+
 The following bindings are exported by the library @library{vicare net
 curl}.
 
@@ -814,13 +825,24 @@ handed to @func{curl-formadd}.
 @end defun
 
 
-@defun curl-form-data-string @var{httppost}
-Given an instance of @code{curl-form-data} extract a string representing
-the current contents; if successful return the string, else return
-@false{}.
+@defun curl-formfree @var{httppost}
+Release all the resources associated to @var{httppost}, which must be an
+instance of @code{curl-form-data}; return unspecified values.
+@curlman{curl_formfree}.
+
+It is safe to apply this function multiple times to the same
+@var{httppost} argument: the first time the data is finalised, the
+subsequent times nothing happens.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node plain forms adding
+@subsection Adding data to @http{} post
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
 
 @defun curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val}
 @defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @var{end}
@@ -851,18 +873,20 @@ a string, an @ascii{} bytevector, a pointer, a @code{memory-block}.
 When present @var{end} must be the constant @code{CURLFORM_END}.
 @end defun
 
+@c page
+@node plain forms inspect
+@subsection Inspecting @http{} post data
 
-@defun curl-formfree @var{httppost}
-Release all the resources associated to @var{httppost}, which must be an
-instance of @code{curl-form-data}; return unspecified values.
-@curlman{curl_formfree}.
 
-It is safe to apply this function multiple times to the same
-@var{httppost} argument: the first time the data is finalised, the
-subsequent times nothing happens.
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-form-data-string @var{httppost}
+Given an instance of @code{curl-form-data} extract a string representing
+the current contents; if successful return the string, else return
+@false{}.
 @end defun
-
-
 @defun curl-formget @var{httppost} @var{custom-data} @var{callback}
 Invoke a @var{callback} for each line of content in @var{httppost}; when
 successful return @false{}, else return @true{}.
@@ -925,9 +949,23 @@ discarded and the callback returns the fixnum zero.
 @section Shared configuration option sets
 
 
-@curl{} allows us to collect configuration option in shared sets called
-@dfn{shares}.  The following bindings are exported by the library
-@library{vicare net curl}.
+@curl{} allows us to share entities and configuration options among
+through shared sets called @dfn{shares}.
+
+@menu
+* plain shares examples::       Shares examples.
+* plain shares structs::        Shares data structures.
+* plain shares init::           Initialisation and finalisation
+                                of shares.
+* plain shares opts::           Registering in shares.
+* plain shares callbacks::      Preparing callback functions.
+* plain shares misc::           Miscellaneous shares functions.
+@end menu
+
+@c page
+@node plain shares examples
+@subsection Shares examples
+
 
 @example
 #!r6rs
@@ -960,6 +998,14 @@ discarded and the callback returns the fixnum zero.
 @result{} CURLSHE_OK
 @end example
 
+@c page
+@node plain shares structs
+@subsection Shares data structures
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
 
 @deftp {Struct Type} curl-share
 @cindex @var{share} argument
@@ -987,7 +1033,14 @@ Return @true{} if @var{obj} is an instance of @code{curl-share} and it
 has not been finalised yet.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node plain shares init
+@subsection Initialisation and finalisation of shares
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
 
 @defun curl-share-init
 Build a new instance of @code{curl-share} object; if successful return
@@ -995,7 +1048,7 @@ the instance, else return @false{}.  @curlman{curl_share_cleaup}.
 @end defun
 
 
-@defun curl-shared-cleanup @var{share}
+@defun curl-share-cleanup @var{share}
 Attempt to release all the resources associated to @var{share}, which
 must be an instance of @code{curl-share}; if successful return
 @code{CURLSHE_OK}, else return a @code{CURLSHE_} error code.
@@ -1009,6 +1062,14 @@ nothing happens.
 object the registered callbacks may be called; be careful not to release
 them before finalising @var{share}.
 @end defun
+
+@c page
+@node plain shares opts
+@subsection Registering in shares
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun curl-share-setopt @var{share} @var{option} @var{parameter}
@@ -1024,13 +1085,13 @@ The type of @var{parameter} depends on @var{option}.  Whenever the
 pointer object or @false{}, which will be converted to @cnull{}.
 @end defun
 
+@c page
+@node plain shares callbacks
+@subsection Preparing callback functions
 
-@defun curl-share-strerror @var{errcode}
-@defunx curl-share-strerror/string @var{errcode}
-Given an exact integer representing a @code{CURLSHE_} error code return
-an @ascii{} bytevector or string describing the associated error.
-@curlman{curl_share_strerror}.
-@end defun
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun make-curl-lock-function @var{user-scheme-function}
@@ -1123,6 +1184,22 @@ handling its own exceptions.
 If @var{user-scheme-callback} raises an exception: the raised object is
 discarded and the callback returns @code{(void)}.
 @end itemize
+@end defun
+
+@c page
+@node plain shares misc
+@subsection Miscellaneous shares functions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-share-strerror @var{errcode}
+@defunx curl-share-strerror/string @var{errcode}
+Given an exact integer representing a @code{CURLSHE_} error code return
+an @ascii{} bytevector or string describing the associated error.
+@curlman{curl_share_strerror}.
 @end defun
 
 @c page
