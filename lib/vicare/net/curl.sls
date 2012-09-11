@@ -96,7 +96,8 @@
     curl-easy-perform				curl-easy-duphandle
     curl-easy-recv				curl-easy-send
     curl-easy-strerror				curl-easy-pause
-    curl-easy-escape				curl-easy-unescape
+    curl-easy-escape				curl-easy-escape/string
+    curl-easy-unescape				curl-easy-unescape/string
 
     curl-easy
     curl-easy?					curl-easy?/alive
@@ -211,6 +212,13 @@
   (assertion-violation who
     "expected exact integer in the range of the C language type \"long\" as argument"
     obj))
+
+(define-argument-validation (optional-buffer-length who obj buffer)
+  (if (pointer? buffer)
+      (words.size_t? obj)
+    #t)
+  (assertion-violation who
+    "expected exact integer representing \"size_t\" as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -944,7 +952,8 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
-  (%make-curl-share (capi.curl-share-init)))
+  (let ((rv (capi.curl-share-init)))
+    (and rv (%make-curl-share rv))))
 
 (define (curl-share-setopt share option parameter)
   (define who 'curl-share-setopt)
@@ -1098,7 +1107,10 @@
   (with-arguments-validation (who)
       ((curl-easy/alive	easy)
        (signed-int	info))
-    (capi.curl-easy-getinfo easy info)))
+    (let ((rv (capi.curl-easy-getinfo easy info)))
+      (if (pair? rv)
+	  (values (unsafe.car rv) (unsafe.cdr rv))
+	(values rv #f)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1124,42 +1136,82 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-easy-recv easy buffer.data buffer.len)
-  (define who 'curl-easy-recv)
-  (with-arguments-validation (who)
-      ((curl-easy/alive		easy)
-       (general-output-buffer	buffer.data)
-       (signed-int/false	buffer.len))
-    (capi.curl-easy-recv easy buffer.data buffer.len)))
+(define curl-easy-recv
+  (case-lambda
+   ((easy buffer.data)
+    (curl-easy-recv easy buffer.data #f))
+   ((easy buffer.data buffer.len)
+    (define who 'curl-easy-recv)
+    (with-arguments-validation (who)
+	((curl-easy/alive		easy)
+	 (general-output-buffer		buffer.data)
+	 (optional-buffer-length	buffer.len buffer.data))
+      (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
+	(if (pair? rv)
+	    (values (unsafe.car rv) (unsafe.cdr rv))
+	  (values rv #f)))))))
 
-(define (curl-easy-send easy buffer.data buffer.len)
-  (define who 'curl-easy-send)
-  (with-arguments-validation (who)
-      ((curl-easy/alive		easy)
-       (general-string		buffer.data)
-       (signed-int/false	buffer.len))
-    (with-general-strings/utf8 ((buffer.data^ buffer.data))
-      (capi.curl-easy-send easy buffer.data^ buffer.len))))
+(define curl-easy-send
+  (case-lambda
+   ((easy buffer.data)
+    (curl-easy-send easy buffer.data #f))
+   ((easy buffer.data buffer.len)
+    (define who 'curl-easy-send)
+    (with-arguments-validation (who)
+	((curl-easy/alive		easy)
+	 (general-string		buffer.data)
+	 (optional-buffer-length	buffer.len buffer.data))
+      (with-general-strings/utf8 ((buffer.data^ buffer.data))
+	(let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
+	  (if (pair? rv)
+	      (values (unsafe.car rv) (unsafe.cdr rv))
+	    (values rv #f))))))))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-easy-escape easy chars.data chars.len)
-  (define who 'curl-easy-escape)
-  (with-arguments-validation (who)
-      ((curl-easy/alive		easy)
-       (general-string		chars.data)
-       (signed-int/false	chars.len))
-    (with-general-strings/utf8 ((chars.data^ chars.data))
-      (capi.curl-easy-escape easy chars.data chars.len))))
+(define curl-easy-escape
+  (case-lambda
+   ((easy chars.data)
+    (curl-easy-escape easy chars.data #f))
+   ((easy chars.data chars.len)
+    (define who 'curl-easy-escape)
+    (with-arguments-validation (who)
+	((curl-easy/alive		easy)
+	 (general-string		chars.data)
+	 (optional-buffer-length	chars.len chars.data))
+      (with-general-strings/utf8 ((chars.data^ chars.data))
+	(capi.curl-easy-escape easy chars.data chars.len))))))
 
-(define (curl-easy-unescape easy chars.data chars.len)
-  (define who 'curl-easy-unescape)
-  (with-arguments-validation (who)
-      ((curl-easy/alive		easy)
-       (general-string		chars.data)
-       (signed-int/false	chars.len))
-    (with-general-strings/utf8 ((chars.data^ chars.data))
-      (capi.curl-easy-unescape easy chars.data chars.len))))
+(define curl-easy-unescape
+  (case-lambda
+   ((easy chars.data)
+    (curl-easy-unescape easy chars.data #f))
+   ((easy chars.data chars.len)
+    (define who 'curl-easy-unescape)
+    (with-arguments-validation (who)
+	((curl-easy/alive		easy)
+	 (general-string		chars.data)
+	 (optional-buffer-length	chars.len chars.data))
+      (with-general-strings/utf8 ((chars.data^ chars.data))
+	(capi.curl-easy-unescape easy chars.data chars.len))))))
+
+(define curl-easy-escape/string
+  (case-lambda
+   ((easy chars.data)
+    (let ((rv (curl-easy-escape easy chars.data #f)))
+      (and rv (ascii->string rv))))
+   ((easy chars.data chars.len)
+    (let ((rv (curl-easy-escape easy chars.data chars.len)))
+      (and rv (ascii->string rv))))))
+
+(define curl-easy-unescape/string
+  (case-lambda
+   ((easy chars.data)
+    (let ((rv (curl-easy-unescape easy chars.data #f)))
+      (and rv (ascii->string rv))))
+   ((easy chars.data chars.len)
+    (let ((rv (curl-easy-unescape easy chars.data chars.len)))
+      (and rv (ascii->string rv))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1167,7 +1219,8 @@
   (define who 'curl-easy-strerror)
   (with-arguments-validation (who)
       ((signed-int	code))
-    (capi.curl-easy-strerror code)))
+    (let ((rv (capi.curl-easy-strerror code)))
+      (and rv (ascii->string rv)))))
 
 
 ;;;; miscellaneous functions

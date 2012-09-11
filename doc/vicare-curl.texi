@@ -634,12 +634,19 @@ curl}.
 
 
 @defun curl-easy-init
-  @curlman{curl_easy_init}.
+Build a new instance of @code{curl-easy} owning the referenced
+@code{CURL} value; if successful return the new instance, else return
+@false{}.  @curlman{curl_easy_init}.
 @end defun
 
 
-@defun curl-easy-cleanup
-  @curlman{curl_easy_cleanup}.
+@defun curl-easy-cleanup @var{easy}
+Finalise @var{easy}; return unspecified values.
+@curlman{curl_easy_cleanup}.
+
+It is fine to apply this function multiple times to the same @var{easy}
+value: the first time the underlying session data is finalised, the
+subsequent times nothing happens.
 
 If this function is applied to an @var{easy} value not owning the
 underlying @code{CURL} value: @var{easy} is finalised, but the
@@ -647,9 +654,9 @@ underlying @code{CURL} value: @var{easy} is finalised, but the
 @end defun
 
 
-@defun curl-easy-reset
-  @curlman{curl_easy_reset}.
-
+@defun curl-easy-reset @var{easy}
+Reinitialise all the options associated to @var{easy}; return
+unspecified values.  @curlman{curl_easy_reset}.
 @end defun
 
 @c page
@@ -661,15 +668,40 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-easy-setopt
-  @curlman{curl_easy_setopt}.
+@defun curl-easy-setopt @var{easy} @var{option} @var{parameter}
+Set an option for the @var{easy} handle; if successful return
+@code{CURLE_OK}, if @var{option} is invalid return @false{}, else return
+a @code{CURLE_} error code.  @curlman{curl_easy_setopt}.
 
+@var{option} must be an exact integer representing one of the
+@code{CURLOPT_} constants.
+
+The type of @var{parameter} depends upon the selected @var{option}
+value; it can be one among: an exact integer representing a C language
+type @code{long} or @code{off_t}; a pointer object referencing a
+callback function; a string or @ascii{} bytevector or pointer object or
+@code{memory-block} referencing some data.
 @end defun
 
 
-@defun curl-easy-getinfo
-  @curlman{curl_easy_getinfo}.
+@defun curl-easy-getinfo @var{easy} @var{info}
+Extract informations from an @var{easy} handle; return @math{2} values:
 
+@itemize
+@item
+If successful @code{CURLE_OK} and a value representing the requested
+information.
+
+@item
+If @var{info} is not recognised: @false{} and @false{}.
+
+@item
+Else return: a @code{CURLE_} constant and @false{}.
+@end itemize
+
+@curlman{curl_easy_getinfo}.
+
+@var{info} must be one of the @code{CURLINFO_} constants.
 @end defun
 
 @c page
@@ -681,21 +713,25 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-easy-perform
-  @curlman{curl_easy_perform}.
-
+@defun curl-easy-perform @var{easy}
+Perform a file transfer; if successful return @code{CURLE_OK}, else
+return a @code{CURLE_} error code.  @curlman{curl_easy_perform}.
 @end defun
 
 
-@defun curl-easy-duphandle
-  @curlman{curl_easy_duphandle}.
-
+@defun curl-easy-duphandle @var{easy}
+Clone an session handle; if successful return a new instance of
+@code{curl-easy}, else return @false{}.  @curlman{curl_easy_duphandle}.
 @end defun
 
 
-@defun curl-easy-pause
-  @curlman{curl_easy_pause}.
+@defun curl-easy-pause @var{easy} @var{bitmask}
+Pause and unpause a session; if successful return @code{CURLE_OK}, else
+return a @code{CURLE_} error code.  @curlman{curl_easy_pause}.
 
+@var{bitmask} must be the fixnum zero or the bitwise inclusive OR
+combination of the @code{CURLPAUSE_} constants: @code{CURLPAUSE_RECV},
+@code{CURLPAUSE_SEND}, @code{CURLPAUSE_ALL}, @code{CURLPAUSE_CONT}.
 @end defun
 
 @c page
@@ -707,15 +743,57 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-easy-recv
-  @curlman{curl_easy_recv}.
+@defun curl-easy-recv @var{easy} @var{buffer.data}
+@defunx curl-easy-recv @var{easy} @var{buffer.data} @var{buffer.len}
+Receive raw data from an @var{easy} handle; return @math{2} values:
 
+@itemize
+@item
+If successful @code{CURLE_OK} and an exact integer representing the
+number of bytes received in the output buffer.
+
+@item
+Else a @code{CURLE_} error code and @false{}.
+@end itemize
+
+@curlman{curl_easy_recv}.
+
+@var{buffer.data} must be a bytevector or pointer object or
+@code{memory-block}; it is the output buffer in which received data will
+be written.
+
+The optional @var{buffer.len} is used only when @code{buffer.data} is a
+pointer object, in the other cases it is ignored; when used, it must be
+an exact integer, in the range of the C language type @code{size_t},
+representing the number of free bytes available in the output buffer.
 @end defun
 
 
-@defun curl-easy-send
-  @curlman{curl_easy_send}.
+@defun curl-easy-send @var{easy} @var{buffer.data}
+@defunx curl-easy-send @var{easy} @var{buffer.data} @var{buffer.len}
+Send raw data to an @var{easy} handle; return @math{2} values:
 
+@itemize
+@item
+If successful @code{CURLE_OK} and an exact integer representing the
+number of bytes sent from the input buffer.
+
+@item
+Else a @code{CURLE_} error code and @false{}.
+@end itemize
+
+@curlman{curl_easy_send}.
+
+@var{buffer.data} must be a string, bytevector, pointer object or
+@code{memory-block}; it is the input buffer in which received data will
+be written; the string is converted to a bytevector with
+@code{string->utf8}.
+
+The optional @var{buffer.len} is used only when @code{buffer.data} is a
+pointer object, in the other cases it is ignored; when used, it must be
+an exact integer, in the range of the C language type @code{size_t},
+representing the number of bytes available in the input buffer to be
+sent.
 @end defun
 
 @c page
@@ -727,15 +805,46 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-easy-escape
-  @curlman{curl_easy_escape}.
+@defun curl-easy-escape @var{easy} @var{chars.data}
+@defunx curl-easy-escape @var{easy} @var{chars.data} @var{chars.len}
+Encode the given string to become a portion of @aurl{}; if successful
+return an @ascii{} bytevector, else return @false{}.
+@curlman{curl_easy_escape}.
 
+@var{chars.data} must be a string or bytevector or pointer object or
+@code{memory-block}; it must hold the input data.
+
+The optional @var{chars.len} is used only when @code{chars.data} is a
+pointer object, in the other cases it is ignored; when used, it must be
+an exact integer, in the range of the C language type @code{int},
+representing the number of bytes available in the input buffer.
 @end defun
 
 
-@defun curl-easy-unescape
-  @curlman{curl_easy_unescape}.
+@defun curl-easy-escape/string @var{easy} @var{chars.data}
+@defunx curl-easy-escape/string @var{easy} @var{chars.data} @var{chars.len}
+Like @func{curl-easy-escape}, but return a string.
+@end defun
 
+
+@defun curl-easy-unescape @var{easy} @var{chars.data} @var{chars.len}
+Decode the given string as if it comes from a portion of @aurl{}; if
+successful return an @ascii{} bytevector, else return @false{}.
+@curlman{curl_easy_unescape}.
+
+@var{chars.data} must be a string or bytevector or pointer object or
+@code{memory-block}; it must hold the input data.
+
+The optional @var{chars.len} is used only when @code{chars.data} is a
+pointer object, in the other cases it is ignored; when used, it must be
+an exact integer, in the range of the C language type @code{int},
+representing the number of bytes available in the input buffer.
+@end defun
+
+
+@defun curl-easy-unescape/string @var{easy} @var{chars.data}
+@defunx curl-easy-unescape/string @var{easy} @var{chars.data} @var{chars.len}
+Like @func{curl-easy-unescape}, but return a string.
 @end defun
 
 @c page
@@ -747,9 +856,10 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-easy-strerror
-  @curlman{curl_easy_strerror}.
-
+@defun curl-easy-strerror @var{code}
+Return a string representing the description of the given @code{CURLE_}
+error code; if @var{code} is invalid, return @false{}.
+@curlman{curl_easy_strerror}.
 @end defun
 
 @c page

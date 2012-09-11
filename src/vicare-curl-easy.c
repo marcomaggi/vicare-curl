@@ -62,7 +62,7 @@ ikrt_curl_easy_cleanup (ikptr s_easy, ikpcb * pcb)
     }
     ik_leave_c_function(pcb, sk);
   }
-  if (owner)
+  if (easy)
     IK_POINTER_SET_NULL(s_pointer);
   /* fprintf(stderr, "%s: leave\n", __func__); */
   return IK_VOID;
@@ -122,7 +122,8 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
   CURL *	easy	= IK_CURL_EASY(s_easy);
   CURLINFO	info	= ik_integer_to_int(s_info);
   CURLcode	rv;
-  if (CURLINFO_SLIST == (CURLINFO_TYPEMASK & info)) {
+  switch (CURLINFO_TYPEMASK & info) {
+  case CURLINFO_SLIST: {
     struct curl_slist *	result;
     rv = curl_easy_getinfo(easy, info, &result);
     if (CURLE_OK == rv) {
@@ -135,7 +136,9 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else if (CURLINFO_DOUBLE == (CURLINFO_TYPEMASK & info)) {
+    break;
+  }
+  case CURLINFO_DOUBLE: {
     double	result;
     rv = curl_easy_getinfo(easy, info, &result);
     if (CURLE_OK == rv) {
@@ -148,7 +151,9 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else if (CURLINFO_LONG  == (CURLINFO_TYPEMASK & info)) {
+    break;
+  }
+  case CURLINFO_LONG: {
     long	result;
     rv = curl_easy_getinfo(easy, info, &result);
     if (CURLE_OK == rv) {
@@ -161,7 +166,9 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else if (CURLINFO_STRING == (CURLINFO_TYPEMASK & info)) {
+    break;
+  }
+  case CURLINFO_STRING: {
     const char *result;
     rv = curl_easy_getinfo(easy, info, &result);
     if (CURLE_OK == rv) {
@@ -174,8 +181,11 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else
+    break;
+  }
+  default:
     return IK_FALSE; /* unknown info type */
+  }
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -254,18 +264,19 @@ ikrt_curl_easy_recv (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
   size_t	buflen;
   size_t	received;
   CURLcode	rv;
-  ikptr		sk;
   if (IK_IS_BYTEVECTOR(s_buffer))
     buflen = IK_BYTEVECTOR_LENGTH(s_buffer);
   else if (IK_IS_POINTER(s_buffer))
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
-  sk = ik_enter_c_function(pcb);
   {
-    rv = curl_easy_recv(easy, buffer, buflen, &received);
+    ikptr	sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_easy_recv(easy, buffer, buflen, &received);
+    }
+    ik_leave_c_function(pcb, sk);
   }
-  ik_leave_c_function(pcb, sk);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
@@ -290,18 +301,19 @@ ikrt_curl_easy_send (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
   size_t	buflen;
   size_t	sent;
   CURLcode	rv;
-  ikptr		sk;
   if (IK_IS_BYTEVECTOR(s_buffer))
     buflen = IK_BYTEVECTOR_LENGTH(s_buffer);
   else if (IK_IS_POINTER(s_buffer))
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
-  sk = ik_enter_c_function(pcb);
   {
-    rv = curl_easy_send(easy, buffer, buflen, &sent);
+    ikptr	sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_easy_send(easy, buffer, buflen, &sent);
+    }
+    ik_leave_c_function(pcb, sk);
   }
-  ik_leave_c_function(pcb, sk);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
@@ -338,7 +350,12 @@ ikrt_curl_easy_escape (ikptr s_easy, ikptr s_chars, ikptr s_length, ikpcb * pcb)
   else
     length = IK_MBLOCK_SIZE_T(s_chars);
   rv = curl_easy_escape(easy, chars, length);
-  return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
+  if (rv) {
+    ikptr	result = ika_bytevector_from_cstring(pcb, rv);
+    curl_free(rv);
+    return result;
+  } else
+    return IK_FALSE;
 #else
   feature_failure(__func__);
 #endif
@@ -359,7 +376,12 @@ ikrt_curl_easy_unescape (ikptr s_easy, ikptr s_chars, ikptr s_in_length, ikpcb *
   else
     in_length = IK_MBLOCK_SIZE_T(s_chars);
   rv = curl_easy_unescape(easy, chars, in_length, &ou_length);
-  return (rv)? ika_bytevector_from_memory_block(pcb, rv, ou_length) : IK_FALSE;
+  if (rv) {
+    ikptr	result = ika_bytevector_from_memory_block(pcb, rv, ou_length);
+    curl_free(rv);
+    return result;
+  } else
+    return IK_FALSE;
 #else
   feature_failure(__func__);
 #endif
@@ -377,7 +399,7 @@ ikrt_curl_easy_strerror (ikptr s_code, ikpcb * pcb)
   CURLcode	code = ik_integer_to_int(s_code);
   const char *	rv;
   rv = curl_easy_strerror(code);
-  return ika_bytevector_from_cstring(pcb, rv);
+  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
 #else
   feature_failure(__func__);
 #endif
