@@ -50,7 +50,19 @@
 (parametrise ((check-test-name			'init)
 	      (curl-easy-garbage-collection-log	#f))
 
-  (check
+  (check	;create and collect with logging function
+      (with-result
+       (collect)
+       (parametrise ((curl-easy-garbage-collection-log
+		      (lambda (easy)
+			(add-result 1))))
+	 (curl-easy-init)
+	 (curl-easy-init)
+	 (curl-easy-init)
+	 (collect)))
+    => `(,(void) (1 1 1)))
+
+  (check	;this will be garbage collected
       (let ((easy (curl-easy-init)))
 ;;;	(pretty-print easy (current-error-port))
 	(curl-easy? easy))

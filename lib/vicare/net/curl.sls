@@ -35,70 +35,73 @@
     vicare-curl-version-interface-revision
     vicare-curl-version-interface-age
     vicare-curl-version
-    curl-version			curl-version-info
-    curl-version-info-features->symbols	curl-version-feature?
+    curl-version				curl-version-info
+    curl-version-info-features->symbols		curl-version-feature?
 
     ;; version info data structure
-    curl-version-info-data		curl-version-info-data?
-    curl-version-info-data-age		curl-version-info-data-version
-    curl-version-info-data-version-num	curl-version-info-data-host
-    curl-version-info-data-features	curl-version-info-data-ssl-version
+    curl-version-info-data			curl-version-info-data?
+    curl-version-info-data-age			curl-version-info-data-version
+    curl-version-info-data-version-num		curl-version-info-data-host
+    curl-version-info-data-features		curl-version-info-data-ssl-version
     curl-version-info-data-ssl-version-num
-    curl-version-info-data-libz-version	curl-version-info-data-protocols
-    curl-version-info-data-ares		curl-version-info-data-ares-num
-    curl-version-info-data-libidn	curl-version-info-data-iconv-ver-num
+    curl-version-info-data-libz-version		curl-version-info-data-protocols
+    curl-version-info-data-ares			curl-version-info-data-ares-num
+    curl-version-info-data-libidn		curl-version-info-data-iconv-ver-num
     curl-version-info-data-libssh-version
 
     ;; initialisation and finalisation functions
-    curl-global-init			curl-global-init-mem
+    curl-global-init				curl-global-init-mem
     curl-global-cleanup
-    make-curl-malloc-callback		make-curl-free-callback
-    make-curl-realloc-callback		make-curl-strdup-callback
+    make-curl-malloc-callback			make-curl-free-callback
+    make-curl-realloc-callback			make-curl-strdup-callback
     make-curl-calloc-callback
 
     ;; string lists
-    curl-slist-append			curl-slist-free-all
-    curl-slist->list			list->curl-slist
+    curl-slist-append				curl-slist-free-all
+    curl-slist->list				list->curl-slist
 
     ;; multipart/formdata composition
-    curl-formadd			curl-formfree
-    curl-formget			make-curl-formget-callback
+    curl-formadd				curl-formfree
+    curl-formget				make-curl-formget-callback
 
     curl-form-data
-    curl-form-data?			curl-form-data?/filled
-    (rename (%make-curl-form-data	make-curl-form-data))
+    curl-form-data?				curl-form-data?/filled
+    (rename (%make-curl-form-data		make-curl-form-data))
     curl-form-data-string
-    curl-form-data-destructor		set-curl-form-data-destructor!
+    curl-form-data-destructor
+    (rename (%set-curl-form-data-destructor!	set-curl-form-data-destructor!))
 
     ;; basic URL string escaping
-    curl-escape				curl-escape/string
-    curl-unescape			curl-unescape/string
+    curl-escape					curl-escape/string
+    curl-unescape				curl-unescape/string
 
     ;; shared configuration option sets
-    curl-share-init			curl-share-cleanup
+    curl-share-init				curl-share-cleanup
     curl-share-setopt
-    curl-share-strerror			curl-share-strerror/string
-    make-curl-lock-function		make-curl-unlock-function
+    curl-share-strerror				curl-share-strerror/string
+    make-curl-lock-function			make-curl-unlock-function
 
     curl-share
-    curl-share?				curl-share?/alive
-    curl-share-destructor		set-curl-share-destructor!
+    curl-share?					curl-share?/alive
+    curl-share-destructor
+    (rename (%set-curl-share-destructor!	set-curl-share-destructor!))
 
     ;; miscellaneous functions
-    curl-free				curl-getdate
+    curl-free					curl-getdate
 
     ;; easy API
-    curl-easy-init			curl-easy-cleanup
+    curl-easy-init				curl-easy-cleanup
     curl-easy-reset
-    curl-easy-setopt			curl-easy-getinfo
-    curl-easy-perform			curl-easy-duphandle
-    curl-easy-recv			curl-easy-send
-    curl-easy-strerror			curl-easy-pause
-    curl-easy-escape			curl-easy-unescape
+    curl-easy-setopt				curl-easy-getinfo
+    curl-easy-perform				curl-easy-duphandle
+    curl-easy-recv				curl-easy-send
+    curl-easy-strerror				curl-easy-pause
+    curl-easy-escape				curl-easy-unescape
 
     curl-easy
-    curl-easy?				curl-easy?/alive
-    curl-easy-destructor		set-curl-easy-destructor!
+    curl-easy?					curl-easy?/alive
+    curl-easy-destructor
+    (rename (%set-curl-easy-destructor!		set-curl-easy-destructor!))
 
     ;; multi API
     curl-multi-init
@@ -158,6 +161,10 @@
 (define-argument-validation (vector who obj)
   (vector? obj)
   (assertion-violation who "expected vector as argument" obj))
+
+(define-argument-validation (procedure/false who obj)
+  (or (not obj) (procedure? obj))
+  (assertion-violation who "expected false or procedure as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -253,6 +260,46 @@
 
 
 ;;;; helpers
+
+(define-syntax struct-destructor-application
+  ;;Data structures are might have  a field called DESTRUCTOR holding #f
+  ;;or a function to be applied to the struct instance upon finalisation
+  ;;(either when the finaliser is  explicitly called by the application,
+  ;;or when  the garbage collector  performs the finalisation  through a
+  ;;guardian).
+  ;;
+  ;;This macro should  be used in the finalisation  function to properly
+  ;;apply the destructor to the structure.
+  ;;
+  ;;For example, given the definition:
+  ;;
+  ;;  (define-struct the-type (the-field destructor))
+  ;;
+  ;;the code:
+  ;;
+  ;;  (define (%unsafe.the-type-final struct)
+  ;;    (struct-destructor-application struct
+  ;;      the-type-destructor set-the-type-destructor!))
+  ;;
+  ;;expands to:
+  ;;
+  ;;  (define (%unsafe.the-type-final struct)
+  ;;    (let ((destructor (the-type-destructor struct)))
+  ;;      (when destructor
+  ;;        (guard (E (else (void)))
+  ;;          (destructor struct))
+  ;;        (?mutator ?struct #f))))
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?struct ?accessor ?mutator)
+       (and (identifier? #'?struct)
+	    (identifier? #'?accessor))
+       #'(let ((destructor (?accessor ?struct)))
+	   (when destructor
+	     (guard (E (else (void)))
+	       (destructor ?struct))
+	     (?mutator ?struct #f)))))))
 
 (define (%guardian-destructor-debugging-log struct-instance log-param)
   (let ((obj (log-param)))
@@ -597,11 +644,7 @@
   (%display "]"))
 
 (define (%unsafe.curl-formfree post)
-  (let ((destructor (curl-form-data-destructor post)))
-    (when destructor
-      (guard (E (else (void)))
-	(destructor post)))
-    (set-curl-form-data-destructor! post #f))
+  (struct-destructor-application post curl-form-data-destructor set-curl-form-data-destructor!)
   (capi.curl-formfree post))
 
 ;;; --------------------------------------------------------------------
@@ -629,21 +672,11 @@
 (define (%make-curl-form-data)
   (%curl-form-data-guardian (make-curl-form-data (null-pointer) #f)))
 
-(define (curl-form-data-string post)
-  (define who 'curl-form-data-string)
+(define (%set-curl-form-data-destructor! struct destructor-func)
+  (define who 'set-curl-form-data-destructor!)
   (with-arguments-validation (who)
-      ((curl-form-data	post))
-    (if (pointer-null? (curl-form-data-pointer post))
-	""
-      (let* ((data "")
-	     (cb   (make-curl-formget-callback
-		    (lambda (custom-data cstring.ptr cstring.len)
-		      (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
-		      cstring.len))))
-	(unwind-protect
-	    (and (not (curl-formget post #f cb))
-		 data)
-	  (ffi.free-c-callback cb))))))
+      ((procedure/false	destructor-func))
+    (set-curl-form-data-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
@@ -785,6 +818,24 @@
 			  0))
 		 (user-scheme-callback custom-data cstring.ptr cstring.len)))))))
 
+;;; --------------------------------------------------------------------
+
+(define (curl-form-data-string post)
+  (define who 'curl-form-data-string)
+  (with-arguments-validation (who)
+      ((curl-form-data	post))
+    (if (pointer-null? (curl-form-data-pointer post))
+	""
+      (let* ((data "")
+	     (cb   (make-curl-formget-callback
+		    (lambda (custom-data cstring.ptr cstring.len)
+		      (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
+		      cstring.len))))
+	(unwind-protect
+	    (and (not (curl-formget post #f cb))
+		 data)
+	  (ffi.free-c-callback cb))))))
+
 
 ;;;; basic URL string escaping
 
@@ -852,11 +903,7 @@
   (%display "]"))
 
 (define (%unsafe.curl-share-cleanup share)
-  (let ((destructor (curl-share-destructor share)))
-    (when destructor
-      (guard (E (else (void)))
-	(destructor share)))
-    (set-curl-share-destructor! share #f))
+  (struct-destructor-application share curl-share-destructor set-curl-share-destructor!)
   (capi.curl-share-cleanup share))
 
 ;;; --------------------------------------------------------------------
@@ -880,6 +927,12 @@
 (define (curl-share?/alive obj)
   (and (curl-share? obj)
        (not (pointer-null? (curl-share-pointer obj)))))
+
+(define (%set-curl-share-destructor! struct destructor-func)
+  (define who 'set-curl-share-destructor!)
+  (with-arguments-validation (who)
+      ((procedure/false	destructor-func))
+    (set-curl-share-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
@@ -947,7 +1000,8 @@
 
 (define-struct curl-easy
   (pointer
-		;Pointer object referencing an instance of "CURL".
+		;Pointer  object  referencing  an   instance  of  the  C
+		;language type "CURL".
    owner?
 		;Boolean,  true   if  this   data  structure   owns  the
 		;referenced "CURL" instance.
@@ -956,10 +1010,6 @@
 		;this instance  is finalised.  The function  must accept
 		;at least one argument being the data structure itself.
    ))
-
-(define (curl-easy?/alive obj)
-  (and (curl-easy? obj)
-       (not (pointer-null? (curl-easy-pointer obj)))))
 
 (define (%struct-curl-easy-printer S port sub-printer)
   (define-inline (%display thing)
@@ -971,13 +1021,26 @@
   (%display " owner?=")		(%display (curl-easy-owner?  S))
   (%display "]"))
 
+;;; --------------------------------------------------------------------
+
+(define (%make-curl-easy pointer owner?)
+  ;;Wraps MAKE-CURL-EASY to include registration in the guardian.
+  ;;
+  (%curl-easy-guardian (make-curl-easy pointer owner? #f)))
+
+(define (curl-easy?/alive obj)
+  (and (curl-easy? obj)
+       (not (pointer-null? (curl-easy-pointer obj)))))
+
 (define (%unsafe.curl-easy-cleanup easy)
-  (let ((destructor (curl-easy-destructor easy)))
-    (when destructor
-      (guard (E (else (void)))
-	(destructor easy)))
-    (set-curl-easy-destructor! easy #f))
+  (struct-destructor-application easy curl-easy-destructor set-curl-easy-destructor!)
   (capi.curl-easy-cleanup easy))
+
+(define (%set-curl-easy-destructor! easy destructor-func)
+  (define who 'set-curl-easy-destructor!)
+  (with-arguments-validation (who)
+      ((procedure/false	destructor-func))
+    (set-curl-easy-destructor! easy destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
@@ -994,9 +1057,6 @@
 (define curl-easy-garbage-collection-log
   (make-parameter #f
     %garbage-collector-debugging-log-validator))
-
-(define (%make-curl-easy pointer owner?)
-  (%curl-easy-guardian (make-curl-easy pointer owner? #f)))
 
 ;;; --------------------------------------------------------------------
 
