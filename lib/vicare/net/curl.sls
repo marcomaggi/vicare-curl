@@ -924,6 +924,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(define-inline (%make-curl-share)
+  (%curl-share-guardian (make-curl-share (capi.curl-share-init) #f)))
+
 (define (curl-share?/alive obj)
   (and (curl-share? obj)
        (not (pointer-null? (curl-share-pointer obj)))))
@@ -937,7 +940,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
-  (%curl-share-guardian (make-curl-share (capi.curl-share-init) #f)))
+  (make-curl-share))
 
 (define (curl-share-setopt share option parameter)
   (define who 'curl-share-setopt)
