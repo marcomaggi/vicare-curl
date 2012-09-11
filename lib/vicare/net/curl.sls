@@ -639,12 +639,14 @@
   (define-inline (%write thing)
     (write thing port))
   (%display "#[curl-form-data")
-  (%display " pointer=")	(%display (curl-form-data-pointer S))
-  (%display " data=")		(%write   (curl-form-data-string  S))
+  (%display " pointer=")	(%display ($curl-form-data-pointer S))
+  (%display " data=")		(%write   (curl-form-data-string   S))
   (%display "]"))
 
 (define (%unsafe.curl-formfree post)
-  (struct-destructor-application post curl-form-data-destructor set-curl-form-data-destructor!)
+  (struct-destructor-application post
+				 $curl-form-data-destructor
+				 $set-curl-form-data-destructor!)
   (capi.curl-formfree post))
 
 ;;; --------------------------------------------------------------------
@@ -675,8 +677,9 @@
 (define (%set-curl-form-data-destructor! struct destructor-func)
   (define who 'set-curl-form-data-destructor!)
   (with-arguments-validation (who)
-      ((procedure/false	destructor-func))
-    (set-curl-form-data-destructor! struct destructor-func)))
+      ((curl-form-data	struct)
+       (procedure/false	destructor-func))
+    ($set-curl-form-data-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
@@ -899,11 +902,11 @@
   (define-inline (%write thing)
     (write thing port))
   (%display "#[curl-share")
-  (%display " pointer=")	(%display (curl-share-pointer S))
+  (%display " pointer=")	(%display ($curl-share-pointer S))
   (%display "]"))
 
 (define (%unsafe.curl-share-cleanup share)
-  (struct-destructor-application share curl-share-destructor set-curl-share-destructor!)
+  (struct-destructor-application share $curl-share-destructor $set-curl-share-destructor!)
   (capi.curl-share-cleanup share))
 
 ;;; --------------------------------------------------------------------
@@ -934,8 +937,9 @@
 (define (%set-curl-share-destructor! struct destructor-func)
   (define who 'set-curl-share-destructor!)
   (with-arguments-validation (who)
-      ((procedure/false	destructor-func))
-    (set-curl-share-destructor! struct destructor-func)))
+      ((curl-share	struct)
+       (procedure/false	destructor-func))
+    ($set-curl-share-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
@@ -1020,8 +1024,8 @@
   (define-inline (%write thing)
     (write thing port))
   (%display "#[curl-easy")
-  (%display " pointer=")	(%display (curl-easy-pointer S))
-  (%display " owner?=")		(%display (curl-easy-owner?  S))
+  (%display " pointer=")	(%display ($curl-easy-pointer S))
+  (%display " owner?=")		(%display ($curl-easy-owner?  S))
   (%display "]"))
 
 ;;; --------------------------------------------------------------------
@@ -1036,14 +1040,15 @@
        (not (pointer-null? (curl-easy-pointer obj)))))
 
 (define (%unsafe.curl-easy-cleanup easy)
-  (struct-destructor-application easy curl-easy-destructor set-curl-easy-destructor!)
+  (struct-destructor-application easy $curl-easy-destructor $set-curl-easy-destructor!)
   (capi.curl-easy-cleanup easy))
 
-(define (%set-curl-easy-destructor! easy destructor-func)
+(define (%set-curl-easy-destructor! struct destructor-func)
   (define who 'set-curl-easy-destructor!)
   (with-arguments-validation (who)
-      ((procedure/false	destructor-func))
-    (set-curl-easy-destructor! easy destructor-func)))
+      ((curl-easy	struct)
+       (procedure/false	destructor-func))
+    ($set-curl-easy-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 

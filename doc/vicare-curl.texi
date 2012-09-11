@@ -568,11 +568,20 @@ whenever an instance of this type is garbage collected:
 ignored.
 
 In certain contexts, instances of this type own the referenced
-@code{CURL} value; in other context they do not.  Finalising a
-@code{curl-easy} instance owning the @code{CURL} value, causes
-finalisation of the @code{CURL} value too; finalising a @code{curl-easy}
-instance @strong{not} owning the @code{CURL} value, leaves the
-@code{CURL} untouched.  This should happen transparently.
+@code{CURL} value, in other contexts they do not:
+
+@itemize
+@item
+Finalising a @code{curl-easy} instance owning the @code{CURL} value,
+causes finalisation of the @code{CURL} value too.
+
+@item
+Finalising a @code{curl-easy} instance @strong{not} owning the
+@code{CURL} value, leaves the @code{CURL} untouched.
+@end itemize
+
+@noindent
+this should happen transparently.
 @end deftp
 
 
@@ -591,16 +600,17 @@ has not been finalised.
 @defunx set-curl-easy-destructor! @var{easy} @var{func}
 Retrieve or set a destructor function associated to @var{easy}.
 
-Whenever the @var{easy} is finalised, either explicitly with
+Whenever @var{easy} is finalised, either explicitly with
 @func{curl-easy-cleanup} or implicitly by the garbage collector,
 @var{func} is applied to @var{easy} before the internal state of
-@var{easy} is finalised.
+@var{easy} is destroyed.
 
-Notice that @var{func} can do anything, not only destroy some state
-associated to @var{easy}; if we do:
+Notice that @var{func} can be used to associate some state to
+@var{easy}, for example, by doing:
 
 @example
 (define easy ...)
+
 (set-curl-easy-destructor! easy
   (let ((state (make-some-data-struct)))
     (case-lambda
@@ -612,9 +622,6 @@ associated to @var{easy}; if we do:
 (let ((state ((curl-easy-destructor easy))))
   (do-something-with easy state))
 @end example
-
-@noindent
-we can easily associate values to @var{easy}.
 @end defun
 
 @c page
