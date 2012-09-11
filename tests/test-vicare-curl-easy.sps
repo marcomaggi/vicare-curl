@@ -103,6 +103,50 @@
   (collect))
 
 
+(parametrise ((check-test-name	'escaping))
+
+  (check
+      (curl-easy-escape/string (curl-easy-init) "http://www.marco.it/")
+    => "http%3A%2F%2Fwww.marco.it%2F")
+
+  (check
+      (curl-easy-escape/string (curl-easy-init) "ciao")
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check	;dots encoded
+      (curl-easy-unescape/string (curl-easy-init) "http%3A%2F%2Fwww%2Emarco%2Eit%2F")
+    => "http://www.marco.it/")
+
+  (check	;dots not encoded
+      (curl-easy-unescape/string (curl-easy-init) "http%3A%2F%2Fwww.marco.it%2F")
+    => "http://www.marco.it/")
+
+  (check
+      (curl-easy-unescape/string (curl-easy-init) "ciao")
+    => "ciao")
+
+  (collect))
+
+
+(parametrise ((check-test-name	'strerror))
+
+  (check
+      (curl-easy-strerror CURLE_OK)
+    => "No error")
+
+  (check
+      (curl-easy-strerror -1)
+    => "Unknown error")
+
+  (check
+      (curl-easy-strerror CURLE_UNSUPPORTED_PROTOCOL)
+    => "Unsupported protocol")
+
+  #f)
+
+
 ;;;; done
 
 (check-report)

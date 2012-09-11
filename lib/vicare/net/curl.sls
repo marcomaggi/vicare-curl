@@ -1180,7 +1180,7 @@
 	 (general-string		chars.data)
 	 (optional-buffer-length	chars.len chars.data))
       (with-general-strings/utf8 ((chars.data^ chars.data))
-	(capi.curl-easy-escape easy chars.data chars.len))))))
+	(capi.curl-easy-escape easy chars.data^ chars.len))))))
 
 (define curl-easy-unescape
   (case-lambda
@@ -1193,7 +1193,7 @@
 	 (general-string		chars.data)
 	 (optional-buffer-length	chars.len chars.data))
       (with-general-strings/utf8 ((chars.data^ chars.data))
-	(capi.curl-easy-unescape easy chars.data chars.len))))))
+	(capi.curl-easy-unescape easy chars.data^ chars.len))))))
 
 (define curl-easy-escape/string
   (case-lambda
