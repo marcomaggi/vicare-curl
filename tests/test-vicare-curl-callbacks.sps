@@ -161,6 +161,21 @@
 	   (ffi.free-c-callback cb))))
     => `(0 ((,(null-pointer) 1 2 #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-debug-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-int pointer size_t pointer)))
+	     (cb (make-curl-debug-callback
+		  (lambda (easy type data size custom-data)
+		    (add-result (list (curl-easy? easy) type data size custom-data))
+		    0))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) CURLINFO_TEXT (null-pointer) 123 (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(0 ((#t ,CURLINFO_TEXT ,(null-pointer) 123 #f))))
+
   (collect))
 
 

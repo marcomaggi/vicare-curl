@@ -1496,6 +1496,22 @@
 		 (user-scheme-callback header-buffer size nmemb
 				       (%cdata custom-data))))))))
 
+(define make-curl-debug-callback
+  ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
+  ;;                          size_t size, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer signed-int pointer size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle type data size custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       type data size
+				       (%cdata custom-data))))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1538,21 +1554,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback (%cdata custom-data) item)))))))
-
-(define make-curl-debug-callback
-  ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
-  ;;                          size_t size, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
-					  '(pointer signed-int pointer size_t pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (handle type data size custom-data)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
-				       type data size (%cdata custom-data))))))))
 
 (define make-curl-conf-callback
   ;; CURLcode curl_conv_callback (char *buffer, size_t length)
