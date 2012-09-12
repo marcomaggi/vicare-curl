@@ -31,6 +31,7 @@
   (vicare net curl constants)
   (vicare net curl features)
   (vicare syntactic-extensions)
+  (vicare platform-constants)
   (prefix (vicare ffi) ffi.)
   (vicare checks))
 
@@ -99,6 +100,21 @@
 	     ((co cb) (null-pointer) CURLIOCMD_NOP (null-pointer))
 	   (ffi.free-c-callback cb))))
     => `(,CURLIOE_OK ((#t ,CURLIOCMD_NOP #f))))
+
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-seek-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer off_t signed-int)))
+	     (cb (make-curl-seek-callback
+		  (lambda (custom-data offset origin)
+		    (add-result (list custom-data offset origin))
+		    CURL_SEEKFUNC_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123 SEEK_CUR)
+	   (ffi.free-c-callback cb))))
+    => `(,CURL_SEEKFUNC_OK ((#f 123 ,SEEK_CUR))))
 
   #t)
 

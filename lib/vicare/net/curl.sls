@@ -1414,6 +1414,17 @@
 				       cmd
 				       (%cdata custom-data))))))))
 
+(define make-curl-seek-callback
+  ;; int curl_seek_callback (void *instream, curl_off_t offset, int origin)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (instream offset origin)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURL_SEEKFUNC_FAIL))
+		 (user-scheme-callback (%cdata instream)
+				       offset origin)))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1446,16 +1457,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback ptr pattern string)))))))
-
-(define make-curl-seek-callback
-  ;; int curl_seek_callback (void *instream, curl_off_t offset, int origin)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t signed-int))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (instream offset origin)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback instream offset origin)))))))
 
 (define make-curl-sockopt-callback
   ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
