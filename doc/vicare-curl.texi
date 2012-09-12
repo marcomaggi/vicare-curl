@@ -881,6 +881,7 @@ error code; if @var{code} is invalid, return @false{}.
                                 descriptors.
 * plain callbacks opensocket::  Opening a socket descriptor.
 * plain callbacks progress::    Tracking file transfer progress.
+* plain callbacks header::      Receiving headers from file transfer.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
 
@@ -1291,6 +1292,59 @@ callback caller is @code{1}; else the value returned is @code{0}.
 @end itemize
 @end defun
 
+@c page
+@node plain callbacks header
+@subsection Receiving headers from file transfer
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-header-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function; the returned pointer must be released
+with a call to @func{free-c-callback} from @library{vicare ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_HEADERFUNCTION} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_HEADERFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{4} arguments:
+
+@enumerate
+@item
+A pointer object referencing an input buffer holding the header text.
+
+@item
+An exact integer representing the size of items in the input buffer.
+
+@item
+An exact integer representing the number of items in the input buffer.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the callback with the
+@code{CURLOPT_HEADERDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_HEADERDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: the number of @strong{bytes} consumed from the input buffer; if
+the returned value is different from the product between the second and
+third arguments: it means an error occurred.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
 
 @c page
 @node plain callbacks undoc
@@ -1386,7 +1440,7 @@ should take care of handling its own exceptions.
 @end defun
 
 
-@defun make-curl-closesocket-callback @var{user-scheme-callback}
+@defun make-curl-close-socket-callback @var{user-scheme-callback}
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
 @code{curl_closesocket_callback} callback; the returned pointer must be

@@ -148,7 +148,18 @@
 
 ;;; --------------------------------------------------------------------
 
-
+  (check	;make-curl-header-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'size_t
+					   '(pointer size_t size_t pointer)))
+	     (cb (make-curl-header-callback
+		  (lambda (buffer size nmemb custom-data)
+		    (add-result (list buffer size nmemb custom-data))
+		    0))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 1 2 (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(0 ((,(null-pointer) 1 2 #f))))
 
   (collect))
 

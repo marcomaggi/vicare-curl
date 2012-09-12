@@ -125,17 +125,18 @@
     curl-multi-assign
 
     ;; callback makers
-    make-curl-progress-callback
     make-curl-write-callback
+    make-curl-read-callback
+    make-curl-ioctl-callback
+    make-curl-seek-callback
+    make-curl-socket-option-callback
+    make-curl-open-socket-callback
+    make-curl-progress-callback
+    make-curl-header-callback
+    make-curl-close-socket-callback
     make-curl-chunk-begin-callback
     make-curl-chunk-end-callback
     make-curl-fnmatch-callback
-    make-curl-seek-callback
-    make-curl-read-callback
-    make-curl-socket-option-callback
-    make-curl-open-socket-callback
-    make-curl-closesocket-callback
-    make-curl-ioctl-callback
     make-curl-debug-callback
     make-curl-conf-callback
     make-curl-ssl-ctx-callback
@@ -1484,6 +1485,17 @@
 		     1
 		   0)))))))
 
+(define make-curl-header-callback
+  ;; size_t (noproto) (void *ptr, size_t size, size_t nmemb, void *userdata)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (header-buffer size nmemb custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURL_SOCKET_BAD))
+		 (user-scheme-callback header-buffer size nmemb
+				       (%cdata custom-data))))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1517,8 +1529,8 @@
 			  0))
 		 (user-scheme-callback ptr pattern string)))))))
 
-(define make-curl-closesocket-callback
-  ;; int curl_closesocket_callback (void *clientp, curl_socket_t item)
+(define make-curl-close-socket-callback
+  ;; int curl_close-socket_callback (void *clientp, curl_socket_t item)
   (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data item)
