@@ -42,18 +42,18 @@
 
 (parametrise ((check-test-name	'makers))
 
-  (check
+  (check	;make-curl-progress-callback
       (with-result
        (let ((co (ffi.make-c-callout-maker 'signed-int
 					   '(pointer double double double double)))
 	     (cb (make-curl-progress-callback
 		  (lambda (custom-data dltotal dlnow ultotal ulnow)
 		    (add-result (list custom-data dltotal dlnow ultotal ulnow))
-		    123))))
+		    #t))))
 	 (unwind-protect
 	     ((co cb) (null-pointer) 1.0 2.0 3.0 4.0)
 	   (ffi.free-c-callback cb))))
-    => '(123 ((#f 1.0 2.0 3.0 4.0))))
+    => '(1 ((#f 1.0 2.0 3.0 4.0))))
 
   #t)
 

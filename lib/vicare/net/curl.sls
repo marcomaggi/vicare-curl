@@ -1373,7 +1373,10 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback (%cdata custom-data) dltotal dlnow ultotal ulnow)))))))
+		 (if (user-scheme-callback (%cdata custom-data)
+					   dltotal dlnow ultotal ulnow)
+		     1
+		   0)))))))
 
 (define make-curl-write-callback
   ;; size_t curl_write_callback (char *buffer, size_t size, size_t nitems, void *outstream)

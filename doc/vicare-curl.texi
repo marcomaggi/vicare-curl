@@ -868,6 +868,16 @@ error code; if @var{code} is invalid, return @false{}.
 @section Callback makers
 
 
+@menu
+* plain callbacks progress::    Tracking file transfer progress.
+* plain callbacks undoc::       Callback makers still undocumented.
+@end menu
+
+@c page
+@node plain callbacks progress
+@subsection Tracking file transfer progress
+
+
 The following bindings are exported by the library @library{vicare net
 curl}.
 
@@ -879,15 +889,34 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_PROGRESSFUNCTION} option of @func{curl-easy-setopt}; a
+custom data pointer is associated to the callback with the
+@code{CURLOPT_PROGRESSDATA} option of @func{curl-easy-setopt}.
+
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
+@false{} or a pointer object referencing an application selected value;
+such value is chosen at callback registration time.
+
+@item
+A flonum representing the total download size.
+
+@item
+A flonum representing the current download size.
+
+@item
+A flonum representing the total upload size.
+
+@item
+A flonum representing the current upload size.
 @end enumerate
 
-@var{user-scheme-callback} must return a single value
+@var{user-scheme-callback} must return a single value which is the
+answer to the question ``Abort the transfer?''; when the returned value
+is true the transfer is aborted, else the transfer will proceed.
 
 @var{user-scheme-callback} is wrapped in an internally generated Scheme
 function which does the following:
@@ -898,8 +927,17 @@ Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
 callback returns @code{0} to the caller.  @var{user-scheme-callback}
 should take care of handling its own exceptions.
+
+@item
+When @var{user-scheme-callback} returns true: the value returned to the
+callback caller is @code{1}; else the value returned is @code{0}.
 @end itemize
 @end defun
+
+
+@c page
+@node plain callbacks undoc
+@subsection Callback makers still undocumented
 
 
 @defun make-curl-write-callback @var{user-scheme-callback}
@@ -909,7 +947,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -939,7 +977,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -968,7 +1006,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -998,7 +1036,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1028,7 +1066,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1058,7 +1096,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1088,7 +1126,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1119,7 +1157,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1149,7 +1187,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1180,7 +1218,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1210,7 +1248,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1241,7 +1279,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1271,7 +1309,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1300,7 +1338,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1330,7 +1368,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
@@ -1360,7 +1398,7 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept a @math{5} arguments:
+@var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
