@@ -45,14 +45,15 @@ TESTS			= \
 	test-vicare-curl-version.sps		\
 	test-vicare-curl-init.sps		\
 	test-vicare-curl-core.sps		\
-	test-vicare-curl-easy.sps
-
+	test-vicare-curl-easy.sps		\
+	test-vicare-curl-callbacks.sps
 
 EXTRA_DIST = \
 	test-vicare-curl-version.sps		\
 	test-vicare-curl-init.sps		\
 	test-vicare-curl-core.sps		\
 	test-vicare-curl-easy.sps		\
+	test-vicare-curl-callbacks.sps		\
 	\
 	demo-for-documentation.sps
 

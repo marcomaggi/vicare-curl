@@ -1356,6 +1356,13 @@
 
 ;;;; callback makers
 
+(define-syntax %cdata
+  (syntax-rules ()
+    ((_ ?p)
+     (if (pointer-null? ?p)
+	 #f
+       ?p))))
+
 (define make-curl-progress-callback
   ;; int curl_progress_callback (void *clientp,
   ;;                             double dltotal, double dlnow,
@@ -1366,7 +1373,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback custom-data dltotal dlnow ultotal ulnow)))))))
+		 (user-scheme-callback (%cdata custom-data) dltotal dlnow ultotal ulnow)))))))
 
 (define make-curl-write-callback
   ;; size_t curl_write_callback (char *buffer, size_t size, size_t nitems, void *outstream)
@@ -1436,7 +1443,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback custom-data curlfd purpose)))))))
+		 (user-scheme-callback (%cdata custom-data) curlfd purpose)))))))
 
 (define make-curl-opensocket-callback
   ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
@@ -1447,7 +1454,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback custom-data purpose address)))))))
+		 (user-scheme-callback (%cdata custom-data) purpose address)))))))
 
 (define make-curl-closesocket-callback
   ;; int curl_closesocket_callback (void *clientp, curl_socket_t item)
@@ -1457,7 +1464,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback custom-data item)))))))
+		 (user-scheme-callback (%cdata custom-data) item)))))))
 
 (define make-curl-ioctl-callback
   ;; curlioerr curl_ioctl_callback (CURL *handle, int cmd, void *clientp)
@@ -1470,7 +1477,7 @@
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))
-				       cmd custom-data)))))))
+				       cmd (%cdata custom-data))))))))
 
 (define make-curl-debug-callback
   ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
@@ -1485,7 +1492,7 @@
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))
-				       type data size custom-data)))))))
+				       type data size (%cdata custom-data))))))))
 
 (define make-curl-conf-callback
   ;; CURLcode curl_conv_callback (char *buffer, size_t length)
@@ -1508,7 +1515,7 @@
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))
-				       ssl-ctx custom-data)))))))
+				       ssl-ctx (%cdata custom-data))))))))
 
 (define make-curl-sshkey-callback
   ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
@@ -1524,7 +1531,7 @@
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))
-				       knownkey foundkey khmatch custom-data)))))))
+				       knownkey foundkey khmatch (%cdata custom-data))))))))
 
 (define make-curl-socket-callback
   ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
@@ -1539,11 +1546,11 @@
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))
-				       sock what custom-data socketp)))))))
+				       sock what (%cdata custom-data) socketp)))))))
 
 (define make-curl-multi-timer-callback
   ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer long pointer))))
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-long pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle timeout-ms custom-data)
 	       (guard (E (else
@@ -1552,7 +1559,7 @@
 		 (user-scheme-callback (%make-curl-multi
 					   (pointer handle)
 					 (owner? #f))
-				       timeout-ms custom-data)))))))
+				       timeout-ms (%cdata custom-data))))))))
 
 
 ;;;; still to be implemented
