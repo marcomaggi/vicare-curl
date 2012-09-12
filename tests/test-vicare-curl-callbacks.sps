@@ -116,7 +116,7 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURL_SEEKFUNC_OK ((#f 123 ,SEEK_CUR))))
 
-  #t)
+  (collect))
 
 
 ;;;; done
