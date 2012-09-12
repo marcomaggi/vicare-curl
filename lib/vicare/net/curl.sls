@@ -1399,20 +1399,7 @@
 	 #f
        ?p))))
 
-(define make-curl-progress-callback
-  ;; int curl_progress_callback (void *clientp,
-  ;;                             double dltotal, double dlnow,
-  ;;                             double ultotal, double ulnow)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer double double double double))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (if (user-scheme-callback (%cdata custom-data)
-					   dltotal dlnow ultotal ulnow)
-		     1
-		   0)))))))
+;;; --------------------------------------------------------------------
 
 (define make-curl-write-callback
   ;; size_t curl_write_callback (char *buffer, size_t size, size_t nitems, void *outstream)
@@ -1481,6 +1468,21 @@
 			  #;(pretty-print E (current-error-port))
 			  CURL_SOCKET_BAD))
 		 (user-scheme-callback (%cdata custom-data) purpose address)))))))
+
+(define make-curl-progress-callback
+  ;; int curl_progress_callback (void *clientp,
+  ;;                             double dltotal, double dlnow,
+  ;;                             double ultotal, double ulnow)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer double double double double))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (if (user-scheme-callback (%cdata custom-data)
+					   dltotal dlnow ultotal ulnow)
+		     1
+		   0)))))))
 
 
 ;;;; callback makers still to be tested

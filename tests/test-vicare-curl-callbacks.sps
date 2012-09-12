@@ -43,21 +43,6 @@
 
 (parametrise ((check-test-name	'makers))
 
-  (check	;make-curl-progress-callback
-      (with-result
-       (let ((co (ffi.make-c-callout-maker 'signed-int
-					   '(pointer double double double double)))
-	     (cb (make-curl-progress-callback
-		  (lambda (custom-data dltotal dlnow ultotal ulnow)
-		    (add-result (list custom-data dltotal dlnow ultotal ulnow))
-		    #t))))
-	 (unwind-protect
-	     ((co cb) (null-pointer) 1.0 2.0 3.0 4.0)
-	   (ffi.free-c-callback cb))))
-    => '(1 ((#f 1.0 2.0 3.0 4.0))))
-
-;;; --------------------------------------------------------------------
-
   (check	;make-curl-write-callback
       (with-result
        (let ((co (ffi.make-c-callout-maker 'size_t
@@ -145,6 +130,24 @@
 	     ((co cb) (null-pointer) CURLSOCKTYPE_IPCXN (null-pointer))
 	   (ffi.free-c-callback cb))))
     => `(123 ((#f ,CURLSOCKTYPE_IPCXN ,(null-pointer)))))
+
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-progress-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer double double double double)))
+	     (cb (make-curl-progress-callback
+		  (lambda (custom-data dltotal dlnow ultotal ulnow)
+		    (add-result (list custom-data dltotal dlnow ultotal ulnow))
+		    #t))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 1.0 2.0 3.0 4.0)
+	   (ffi.free-c-callback cb))))
+    => '(1 ((#f 1.0 2.0 3.0 4.0))))
+
+;;; --------------------------------------------------------------------
+
 
 
   (collect))
