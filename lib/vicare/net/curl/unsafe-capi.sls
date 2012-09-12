@@ -292,8 +292,8 @@
 (define-inline (curl-multi-perform)
   (foreign-call "ikrt_curl_multi_perform"))
 
-(define-inline (curl-multi-cleanup)
-  (foreign-call "ikrt_curl_multi_cleanup"))
+(define-inline (curl-multi-cleanup multi)
+  (foreign-call "ikrt_curl_multi_cleanup" multi))
 
 (define-inline (curl-multi-info-read)
   (foreign-call "ikrt_curl_multi_info_read"))

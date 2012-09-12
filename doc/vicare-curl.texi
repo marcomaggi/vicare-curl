@@ -225,6 +225,7 @@ to the @curl{}'s documentation for details.
 * plain init::                  Global initialisation and
                                 finalisation.
 * plain easy::                  Easy operations.
+* plain callbacks::             Callback makers.
 * plain slists::                String lists.
 * plain forms::                 Multipart/formdata composition.
 * plain shares::                Shared configuration option sets.
@@ -860,6 +861,525 @@ curl}.
 Return a string representing the description of the given @code{CURLE_}
 error code; if @var{code} is invalid, return @false{}.
 @curlman{curl_easy_strerror}.
+@end defun
+
+@c page
+@node plain callbacks
+@section Callback makers
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-progress-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_progress_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-write-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_write_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-chunk-begin-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_chunk_bgn_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+@defun make-curl-chunk-end-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_chunk_end_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-fnmatch-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_fnmatch_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-seek-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_seek_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-read-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_read_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-sockopt-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_sockopt_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-opensocket-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_opensocket_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-closesocket-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_closesocket_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-ioctl-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_ioctl_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-debug-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_debug_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-conf-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_conf_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-ssl-ctx-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_ssl_ctx_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+@defun make-curl-sshkey-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_sshkey_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-socket-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_socket_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+
+@defun make-curl-multi-timer-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_multi_timer_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+@var{user-scheme-callback} must accept a @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing an application selected value; such value
+is chosen at callback registration time.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
 @end defun
 
 @c page

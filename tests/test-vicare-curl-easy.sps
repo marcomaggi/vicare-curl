@@ -147,6 +147,19 @@
   #f)
 
 
+(parametrise ((check-test-name	'options))
+
+  (check
+      (let ((easy (curl-easy-init)))
+	(curl-easy-setopt easy CURLOPT_URL "http://localhost:8080/index.html")
+	(curl-easy-setopt easy CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	(curl-easy-setopt easy CURLOPT_WRITEDATA pointer-null)
+	(curl-easy-perform easy))
+    => #f)
+
+  (collect))
+
+
 ;;;; done
 
 (check-report)

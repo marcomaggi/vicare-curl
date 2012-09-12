@@ -120,6 +120,25 @@
     curl-multi-setopt
     curl-multi-assign
 
+    ;; callback makers
+    make-curl-progress-callback
+    make-curl-write-callback
+    make-curl-chunk-begin-callback
+    make-curl-chunk-end-callback
+    make-curl-fnmatch-callback
+    make-curl-seek-callback
+    make-curl-read-callback
+    make-curl-sockopt-callback
+    make-curl-opensocket-callback
+    make-curl-closesocket-callback
+    make-curl-ioctl-callback
+    make-curl-debug-callback
+    make-curl-conf-callback
+    make-curl-ssl-ctx-callback
+    make-curl-sshkey-callback
+    make-curl-socket-callback
+    make-curl-multi-timer-callback
+
     ;; debugging
     curl-easy-garbage-collection-log
     curl-form-data-garbage-collection-log
@@ -266,8 +285,20 @@
   (curl-easy?/alive obj)
   (assertion-violation who "expected alive instance of \"curl-easy\" as argument" obj))
 
+(define-argument-validation (curl-multi who obj)
+  (curl-multi? obj)
+  (assertion-violation who "expected instance of \"curl-multi\" as argument" obj))
+
+(define-argument-validation (curl-multi/alive who obj)
+  (curl-multi?/alive obj)
+  (assertion-violation who "expected alive instance of \"curl-multi\" as argument" obj))
+
 
 ;;;; helpers
+
+(define-auxiliary-syntaxes
+  pointer
+  owner?)
 
 (define-syntax struct-destructor-application
   ;;Data structures are might have  a field called DESTRUCTOR holding #f
@@ -989,7 +1020,9 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (%make-curl-easy handle #f)
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
 				       data locktype
 				       (if (pointer-null? userptr)
 					   #f
@@ -1004,7 +1037,9 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (%make-curl-easy handle #f)
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
 				       data
 				       (if (pointer-null? userptr)
 					   #f
@@ -1039,10 +1074,12 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (%make-curl-easy pointer owner?)
-  ;;Wraps MAKE-CURL-EASY to include registration in the guardian.
-  ;;
-  (%curl-easy-guardian (make-curl-easy pointer owner? #f)))
+(define-syntax %make-curl-easy
+  (syntax-rules (pointer owner?)
+    ((_ (pointer ?pointer) (owner? ?owner?))
+     (%curl-easy-guardian (make-curl-easy ?pointer ?owner? #f)))
+    ((_ ?pointer ?owner?)
+     (%curl-easy-guardian (make-curl-easy ?pointer ?owner? #f)))))
 
 (define (curl-easy?/alive obj)
   (and (curl-easy? obj)
@@ -1079,7 +1116,9 @@
 
 (define (curl-easy-init)
   (let ((rv (capi.curl-easy-init)))
-    (and rv (%make-curl-easy rv #t))))
+    (and rv (%make-curl-easy
+		(pointer rv)
+	      (owner? #t)))))
 
 (define (curl-easy-cleanup easy)
   (define who 'curl-easy-cleanup)
@@ -1125,7 +1164,9 @@
   (with-arguments-validation (who)
       ((curl-easy/alive	easy))
     (let ((rv (capi.curl-easy-duphandle easy)))
-      (and rv (%make-curl-easy rv #t)))))
+      (and rv (%make-curl-easy
+		  (pointer rv)
+		(owner? #t))))))
 
 (define (curl-easy-pause easy bitmask)
   (define who 'curl-easy-pause)
@@ -1223,6 +1264,80 @@
       (and rv (ascii->string rv)))))
 
 
+;;;; multi API
+
+(define-struct curl-multi
+  (pointer
+		;Pointer  object  referencing  an   instance  of  the  C
+		;language type "CURLM".
+   owner?
+		;Boolean,  true   if  this   data  structure   owns  the
+		;referenced "CURLM" instance.
+   destructor
+		;False or a user-supplied function to be called whenever
+		;this instance  is finalised.  The function  must accept
+		;at least one argument being the data structure itself.
+   ))
+
+(define (%struct-curl-multi-printer S port sub-printer)
+  (define-inline (%display thing)
+    (display thing port))
+  (define-inline (%write thing)
+    (write thing port))
+  (%display "#[curl-multi")
+  (%display " pointer=")	(%display ($curl-multi-pointer S))
+  (%display " owner?=")		(%display ($curl-multi-owner?  S))
+  (%display "]"))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax %make-curl-multi
+  (syntax-rules (pointer owner?)
+    ((_ (pointer ?pointer) (owner? ?owner?))
+     (%curl-multi-guardian (make-curl-multi ?pointer ?owner? #f)))
+    ((_ ?pointer ?owner?)
+     (%curl-multi-guardian (make-curl-multi ?pointer ?owner? #f)))))
+
+(define (curl-multi?/alive obj)
+  (and (curl-multi? obj)
+       (not (pointer-null? (curl-multi-pointer obj)))))
+
+(define (%unsafe.curl-multi-cleanup multi)
+  (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
+  #;(capi.curl-multi-cleanup multi))
+
+(define (%set-curl-multi-destructor! struct destructor-func)
+  (define who 'set-curl-multi-destructor!)
+  (with-arguments-validation (who)
+      ((curl-multi	struct)
+       (procedure/false	destructor-func))
+    ($set-curl-multi-destructor! struct destructor-func)))
+
+;;; --------------------------------------------------------------------
+
+(define %curl-multi-guardian
+  (make-guardian))
+
+(define (%curl-multi-guardian-destructor)
+  (do ((P (%curl-multi-guardian) (%curl-multi-guardian)))
+      ((not P))
+    (%guardian-destructor-debugging-log P curl-multi-garbage-collection-log)
+    (%unsafe.curl-multi-cleanup P)
+    (struct-reset P)))
+
+(define curl-multi-garbage-collection-log
+  (make-parameter #f
+    %garbage-collector-debugging-log-validator))
+
+;;; --------------------------------------------------------------------
+
+#;(define (curl-multi-init)
+  (let ((rv (capi.curl-multi-init)))
+    (and rv (%make-curl-multi
+		(pointer rv)
+	      (owner? #t)))))
+
+
 ;;;; miscellaneous functions
 
 (define (curl-free pointer)
@@ -1241,81 +1356,203 @@
 
 ;;;; callback makers
 
- ;; int (*curl_progress_callback)(void *clientp,
- ;;                                      double dltotal,
- ;;                                      double dlnow,
- ;;                                      double ultotal,
- ;;                                      double ulnow);
+(define make-curl-progress-callback
+  ;; int curl_progress_callback (void *clientp,
+  ;;                             double dltotal, double dlnow,
+  ;;                             double ultotal, double ulnow)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer double double double double))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback custom-data dltotal dlnow ultotal ulnow)))))))
 
- ;; size_t (*curl_write_callback)(char *buffer,
- ;;                                      size_t size,
- ;;                                      size_t nitems,
- ;;                                      void *outstream);
+(define make-curl-write-callback
+  ;; size_t curl_write_callback (char *buffer, size_t size, size_t nitems, void *outstream)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer size nitems outstream)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback buffer size nitems outstream)))))))
 
- ;; long (*curl_chunk_bgn_callback)(const void *transfer_info,
- ;;                                        void *ptr,
- ;;                                        int remains);
+(define make-curl-chunk-begin-callback
+  ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
+  (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer pointer signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (transfer-info ptr remains)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback transfer-info ptr remains)))))))
 
-;; long (*curl_chunk_end_callback)(void *ptr);
+(define make-curl-chunk-end-callback
+  ;; long curl_chunk_end_callback (void *ptr)
+  (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (ptr)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback ptr)))))))
 
- ;; int (*curl_fnmatch_callback)(void *ptr,
- ;;                                     const char *pattern,
- ;;                                     const char *string);
+(define make-curl-fnmatch-callback
+  ;; int curl_fnmatch_callback (void *ptr, const char *pattern, const char *string)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (ptr pattern string)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback ptr pattern string)))))))
 
- ;; int (*curl_seek_callback)(void *instream,
- ;;                                  curl_off_t offset,
- ;;                                  int origin);
+(define make-curl-seek-callback
+  ;; int curl_seek_callback (void *instream, curl_off_t offset, int origin)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (instream offset origin)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback instream offset origin)))))))
 
- ;; size_t (*curl_read_callback)(char *buffer,
- ;;                                      size_t size,
- ;;                                      size_t nitems,
- ;;                                      void *instream);
+(define make-curl-read-callback
+  ;; size_t curl_read_callback (char *buffer, size_t size, size_t nitems, void *instream)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer size nitems instream)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback buffer size nitems instream)))))))
 
- ;; int (*curl_sockopt_callback)(void *clientp,
- ;;                                     curl_socket_t curlfd,
- ;;                                     curlsocktype purpose);
+(define make-curl-sockopt-callback
+  ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data curlfd purpose)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback custom-data curlfd purpose)))))))
 
-;;  curl_socket_t
-;; (*curl_opensocket_callback)(void *clientp,
-;;                             curlsocktype purpose,
-;;                             struct curl_sockaddr *address);
+(define make-curl-opensocket-callback
+  ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
+  ;;                                         struct curl_sockaddr *address)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data purpose address)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback custom-data purpose address)))))))
 
-;; int
-;; (*curl_closesocket_callback)(void *clientp, curl_socket_t item);
+(define make-curl-closesocket-callback
+  ;; int curl_closesocket_callback (void *clientp, curl_socket_t item)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data item)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback custom-data item)))))))
 
- ;; curlioerr (*curl_ioctl_callback)(CURL *handle,
- ;;                                         int cmd,
- ;;                                         void *clientp);
+(define make-curl-ioctl-callback
+  ;; curlioerr curl_ioctl_callback (CURL *handle, int cmd, void *clientp)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle cmd custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       cmd custom-data)))))))
 
- ;; int (*curl_debug_callback)
- ;;       (CURL *handle,      /* the handle/transfer this concerns */
- ;;        curl_infotype type, /* what kind of data */
- ;;        char *data,        /* points to the data */
- ;;        size_t size,       /* size of the data pointed to */
- ;;        void *userptr);    /* whatever the user please */
+(define make-curl-debug-callback
+  ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
+  ;;                          size_t size, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer signed-int pointer size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle type data size custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       type data size custom-data)))))))
 
- ;; CURLcode (*curl_conv_callback)(char *buffer, size_t length);
+(define make-curl-conf-callback
+  ;; CURLcode curl_conv_callback (char *buffer, size_t length)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer length)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback buffer length)))))))
 
- ;; CURLcode (*curl_ssl_ctx_callback)(CURL *curl,    /* easy handle */
- ;;                                          void *ssl_ctx, /* actually an
- ;;                                                            OpenSSL SSL_CTX */
- ;;                                          void *userptr);
+(define make-curl-ssl-ctx-callback
+  ;; CURLcode curl_ssl_ctx_callback (CURL *curl, void *ssl_ctx, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle ssl-ctx custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       ssl-ctx custom-data)))))))
 
- ;; int
- ;;  (*curl_sshkeycallback) (CURL *easy,     /* easy handle */
- ;;                          const struct curl_khkey *knownkey, /* known */
- ;;                          const struct curl_khkey *foundkey, /* found */
- ;;                          enum curl_khmatch, /* libcurl's view on the keys */
- ;;                          void *clientp); /* custom pointer passed from app */
+(define make-curl-sshkey-callback
+  ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
+  ;;                          const struct curl_khkey *foundkey, enum curl_khmatch,
+  ;;                          void *clientp);
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer pointer pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle knownkey foundkey khmatch custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       knownkey foundkey khmatch custom-data)))))))
 
- ;; int (*curl_socket_callback)(CURL *easy,
- ;;                                    curl_socket_t s,
- ;;                                    int what,
- ;;                                    void *userp,
- ;;                                    void *socketp);
+(define make-curl-socket-callback
+  ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
+  ;;                           void *socketp)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer signed-int signed-int pointer pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle sock what custom-data socketp)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       sock what custom-data socketp)))))))
 
- ;; int (*curl_multi_timer_callback)(CURLM *multi, long timeout_ms, void *userp);
-
+(define make-curl-multi-timer-callback
+  ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer long pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle timeout-ms custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-multi
+					   (pointer handle)
+					 (owner? #f))
+				       timeout-ms custom-data)))))))
 
 
 ;;;; still to be implemented
@@ -1415,16 +1652,20 @@
 (set-rtd-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
 (set-rtd-printer! (type-descriptor curl-share)		%struct-curl-share-printer)
 (set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
+(set-rtd-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
 
 (post-gc-hooks (cons* %curl-form-data-guardian-destructor
 		      %curl-share-guardian-destructor
 		      %curl-easy-guardian-destructor
+		      %curl-multi-guardian-destructor
 		      (post-gc-hooks)))
 
 )
 
 ;;; end of file
 ;;Local Variables:
+;;eval: (put '%make-curl-easy 'scheme-indent-function 1)
+;;eval: (put '%make-curl-multi 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/ascii 'scheme-indent-function 1)
 ;;End:
