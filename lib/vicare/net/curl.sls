@@ -132,7 +132,7 @@
     make-curl-fnmatch-callback
     make-curl-seek-callback
     make-curl-read-callback
-    make-curl-sockopt-callback
+    make-curl-socket-option-callback
     make-curl-open-socket-callback
     make-curl-closesocket-callback
     make-curl-ioctl-callback
@@ -1461,7 +1461,7 @@
 		 (user-scheme-callback (%cdata instream)
 				       offset origin)))))))
 
-(define make-curl-sockopt-callback
+(define make-curl-socket-option-callback
   ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
   (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
     (lambda (user-scheme-callback)

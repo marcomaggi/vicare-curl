@@ -1123,7 +1123,7 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun make-curl-sockopt-callback @var{user-scheme-callback}
+@defun make-curl-socket-option-callback @var{user-scheme-callback}
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
 @code{curl_sockopt_callback} callback; the returned pointer must be

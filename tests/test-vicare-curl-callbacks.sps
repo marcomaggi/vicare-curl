@@ -118,11 +118,11 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;make-curl-sockopt-callback
+  (check	;make-curl-socket-option-callback
       (with-result
        (let ((co (ffi.make-c-callout-maker 'signed-int
 					   '(pointer signed-int signed-int)))
-	     (cb (make-curl-sockopt-callback
+	     (cb (make-curl-socket-option-callback
 		  (lambda (custom-data curlfd purpose)
 		    (add-result (list custom-data curlfd purpose))
 		    CURL_SOCKOPT_OK))))
