@@ -874,6 +874,7 @@ error code; if @var{code} is invalid, return @false{}.
 
 @menu
 * plain callbacks write::       Receiving data from a file transfer.
+* plain callbacks read::        Sending data to a file transfer.
 * plain callbacks progress::    Tracking file transfer progress.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
@@ -932,6 +933,67 @@ Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
 callback returns @code{0} to the caller.  @var{user-scheme-callback}
 should take care of handling its own exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks read
+@subsection Sending data to a file transfer
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-read-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_read_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_READFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to produce data outgoing to a connection.
+@curlref{curl_easy_setopt, CURLOPT_READFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{4} arguments:
+
+@enumerate
+@item
+A pointer object referencing the first byte in the output buffer.
+
+@item
+An exact integer representing the size in bytes of the items to write to
+the output buffer.
+
+@item
+An exact integer representing the maximum number of items to write to
+the output buffer.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+this value is associated to the callback with the
+@code{CURLOPT_READDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_READDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: either the number of @strong{bytes} actually written to the
+output buffer or one of the constants @code{CURL_READFUNC_ABORT},
+@code{CURL_READFUNC_PAUSE}.  Returning zero will signal the
+end--of--file and will cause the end of the file transfer.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURL_READFUNC_ABORT} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
 @end itemize
 @end defun
 
@@ -1096,36 +1158,6 @@ should take care of handling its own exceptions.
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
 @code{curl_seek_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-read-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_read_callback} callback; the returned pointer must be
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 

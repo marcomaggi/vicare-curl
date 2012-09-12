@@ -70,6 +70,21 @@
 	   (ffi.free-c-callback cb))))
     => `(123 ((,(null-pointer) 1 2 #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-read-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'size_t
+					   '(pointer size_t size_t pointer)))
+	     (cb (make-curl-read-callback
+		  (lambda (buffer size nitems outstream)
+		    (add-result (list buffer size nitems outstream))
+		    123))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 1 2 (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(123 ((,(null-pointer) 1 2 #f))))
+
   #t)
 
 

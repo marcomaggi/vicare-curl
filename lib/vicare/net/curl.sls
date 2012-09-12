@@ -1389,6 +1389,19 @@
 		 (user-scheme-callback buffer size nitems
 				       (%cdata outstream))))))))
 
+(define make-curl-read-callback
+  ;; size_t curl_read_callback (char *buffer, size_t size, size_t nitems, void *instream)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer size nitems instream)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURL_READFUNC_ABORT))
+		 (user-scheme-callback buffer size nitems
+				       (%cdata instream))))))))
+
+;;; --------------------------------------------------------------------
+
 (define make-curl-chunk-begin-callback
   ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
   (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer pointer signed-int))))
@@ -1428,16 +1441,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback instream offset origin)))))))
-
-(define make-curl-read-callback
-  ;; size_t curl_read_callback (char *buffer, size_t size, size_t nitems, void *instream)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (buffer size nitems instream)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback buffer size nitems instream)))))))
 
 (define make-curl-sockopt-callback
   ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
