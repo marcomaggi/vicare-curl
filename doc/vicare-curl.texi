@@ -15,6 +15,10 @@ cURL
 @xref{\FUNC\,\FUNC\,\FUNC\,*manpages*}
 @end macro
 
+@macro curlref{FUNC,REF}
+@xref{\FUNC\,\REF\,\FUNC\,*manpages*}
+@end macro
+
 @c page
 @c ------------------------------------------------------------
 @c Values.
@@ -869,9 +873,67 @@ error code; if @var{code} is invalid, return @false{}.
 
 
 @menu
+* plain callbacks write::       Receiving data from a file transfer.
 * plain callbacks progress::    Tracking file transfer progress.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
+
+@c page
+@node plain callbacks write
+@subsection Receiving data from a file transfer
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-write-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_write_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_WRITEFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to consume data incoming from a connection.
+@curlref{curl_easy_setopt, CURLOPT_WRITEFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{4} arguments:
+
+@enumerate
+@item
+A pointer object referencing the first byte in the input buffer.
+
+@item
+An exact integer representing the size in bytes of the items in the
+input buffer.
+
+@item
+An exact integer representing the number of items in the input buffer.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+this value is associated to the callback with the
+@code{CURLOPT_WRITEDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_WRITEDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: either the number of @strong{items} consumed from the input
+buffer or the constant @code{CURL_WRITEFUNC_PAUSE}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
+@end itemize
+@end defun
 
 @c page
 @node plain callbacks progress
@@ -890,16 +952,17 @@ released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
 This callback is associated to @code{curl-easy} instances with the
-@code{CURLOPT_PROGRESSFUNCTION} option of @func{curl-easy-setopt}; a
-custom data pointer is associated to the callback with the
-@code{CURLOPT_PROGRESSDATA} option of @func{curl-easy-setopt}.
+@code{CURLOPT_PROGRESSFUNCTION} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_PROGRESSFUNCTION}.
 
 @var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
 @false{} or a pointer object referencing an application selected value;
-such value is chosen at callback registration time.
+such value is associated to the callback with the
+@code{CURLOPT_PROGRESSDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_PROGRESSDATA}.
 
 @item
 A flonum representing the total download size.
@@ -938,36 +1001,6 @@ callback caller is @code{1}; else the value returned is @code{0}.
 @c page
 @node plain callbacks undoc
 @subsection Callback makers still undocumented
-
-
-@defun make-curl-write-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_write_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
 
 
 @defun make-curl-chunk-begin-callback @var{user-scheme-callback}

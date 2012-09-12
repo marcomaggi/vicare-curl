@@ -1386,7 +1386,8 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback buffer size nitems outstream)))))))
+		 (user-scheme-callback buffer size nitems
+				       (%cdata outstream))))))))
 
 (define make-curl-chunk-begin-callback
   ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
