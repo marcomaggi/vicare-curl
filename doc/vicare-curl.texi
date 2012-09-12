@@ -879,6 +879,7 @@ error code; if @var{code} is invalid, return @false{}.
 * plain callbacks seek::        Seeking into an outgoing file.
 * plain callbacks sockopt::     Additional options for socket
                                 descriptors.
+* plain callbacks opensocket::  Opening a socket descriptor.
 * plain callbacks progress::    Tracking file transfer progress.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
@@ -1170,6 +1171,65 @@ exceptions.
 @end defun
 
 @c page
+@node plain callbacks opensocket
+@subsection Opening a socket descriptor
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-open-socket-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_opensocket_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_OPENSOCKETFUNCTION} option of @func{curl-easy-setopt}; it
+is invoked to allow an application to open a socket using @func{socket}
+from the library @library{vicare posix} and optionally set some socket
+options using @func{setsockopt}.  @curlref{curl_easy_setopt,
+CURLOPT_OPENSOCKETFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{3} arguments:
+
+@enumerate
+@item
+@false{} or a pointer object referencing an application selected value;
+this value is associated to the callback with the
+@code{CURLOPT_OPENSOCKETDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_OPENSOCKETDATA}.
+
+@item
+An exact integer representing the purpose of the socket, a constant of
+type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN}.
+
+@item
+A pointer object referencing an instance of @code{struct curl_sockaddr};
+such data structure can be accessed with the @code{curl-sockaddr.}
+functions, @ref{plain misc, curl-sockaddr}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being the exact
+integer representing the socket descriptor or the constant
+@code{CURL_SOCKET_BAD}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURL_SOCKET_BAD} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
 @node plain callbacks progress
 @subsection Tracking file transfer progress
 
@@ -1300,36 +1360,6 @@ should take care of handling its own exceptions.
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
 @code{curl_fnmatch_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-opensocket-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_opensocket_callback} callback; the returned pointer must be
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
@@ -2201,6 +2231,19 @@ string.
 (curl-getdate "Sun Nov 6 94")
 @result{} 784080000
 @end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun curl-sockaddr.family @var{pointer}
+@defunx curl-sockaddr.socktype @var{pointer}
+@defunx curl-sockaddr.protocol @var{pointer}
+@defunx curl-sockaddr.addrlen @var{pointer}
+@defunx curl-sockaddr.addr @var{pointer}
+Given a pointer to a @code{struct curl_sockaddr}, return the value of
+each field in such structure.  All the functions return an exact
+integer, but @func{curl-sockaddr.addr} which returns a bytevector
+holding the whole @code{struct sockaddr} field.
 @end defun
 
 @c page

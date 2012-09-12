@@ -59,6 +59,10 @@
     ;; miscellaneous functions
     curl-free				curl-getdate
 
+    curl-sockaddr.family		curl-sockaddr.socktype
+    curl-sockaddr.protocol		curl-sockaddr.addrlen
+    curl-sockaddr.addr
+
     ;; easy API
     curl-easy-init			curl-easy-cleanup
     curl-easy-reset
@@ -221,6 +225,23 @@
 
 (define-inline (curl-getdate date)
   (foreign-call "ikrt_curl_getdate" date))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-sockaddr.family pointer)
+  (foreign-call "ikrt_curl_sockaddr_family" pointer))
+
+(define-inline (curl-sockaddr.socktype pointer)
+  (foreign-call "ikrt_curl_sockaddr_socktype" pointer))
+
+(define-inline (curl-sockaddr.protocol pointer)
+  (foreign-call "ikrt_curl_sockaddr_protocol" pointer))
+
+(define-inline (curl-sockaddr.addrlen pointer)
+  (foreign-call "ikrt_curl_sockaddr_addrlen" pointer))
+
+(define-inline (curl-sockaddr.addr pointer)
+  (foreign-call "ikrt_curl_sockaddr_addr" pointer))
 
 
 ;;;; easy API

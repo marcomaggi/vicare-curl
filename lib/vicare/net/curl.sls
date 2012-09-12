@@ -89,6 +89,10 @@
     ;; miscellaneous functions
     curl-free					curl-getdate
 
+    curl-sockaddr.family			curl-sockaddr.socktype
+    curl-sockaddr.protocol			curl-sockaddr.addrlen
+    curl-sockaddr.addr
+
     ;; easy API
     curl-easy-init				curl-easy-cleanup
     curl-easy-reset
@@ -129,7 +133,7 @@
     make-curl-seek-callback
     make-curl-read-callback
     make-curl-sockopt-callback
-    make-curl-opensocket-callback
+    make-curl-open-socket-callback
     make-curl-closesocket-callback
     make-curl-ioctl-callback
     make-curl-debug-callback
@@ -1353,6 +1357,38 @@
     (with-general-strings/ascii ((date^ date))
       (capi.curl-getdate date^))))
 
+;;; --------------------------------------------------------------------
+
+(define (curl-sockaddr.family pointer)
+  (define who 'curl-sockaddr.family)
+  (with-arguments-validation (who)
+      ((pointer	pointer))
+    (capi.curl-sockaddr.family pointer)))
+
+(define (curl-sockaddr.socktype pointer)
+  (define who 'curl-sockaddr.socktype)
+  (with-arguments-validation (who)
+      ((pointer	pointer))
+    (capi.curl-sockaddr.socktype pointer)))
+
+(define (curl-sockaddr.protocol pointer)
+  (define who 'curl-sockaddr.protocol)
+  (with-arguments-validation (who)
+      ((pointer	pointer))
+    (capi.curl-sockaddr.protocol pointer)))
+
+(define (curl-sockaddr.addrlen pointer)
+  (define who 'curl-sockaddr.addrlen)
+  (with-arguments-validation (who)
+      ((pointer	pointer))
+    (capi.curl-sockaddr.addrlen pointer)))
+
+(define (curl-sockaddr.addr pointer)
+  (define who 'curl-sockaddr.addr)
+  (with-arguments-validation (who)
+      ((pointer	pointer))
+    (capi.curl-sockaddr.addr pointer)))
+
 
 ;;;; callback makers
 
@@ -1435,6 +1471,17 @@
 			  CURL_SOCKOPT_ERROR))
 		 (user-scheme-callback (%cdata custom-data) curlfd purpose)))))))
 
+(define make-curl-open-socket-callback
+  ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
+  ;;                                         struct curl_sockaddr *address)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data purpose address)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURL_SOCKET_BAD))
+		 (user-scheme-callback (%cdata custom-data) purpose address)))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1467,17 +1514,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback ptr pattern string)))))))
-
-(define make-curl-opensocket-callback
-  ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
-  ;;                                         struct curl_sockaddr *address)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (custom-data purpose address)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%cdata custom-data) purpose address)))))))
 
 (define make-curl-closesocket-callback
   ;; int curl_closesocket_callback (void *clientp, curl_socket_t item)

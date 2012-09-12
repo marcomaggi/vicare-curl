@@ -627,6 +627,47 @@ ikrt_curl_share_strerror (ikptr s_errcode, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Accessors for "struct curl_sockaddr".
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_sockaddr	ik_curl_sockaddr_t;
+
+ikptr
+ikrt_curl_sockaddr_family (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->family);
+}
+ikptr
+ikrt_curl_sockaddr_socktype (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->socktype);
+}
+ikptr
+ikrt_curl_sockaddr_protocol (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->protocol);
+}
+ikptr
+ikrt_curl_sockaddr_addrlen (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_uint(pcb, S->addrlen);
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_sockaddr_addr (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_bytevector_from_memory_block(pcb, &(S->addr), S->addrlen);
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

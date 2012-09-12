@@ -131,6 +131,22 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURL_SOCKOPT_OK ((#f 123 ,CURLSOCKTYPE_IPCXN))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-opensocket-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-int pointer)))
+	     (cb (make-curl-open-socket-callback
+		  (lambda (custom-data purpose address)
+		    (add-result (list custom-data purpose address))
+		    123))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) CURLSOCKTYPE_IPCXN (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(123 ((#f ,CURLSOCKTYPE_IPCXN ,(null-pointer)))))
+
+
   (collect))
 
 
