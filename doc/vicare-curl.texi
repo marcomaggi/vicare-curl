@@ -875,6 +875,7 @@ error code; if @var{code} is invalid, return @false{}.
 @menu
 * plain callbacks write::       Receiving data from a file transfer.
 * plain callbacks read::        Sending data to a file transfer.
+* plain callbacks ioctl::       Special control of a file transfer.
 * plain callbacks progress::    Tracking file transfer progress.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
@@ -992,6 +993,61 @@ function which does the following:
 Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
 callback returns @code{CURL_READFUNC_ABORT} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks ioctl
+@subsection Special control of a file transfer
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-ioctl-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_ioctl_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_IOCTLFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to perform special operations in a connection.
+@curlref{curl_easy_setopt, CURLOPT_IOCTLFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{3} arguments:
+
+@enumerate
+@item
+An instance of @code{curl-easy} referencing the invoking session.
+
+@item
+An exact integer representing one of the @code{curliocmd} constants:
+@code{CURLIOCMD_NOP}, @code{CURLIOCMD_RESTARTREAD}.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+this value is associated to the callback with the
+@code{CURLOPT_IOCTLDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_IOCTLDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer, one of the @code{curlioerr} constants: @code{CURLIOE_OK},
+@code{CURLIOE_UNKNOWNCMD}, @code{CURLIOE_FAILRESTART}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURLIOE_UNKNOWNCMD} to the caller.
 @var{user-scheme-callback} should take care of handling its own
 exceptions.
 @end itemize
@@ -1270,36 +1326,6 @@ function which does the following:
 Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
 
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-ioctl-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_ioctl_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
 callback returns @code{0} to the caller.  @var{user-scheme-callback}
 should take care of handling its own exceptions.
 @end itemize

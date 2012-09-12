@@ -85,6 +85,21 @@
 	   (ffi.free-c-callback cb))))
     => `(123 ((,(null-pointer) 1 2 #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-ioctl-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-int pointer)))
+	     (cb (make-curl-ioctl-callback
+		  (lambda (easy cmd custom-data)
+		    (add-result (list (curl-easy? easy) cmd custom-data))
+		    CURLIOE_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) CURLIOCMD_NOP (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(,CURLIOE_OK ((#t ,CURLIOCMD_NOP #f))))
+
   #t)
 
 

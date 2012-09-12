@@ -1400,7 +1400,22 @@
 		 (user-scheme-callback buffer size nitems
 				       (%cdata instream))))))))
 
-;;; --------------------------------------------------------------------
+(define make-curl-ioctl-callback
+  ;; curlioerr curl_ioctl_callback (CURL *handle, int cmd, void *clientp)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle cmd custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURLIOE_UNKNOWNCMD))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       cmd
+				       (%cdata custom-data))))))))
+
+
+;;;; callback makers still to be tested
 
 (define make-curl-chunk-begin-callback
   ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
@@ -1472,19 +1487,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback (%cdata custom-data) item)))))))
-
-(define make-curl-ioctl-callback
-  ;; curlioerr curl_ioctl_callback (CURL *handle, int cmd, void *clientp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (handle cmd custom-data)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
-				       cmd (%cdata custom-data))))))))
 
 (define make-curl-debug-callback
   ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
