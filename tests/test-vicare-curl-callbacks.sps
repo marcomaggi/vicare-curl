@@ -116,6 +116,21 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURL_SEEKFUNC_OK ((#f 123 ,SEEK_CUR))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-sockopt-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-int signed-int)))
+	     (cb (make-curl-sockopt-callback
+		  (lambda (custom-data curlfd purpose)
+		    (add-result (list custom-data curlfd purpose))
+		    CURL_SOCKOPT_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123 CURLSOCKTYPE_IPCXN)
+	   (ffi.free-c-callback cb))))
+    => `(,CURL_SOCKOPT_OK ((#f 123 ,CURLSOCKTYPE_IPCXN))))
+
   (collect))
 
 

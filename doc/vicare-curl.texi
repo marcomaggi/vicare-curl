@@ -877,6 +877,8 @@ error code; if @var{code} is invalid, return @false{}.
 * plain callbacks read::        Sending data to a file transfer.
 * plain callbacks ioctl::       Special control of a file transfer.
 * plain callbacks seek::        Seeking into an outgoing file.
+* plain callbacks sockopt::     Additional options for socket
+                                descriptors.
 * plain callbacks progress::    Tracking file transfer progress.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
@@ -1112,6 +1114,62 @@ exceptions.
 @end defun
 
 @c page
+@node plain callbacks sockopt
+@subsection Additional options for socket descriptors
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-sockopt-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_sockopt_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_SOCKOPTFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to allow an application to set additional socket options using
+@func{setsockopt} from the library @library{vicare posix}.
+@curlref{curl_easy_setopt, CURLOPT_SOCKOPTFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{3} arguments:
+
+@enumerate
+@item
+@false{} or a pointer object referencing an application selected value;
+this value is associated to the callback with the
+@code{CURLOPT_SOCKOPTDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_SOCKOPTDATA}.
+
+@item
+An exact integer representing the socket descriptor.
+
+@item
+An exact integer representing the purpose of the socket, a constant of
+type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer, one of the constants: @code{CURL_SOCKOPT_OK},
+@code{CURL_SOCKOPT_ERROR}, @code{CURL_SOCKOPT_ALREADY_CONNECTED}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURL_SOCKOPT_ERROR} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
 @node plain callbacks progress
 @subsection Tracking file transfer progress
 
@@ -1259,37 +1317,6 @@ is chosen at callback registration time.
 function which does the following:
 
 @itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-sockopt-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_sockopt_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-
 @item
 Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the

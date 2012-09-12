@@ -1425,6 +1425,16 @@
 		 (user-scheme-callback (%cdata instream)
 				       offset origin)))))))
 
+(define make-curl-sockopt-callback
+  ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data curlfd purpose)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURL_SOCKOPT_ERROR))
+		 (user-scheme-callback (%cdata custom-data) curlfd purpose)))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1457,16 +1467,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback ptr pattern string)))))))
-
-(define make-curl-sockopt-callback
-  ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (custom-data curlfd purpose)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%cdata custom-data) curlfd purpose)))))))
 
 (define make-curl-opensocket-callback
   ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
