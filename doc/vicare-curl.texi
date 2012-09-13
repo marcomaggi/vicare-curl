@@ -688,10 +688,23 @@ a @code{CURLE_} error code.  @curlman{curl_easy_setopt}.
 @code{CURLOPT_} constants.
 
 The type of @var{parameter} depends upon the selected @var{option}
-value; it can be one among: an exact integer representing a C language
-type @code{long} or @code{off_t}; a pointer object referencing a
-callback function; a string or @ascii{} bytevector or pointer object or
-@code{memory-block} referencing some data.
+value; it can be one among:
+
+@itemize
+@item
+An exact integer representing a C language type @code{long} or
+@code{off_t}.  Whenever a @code{long} is expected: @true{} and @false{}
+are also accepted and converted to @code{1} and @code{0}.
+
+@item
+A pointer object referencing a callback function.  When a callback
+pointer is expected: @false{} is also accepted and converted to a
+@cnull{} pointer.
+
+@item
+A string or @ascii{} bytevector or pointer object or @code{memory-block}
+referencing some data.
+@end itemize
 @end defun
 
 
@@ -903,6 +916,7 @@ Easy @api{} callbacks
 * plain callbacks chunk::       Processing informations about
                                 chunks of data.
 * plain callbacks fnmatch::     Implementing wildcard matching.
+* plain callbacks sshkey::      Accepting or rejecting @acronym{SSH} connections.
 
 Multi @api{} callbacks
 
@@ -1882,6 +1896,72 @@ exceptions.
 @end defun
 
 @c page
+@node plain callbacks sshkey
+@subsection Accepting or rejecting @acronym{SSH} connections
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-sshkey-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_sshkeycallback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_SSH_KEYFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to accept or reject @acronym{SSH} connections.
+@curlref{curl_easy_setopt, CURLOPT_SSH_KEYFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{5} arguments:
+
+@enumerate
+@item
+An instance of @code{curl-easy} referencing the invoking session.
+
+@item
+@false{} or a pointer object, referencing an instance of the C language
+type @code{struct curl_khkey}, representing the key from the
+@file{known_hosts} file.
+
+@item
+A pointer object, referencing an instance of the C language type
+@code{struct curl_khkey}, representing the key from the remote site.
+
+@item
+An exact integer representing a constant of type @code{enum
+curl_khmatch}, one among: @code{CURLKHMATCH_OK},
+@code{CURLKHMATCH_MISMATCH}, @code{CURLKHMATCH_MISSING}.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the callback with the
+@code{CURLOPT_SSH_KEYDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_SSH_KEYDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer representing a constant of type @code{enum curl_khstat}, one
+among: @code{CURLKHSTAT_FINE_ADD_TO_FILE}, @code{CURLKHSTAT_FINE},
+@code{CURLKHSTAT_REJECT}, @code{CURLKHSTAT_DEFER}.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURLKHSTAT_REJECT} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
 @node plain callbacks socket
 @subsection Getting informations about socket status
 
@@ -1950,66 +2030,6 @@ Discard the values returned by @var{user-scheme-callback}; always return
 @c page
 @node plain callbacks undoc
 @subsection Callback makers still undocumented
-
-
-@defun make-curl-conf-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_conf_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-sshkey-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_sshkey_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
 
 
 @defun make-curl-multi-timer-callback @var{user-scheme-callback}

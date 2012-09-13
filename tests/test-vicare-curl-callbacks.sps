@@ -311,6 +311,23 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURL_FNMATCHFUNC_MATCH ((#f ,(null-pointer) ,(null-pointer)))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-sshkey-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer pointer pointer signed-int pointer)))
+	     (cb (make-curl-sshkey-callback
+		  (lambda (easy knownkey foundkey khmatch custom-data)
+		    (add-result (list (curl-easy? easy) knownkey foundkey
+				      khmatch custom-data))
+		    CURLKHSTAT_FINE))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) (null-pointer) (null-pointer) CURLKHMATCH_MISMATCH
+	      (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(,CURLKHSTAT_FINE ((#t #f ,(null-pointer) ,CURLKHMATCH_MISMATCH #f))))
+
   (collect))
 
 

@@ -143,8 +143,6 @@
     make-curl-chunk-begin-callback
     make-curl-chunk-end-callback
     make-curl-fnmatch-callback
-
-    make-curl-conf-callback
     make-curl-sshkey-callback
     make-curl-socket-callback
     make-curl-multi-timer-callback
@@ -1655,6 +1653,23 @@
 			  CURL_FNMATCHFUNC_FAIL))
 		 (user-scheme-callback (%cdata custom-data) pattern string)))))))
 
+(define make-curl-sshkey-callback
+  ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
+  ;;                          const struct curl_khkey *foundkey, enum curl_khmatch,
+  ;;                          void *clientp);
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer pointer pointer signed-int pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle knownkey foundkey khmatch custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURLKHSTAT_REJECT))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       (%cdata knownkey) foundkey khmatch
+				       (%cdata custom-data))))))))
+
 
 ;;;; multi API callback makers
 
@@ -1678,32 +1693,6 @@
 
 
 ;;;; callback makers still to be tested
-
-(define make-curl-conf-callback
-  ;; CURLcode curl_conv_callback (char *buffer, size_t length)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer size_t))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (buffer length)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback buffer length)))))))
-
-(define make-curl-sshkey-callback
-  ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
-  ;;                          const struct curl_khkey *foundkey, enum curl_khmatch,
-  ;;                          void *clientp);
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
-					  '(pointer pointer pointer signed-int pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (handle knownkey foundkey khmatch custom-data)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
-				       knownkey foundkey khmatch (%cdata custom-data))))))))
 
 (define make-curl-multi-timer-callback
   ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)
