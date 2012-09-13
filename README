@@ -72,6 +72,12 @@ shared libraries and disable static libraries: this must not
 be  changed, because  the package  is meant  to install  a C
 shared library to be dynamically loaded.
 
+  Notice that to successfully run  the test suite we must be
+connected  to the  Internet, because  some tests  access the
+following URLs:
+
+    http://google.com/
+
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n
