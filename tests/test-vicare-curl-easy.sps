@@ -87,6 +87,15 @@
     => #f)
 
 ;;; --------------------------------------------------------------------
+;;; reset
+
+  (check
+      (let ((easy (curl-easy-init)))
+  	(curl-easy-reset easy)
+  	(curl-easy-cleanup easy))
+    => (void))
+
+;;; --------------------------------------------------------------------
 ;;; destructor
 
   (check
@@ -156,7 +165,7 @@
       nbytes))
 
   (define (debug-func easy type data size custom-data)
-    (fprintf (current-error-port)
+    #;(fprintf (current-error-port)
 	     (case-integers type
 	       ((CURLINFO_TEXT)
 		"Text: ~a")
@@ -184,7 +193,7 @@
 	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
 	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
 	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
-	      (curl-easy-setopt easy CURLOPT_VERBOSE 1)
+	      (curl-easy-setopt easy CURLOPT_VERBOSE #t)
 	      (curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
 	      (curl-easy-setopt easy CURLOPT_DEBUGDATA #f)
 	      (curl-easy-perform easy))
@@ -194,7 +203,7 @@
 	  (ffi.free-c-callback debug-cb)))
     => CURLE_OK)
 
-  (check 'this	;follow location
+  (check	;follow location
       (let ((easy	(curl-easy-init))
 	    (write-cb	(make-curl-write-callback write-func))
 	    (debug-cb	(make-curl-debug-callback debug-func)))
@@ -204,15 +213,21 @@
 	      (curl-easy-setopt easy CURLOPT_FOLLOWLOCATION 1)
 	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
 	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
-	      (curl-easy-setopt easy CURLOPT_VERBOSE 1)
-	      #;(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
-	      #;(curl-easy-setopt easy CURLOPT_DEBUGDATA #f)
+	      (curl-easy-setopt easy CURLOPT_VERBOSE #t)
+	      (curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+	      (curl-easy-setopt easy CURLOPT_DEBUGDATA #f)
 	      (curl-easy-perform easy))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
 	  (ffi.free-c-callback write-cb)
 	  (ffi.free-c-callback debug-cb)))
     => CURLE_OK)
+
+  (collect))
+
+
+(parametrise ((check-test-name	'pause))
+
 
   (collect))
 
