@@ -133,13 +133,18 @@
     make-curl-open-socket-callback
     make-curl-progress-callback
     make-curl-header-callback
+    make-curl-debug-callback
+    make-curl-ssl-ctx-callback
+    make-curl-conv-to-network-callback
+    make-curl-conv-from-network-callback
+    make-curl-conv-from-utf8-callback
+    make-curl-interleave-callback
+
     make-curl-close-socket-callback
     make-curl-chunk-begin-callback
     make-curl-chunk-end-callback
     make-curl-fnmatch-callback
-    make-curl-debug-callback
     make-curl-conf-callback
-    make-curl-ssl-ctx-callback
     make-curl-sshkey-callback
     make-curl-socket-callback
     make-curl-multi-timer-callback
@@ -1576,6 +1581,36 @@
 					   (pointer handle)
 					 (owner? #f))
 				       ssl-ctx (%cdata custom-data))))))))
+
+;;; --------------------------------------------------------------------
+
+(define make-curl-conv-to-network-callback
+  ;; CURLcode callback (void * buffer, size_t size)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer size_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer size)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  CURLE_ABORTED_BY_CALLBACK))
+		 (user-scheme-callback buffer size)))))))
+
+(define make-curl-conv-from-network-callback
+  make-curl-conv-to-network-callback)
+
+(define make-curl-conv-from-utf8-callback
+  make-curl-conv-to-network-callback)
+
+;;; --------------------------------------------------------------------
+
+(define make-curl-interleave-callback
+  ;; size_t callback (void *ptr, size_t size, size_t nmemb, void * userdata)
+  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (buffer size nmemb custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback buffer size nmemb (%cdata custom-data))))))))
 
 
 ;;;; callback makers still to be tested

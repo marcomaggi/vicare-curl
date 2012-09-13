@@ -191,6 +191,65 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURLE_OK ((#t ,(null-pointer) #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-conv-to-network-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer size_t)))
+	     (cb (make-curl-conv-to-network-callback
+		  (lambda (buffer nbytes)
+		    (add-result (list buffer nbytes))
+		    CURLE_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123)
+	   (ffi.free-c-callback cb))))
+    => `(,CURLE_OK ((,(null-pointer) 123))))
+
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-conv-from-network-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer size_t)))
+	     (cb (make-curl-conv-from-network-callback
+		  (lambda (buffer nbytes)
+		    (add-result (list buffer nbytes))
+		    CURLE_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123)
+	   (ffi.free-c-callback cb))))
+    => `(,CURLE_OK ((,(null-pointer) 123))))
+
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-conv-from-utf8-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer size_t)))
+	     (cb (make-curl-conv-from-utf8-callback
+		  (lambda (buffer nbytes)
+		    (add-result (list buffer nbytes))
+		    CURLE_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123)
+	   (ffi.free-c-callback cb))))
+    => `(,CURLE_OK ((,(null-pointer) 123))))
+
+;;; --------------------------------------------------------------------
+
+  (check		;make-curl-interleave-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'size_t
+					   '(pointer size_t size_t pointer)))
+	     (cb (make-curl-interleave-callback
+		  (lambda (buffer size nmemb custom-data)
+		    (add-result (list buffer size nmemb custom-data))
+		    0))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123 456 (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(0 ((,(null-pointer) 123 456 #f))))
 
   (collect))
 

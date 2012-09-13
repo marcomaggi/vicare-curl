@@ -884,6 +884,13 @@ error code; if @var{code} is invalid, return @false{}.
 * plain callbacks header::      Receiving headers from file transfer.
 * plain callbacks debug::       Debugging callback.
 * plain callbacks sslctx::      OpenSSL context configuration.
+* plain callbacks tonet::       Converting from host encoding to
+                                network encoding.
+* plain callbacks fromnet::     Converting from network encoding to
+                                host encoding.
+* plain callbacks fromutf8::    Converting from @utf{}-8 to
+                                host encoding.
+* plain callbacks interleave::  Processing interleaved @acronym{RTP} data.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
 
@@ -1426,8 +1433,9 @@ released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
 This callback is associated to @code{curl-easy} instances with the
-@code{CURLOPT_SSL_CTX_FUNCTION} option of @func{curl-easy-setopt}.
-@curlref{curl_easy_setopt, CURLOPT_SSL_CTX_FUNCTION}.
+@code{CURLOPT_SSL_CTX_FUNCTION} option of @func{curl-easy-setopt}; it
+allows the application to specify options and actions for OpenSSL
+operations.  @curlref{curl_easy_setopt, CURLOPT_SSL_CTX_FUNCTION}.
 
 @var{user-scheme-callback} must accept @math{3} arguments:
 
@@ -1460,6 +1468,204 @@ Block and discard all the raised exceptions using @func{guard} from
 callback returns @code{CURLE_ABORTED_BY_CALLBACK} to the caller.
 @var{user-scheme-callback} should take care of handling its own
 exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks tonet
+@subsection Converting from host encoding to network encoding
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-conv-to-network-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as callback; the
+returned pointer must be released with a call to @func{free-c-callback}
+from @library{vicare ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_CONV_TO_NETWORK_FUNCTION} option of
+@func{curl-easy-setopt}; its purpose is to convert from host encoding to
+network encoding.  @curlref{curl_easy_setopt,
+CURLOPT_CONV_TO_NETWORK_FUNCTION}.
+
+@var{user-scheme-callback} must accept @math{2} arguments:
+
+@enumerate
+@item
+A pointer object referencing the input data.
+
+@item
+An exact integer representing the number of bytes in the input data.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: if successful @code{CURLE_OK}, else one of the @code{CURLE_}
+error codes.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURLE_ABORTED_BY_CALLBACK} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks fromnet
+@subsection Converting from network encoding to host encoding
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-conv-from-network-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as callback; the
+returned pointer must be released with a call to @func{free-c-callback}
+from @library{vicare ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_CONV_FROM_NETWORK_FUNCTION} option of
+@func{curl-easy-setopt}; its purpose is to convert from network encoding
+to host encoding.  @curlref{curl_easy_setopt,
+CURLOPT_CONV_FROM_NETWORK_FUNCTION}.
+
+@var{user-scheme-callback} must accept @math{2} arguments:
+
+@enumerate
+@item
+A pointer object referencing the input data.
+
+@item
+An exact integer representing the number of bytes in the input data.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: if successful @code{CURLE_OK}, else one of the @code{CURLE_}
+error codes.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURLE_ABORTED_BY_CALLBACK} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks fromutf8
+@subsection Converting from @utf{}-8 to host encoding
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-conv-from-utf8-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as callback; the
+returned pointer must be released with a call to @func{free-c-callback}
+from @library{vicare ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_CONV_FROM_UTF8_FUNCTION} option of
+@func{curl-easy-setopt}; its purpose is to convert from network encoding
+to host encoding.  @curlref{curl_easy_setopt,
+CURLOPT_CONV_FROM_UTF8_FUNCTION}.
+
+@var{user-scheme-callback} must accept @math{2} arguments:
+
+@enumerate
+@item
+A pointer object referencing the input data.
+
+@item
+An exact integer representing the number of bytes in the input data.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer: if successful @code{CURLE_OK}, else one of the @code{CURLE_}
+error codes.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{CURLE_ABORTED_BY_CALLBACK} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks interleave
+@subsection Processing interleaved @acronym{RTP} data
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-interleave-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as callback; the
+returned pointer must be released with a call to @func{free-c-callback}
+from @library{vicare ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_INTERLEAVEFUNCTION} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_INTERLEAVEFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{5} arguments:
+
+@enumerate
+@item
+A pointer object referencing the input data.
+
+@item
+An exact integer representing the size of items in the input data.
+
+@item
+An exact integer representing the number of items in the input data.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the callback with the
+@code{CURLOPT_INTERLEAVEDATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_INTERLEAVEDATA}.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer representing the number of @strong{bytes} consumed from the
+input.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
 @end itemize
 @end defun
 
