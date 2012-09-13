@@ -879,6 +879,8 @@ error code; if @var{code} is invalid, return @false{}.
 
 
 @menu
+Easy @api{} callbacks
+
 * plain callbacks write::       Receiving data from a file transfer.
 * plain callbacks read::        Sending data to a file transfer.
 * plain callbacks ioctl::       Special control of a file transfer.
@@ -901,6 +903,11 @@ error code; if @var{code} is invalid, return @false{}.
 * plain callbacks chunk::       Processing informations about
                                 chunks of data.
 * plain callbacks fnmatch::     Implementing wildcard matching.
+
+Multi @api{} callbacks
+
+* plain callbacks socket::      Getting informations about
+                                socket status.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
 
@@ -1875,26 +1882,54 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks undoc
-@subsection Callback makers still undocumented
+@node plain callbacks socket
+@subsection Getting informations about socket status
 
 
-@defun make-curl-close-socket-callback @var{user-scheme-callback}
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-socket-callback @var{user-scheme-callback}
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
-@code{curl_closesocket_callback} callback; the returned pointer must be
+@code{curl_socket_callback} callback; the returned pointer must be
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
+
+This callback is associated to @code{curl-multi} instances with the
+@code{CURLMOPT_SOCKETFUNCTION} option of @func{curl-multi-setopt}; it is
+invoked to notify the application about status changes for a socket
+descriptor.  @curlref{curl_multi_setopt, CURLMOPT_SOCKETFUNCTION}.
 
 @var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
+An instance of @code{curl-easy} referencing the session associated to
+the socket.
+
+@item
+An exact integer representing the socket descriptor.
+
+@item
+An exact integer representing one of the constants:
+@code{CURL_POLL_NONE}, @code{CURL_POLL_IN}, @code{CURL_POLL_OUT},
+@code{CURL_POLL_INOUT}, @code{CURL_POLL_REMOVE}.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the @strong{callback} with the
+@code{CURLMOPT_SOCKETDATA} option of @func{curl-multi-setopt}.
+@curlref{curl_multi_setopt, CURLMOPT_SOCKETDATA}.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the @strong{socket descriptor} with the
+function @func{curl-multi-assign}.  @curlref{curl_multi_assign}.
 @end enumerate
 
-@var{user-scheme-callback} must return a single value
+@var{user-scheme-callback} can return unspecified values.
 
 @var{user-scheme-callback} is wrapped in an internally generated Scheme
 function which does the following:
@@ -1903,11 +1938,18 @@ function which does the following:
 @item
 Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
-
 callback returns @code{0} to the caller.  @var{user-scheme-callback}
 should take care of handling its own exceptions.
+
+@item
+Discard the values returned by @var{user-scheme-callback}; always return
+@code{0} to the caller.
 @end itemize
 @end defun
+
+@c page
+@node plain callbacks undoc
+@subsection Callback makers still undocumented
 
 
 @defun make-curl-conf-callback @var{user-scheme-callback}
@@ -1944,36 +1986,6 @@ should take care of handling its own exceptions.
 Wrap a user supplied Scheme function and return a pointer object
 referencing a callback function suitable to be used as
 @code{curl_sshkey_callback} callback; the returned pointer must be
-released with a call to @func{free-c-callback} from @library{vicare
-ffi}.
-
-@var{user-scheme-callback} must accept @math{5} arguments:
-
-@enumerate
-@item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
-@end enumerate
-
-@var{user-scheme-callback} must return a single value
-
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
-
-@itemize
-@item
-Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
-@end itemize
-@end defun
-
-
-@defun make-curl-socket-callback @var{user-scheme-callback}
-Wrap a user supplied Scheme function and return a pointer object
-referencing a callback function suitable to be used as
-@code{curl_socket_callback} callback; the returned pointer must be
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 

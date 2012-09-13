@@ -41,7 +41,7 @@
 (assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 
-(parametrise ((check-test-name	'makers))
+(parametrise ((check-test-name	'easy-makers))
 
   (check	;make-curl-write-callback
       (with-result
@@ -312,6 +312,24 @@
     => `(,CURL_FNMATCHFUNC_MATCH ((#f ,(null-pointer) ,(null-pointer)))))
 
   (collect))
+
+
+(parametrise ((check-test-name	'multi-makers))
+
+  (check	;make-curl-socket-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-int signed-int pointer pointer)))
+	     (cb (make-curl-socket-callback
+		  (lambda (easy sock what callback-custom-data socket-custom-data)
+		    (add-result (list (curl-easy? easy) sock what
+				      callback-custom-data socket-custom-data))))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 123 CURL_POLL_IN (null-pointer) (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(0 ((#t 123 ,CURL_POLL_IN #f #f))))
+
+  #t)
 
 
 ;;;; done

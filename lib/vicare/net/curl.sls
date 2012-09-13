@@ -131,6 +131,7 @@
     make-curl-seek-callback
     make-curl-socket-option-callback
     make-curl-open-socket-callback
+    make-curl-close-socket-callback
     make-curl-progress-callback
     make-curl-header-callback
     make-curl-debug-callback
@@ -139,11 +140,10 @@
     make-curl-conv-from-network-callback
     make-curl-conv-from-utf8-callback
     make-curl-interleave-callback
-
-    make-curl-close-socket-callback
     make-curl-chunk-begin-callback
     make-curl-chunk-end-callback
     make-curl-fnmatch-callback
+
     make-curl-conf-callback
     make-curl-sshkey-callback
     make-curl-socket-callback
@@ -1450,7 +1450,7 @@
     (capi.curl-sockaddr.addr pointer)))
 
 
-;;;; callback makers
+;;;; easy API callback makers
 
 (define-syntax %cdata
   (syntax-rules ()
@@ -1656,6 +1656,27 @@
 		 (user-scheme-callback (%cdata custom-data) pattern string)))))))
 
 
+;;;; multi API callback makers
+
+(define make-curl-socket-callback
+  ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
+  ;;                           void *socketp)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int
+					  '(pointer signed-int signed-int pointer pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle sock what callback-custom-data socket-custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       sock what
+				       (%cdata callback-custom-data)
+				       (%cdata socket-custom-data))
+		 0))))))
+
+
 ;;;; callback makers still to be tested
 
 (define make-curl-conf-callback
@@ -1683,21 +1704,6 @@
 					   (pointer handle)
 					 (owner? #f))
 				       knownkey foundkey khmatch (%cdata custom-data))))))))
-
-(define make-curl-socket-callback
-  ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
-  ;;                           void *socketp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
-					  '(pointer signed-int signed-int pointer pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (handle sock what custom-data socketp)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
-				       sock what (%cdata custom-data) socketp)))))))
 
 (define make-curl-multi-timer-callback
   ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)
