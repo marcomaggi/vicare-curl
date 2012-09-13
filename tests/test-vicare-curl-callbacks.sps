@@ -251,6 +251,37 @@
 	   (ffi.free-c-callback cb))))
     => `(0 ((,(null-pointer) 123 456 #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-chunk-begin-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-long
+					   '(pointer pointer signed-int)))
+	     (cb (make-curl-chunk-begin-callback
+		  (lambda (info custom-data remains)
+		    (add-result (list info custom-data remains))
+		    CURL_CHUNK_BGN_FUNC_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) (null-pointer) 123)
+	   (ffi.free-c-callback cb))))
+    => `(,CURL_CHUNK_BGN_FUNC_OK ((,(null-pointer) #f 123))))
+
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-chunk-end-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-long
+					   '(pointer)))
+	     (cb (make-curl-chunk-end-callback
+		  (lambda (custom-data)
+		    (add-result custom-data)
+		    CURL_CHUNK_END_FUNC_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(,CURL_CHUNK_END_FUNC_OK (#f)))
+
+
   (collect))
 
 

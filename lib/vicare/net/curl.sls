@@ -1612,28 +1612,29 @@
 			  0))
 		 (user-scheme-callback buffer size nmemb (%cdata custom-data))))))))
 
-
-;;;; callback makers still to be tested
-
 (define make-curl-chunk-begin-callback
   ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
   (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer pointer signed-int))))
     (lambda (user-scheme-callback)
-      (maker (lambda (transfer-info ptr remains)
+      (maker (lambda (transfer-info custom-data remains)
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback transfer-info ptr remains)))))))
+			  CURL_CHUNK_BGN_FUNC_FAIL))
+		 (user-scheme-callback transfer-info (%cdata custom-data)
+				       remains)))))))
 
 (define make-curl-chunk-end-callback
   ;; long curl_chunk_end_callback (void *ptr)
   (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer))))
     (lambda (user-scheme-callback)
-      (maker (lambda (ptr)
+      (maker (lambda (custom-data)
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback ptr)))))))
+			  CURL_CHUNK_END_FUNC_FAIL))
+		 (user-scheme-callback (%cdata custom-data))))))))
+
+
+;;;; callback makers still to be tested
 
 (define make-curl-fnmatch-callback
   ;; int curl_fnmatch_callback (void *ptr, const char *pattern, const char *string)
