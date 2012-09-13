@@ -281,6 +281,20 @@
 	   (ffi.free-c-callback cb))))
     => `(,CURL_CHUNK_END_FUNC_OK (#f)))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-fnmatch-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer pointer pointer)))
+	     (cb (make-curl-fnmatch-callback
+		  (lambda (custom-data pattern text)
+		    (add-result (list custom-data pattern text))
+		    CURL_FNMATCHFUNC_MATCH))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) (null-pointer) (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(,CURL_FNMATCHFUNC_MATCH ((#f ,(null-pointer) ,(null-pointer)))))
 
   (collect))
 

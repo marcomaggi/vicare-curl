@@ -1633,18 +1633,18 @@
 			  CURL_CHUNK_END_FUNC_FAIL))
 		 (user-scheme-callback (%cdata custom-data))))))))
 
-
-;;;; callback makers still to be tested
-
 (define make-curl-fnmatch-callback
   ;; int curl_fnmatch_callback (void *ptr, const char *pattern, const char *string)
   (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
     (lambda (user-scheme-callback)
-      (maker (lambda (ptr pattern string)
+      (maker (lambda (custom-data pattern string)
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback ptr pattern string)))))))
+			  CURL_FNMATCHFUNC_FAIL))
+		 (user-scheme-callback (%cdata custom-data) pattern string)))))))
+
+
+;;;; callback makers still to be tested
 
 (define make-curl-close-socket-callback
   ;; int curl_close-socket_callback (void *clientp, curl_socket_t item)

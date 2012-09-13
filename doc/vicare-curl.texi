@@ -899,6 +899,7 @@ error code; if @var{code} is invalid, return @false{}.
 * plain callbacks interleave::  Processing interleaved @acronym{RTP} data.
 * plain callbacks chunk::       Processing informations about
                                 chunks of data.
+* plain callbacks fnmatch::     Implementing wildcard matching.
 * plain callbacks undoc::       Callback makers still undocumented.
 @end menu
 
@@ -1768,8 +1769,12 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks undoc
-@subsection Callback makers still undocumented
+@node plain callbacks fnmatch
+@subsection Implementing wildcard matching
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun make-curl-fnmatch-callback @var{user-scheme-callback}
@@ -1779,15 +1784,31 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
-@var{user-scheme-callback} must accept @math{5} arguments:
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_FNMATCH_FUNCTION} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_FNMATCH_FUNCTION}.
+
+@var{user-scheme-callback} must accept @math{3} arguments:
 
 @enumerate
 @item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the callback with the
+@code{CURLOPT_FNMATCH_DATA} option of @func{curl-easy-setopt}.
+@curlref{curl_easy_setopt, CURLOPT_FNMATCH_DATA}.
+
+@item
+A pointer object referencing a zero--terminated string representing the
+pattern to match.
+
+@item
+A pointer object referencing a zero--terminated string representing the
+text to match against the pattern.
 @end enumerate
 
-@var{user-scheme-callback} must return a single value
+@var{user-scheme-callback} must return a single value being an exact
+integer, a constant among: @code{CURL_FNMATCHFUNC_MATCH},
+@code{CURL_FNMATCHFUNC_NOMATCH}, @code{CURL_FNMATCHFUNC_FAIL}.
 
 @var{user-scheme-callback} is wrapped in an internally generated Scheme
 function which does the following:
@@ -1796,10 +1817,15 @@ function which does the following:
 @item
 Block and discard all the raised exceptions using @func{guard} from
 @library{vicare}; when an exception is catched: it is discarded and the
-callback returns @code{0} to the caller.  @var{user-scheme-callback}
-should take care of handling its own exceptions.
+callback returns @code{CURL_FNMATCHFUNC_FAIL} to the caller.
+@var{user-scheme-callback} should take care of handling its own
+exceptions.
 @end itemize
 @end defun
+
+@c page
+@node plain callbacks undoc
+@subsection Callback makers still undocumented
 
 
 @defun make-curl-close-socket-callback @var{user-scheme-callback}
