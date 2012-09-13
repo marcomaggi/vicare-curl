@@ -1571,7 +1571,7 @@
       (maker (lambda (handle ssl-ctx custom-data)
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
-			  0))
+			  CURLE_ABORTED_BY_CALLBACK))
 		 (user-scheme-callback (%make-curl-easy
 					   (pointer handle)
 					 (owner? #f))

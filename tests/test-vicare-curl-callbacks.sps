@@ -176,6 +176,22 @@
 	   (ffi.free-c-callback cb))))
     => `(0 ((#t ,CURLINFO_TEXT ,(null-pointer) 123 #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-ssl-ctx-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer pointer pointer)))
+	     (cb (make-curl-ssl-ctx-callback
+		  (lambda (easy ssl-ctx custom-data)
+		    (add-result (list (curl-easy? easy) ssl-ctx custom-data))
+		    CURLE_OK))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) (null-pointer) (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(,CURLE_OK ((#t ,(null-pointer) #f))))
+
+
   (collect))
 
 
