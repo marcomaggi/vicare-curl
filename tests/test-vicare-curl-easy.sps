@@ -146,13 +146,23 @@
 
 (parametrise ((check-test-name	'options))
 
-  #;(check
-      (let ((easy (curl-easy-init)))
-	(curl-easy-setopt easy CURLOPT_URL "http://localhost:8080/index.html")
-	(curl-easy-setopt easy CURLOPT_WRITEFUNCTION (make-curl-write-callback cb))
-	(curl-easy-setopt easy CURLOPT_WRITEDATA pointer-null)
-	(curl-easy-perform easy))
-    => #f)
+  (check
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda (buffer size nitems outstream)
+			   (let ((nbytes (* size nitems)))
+			     (fprintf (current-error-port)
+				      "Google's Home page:\n~a\n"
+				      (cstring->string buffer nbytes))
+			     nbytes)))))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (curl-easy-perform easy))
+	  (ffi.free-c-callback write-cb)))
+    => CURLE_OK)
 
   (collect))
 

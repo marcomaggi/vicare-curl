@@ -205,6 +205,15 @@
   (assertion-violation who
     "expected string or bytevector or pointer or memory-block as argument" obj))
 
+(define-argument-validation (general-string/false who obj)
+  (or (not obj)
+      (string? obj)
+      (bytevector? obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected false or string or bytevector or pointer or memory-block as argument" obj))
+
 (define-argument-validation (general-output-buffer who obj)
   (or (bytevector? obj)
       (pointer? obj)
@@ -235,6 +244,12 @@
   (words.signed-long? obj)
   (assertion-violation who
     "expected exact integer in the range of the C language type \"long\" as argument"
+    obj))
+
+(define-argument-validation (off_t who obj)
+  (words.off_t? obj)
+  (assertion-violation who
+    "expected exact integer in the range of the C language type \"off_t\" as argument"
     obj))
 
 (define-argument-validation (optional-buffer-length who obj buffer)
@@ -374,6 +389,23 @@
     ((_ ((?var ?arg) ...) ?body0 . ?body)
      (let ((?var (let ((arg ?arg))
 		   (cond ((string? arg)
+			  (string->utf8 arg))
+			 ((or (bytevector? arg)
+			      (pointer?    arg)
+			      (memory-block? arg))
+			  arg)
+			 (else
+			  (assertion-violation #f "unexpected object" arg)))))
+	   ...)
+       ?body0 . ?body))))
+
+(define-syntax with-general-strings/false/utf8
+  (syntax-rules ()
+    ((_ ((?var ?arg) ...) ?body0 . ?body)
+     (let ((?var (let ((arg ?arg))
+		   (cond ((not arg)
+			  arg)
+			 ((string? arg)
 			  (string->utf8 arg))
 			 ((or (bytevector? arg)
 			      (pointer?    arg)
@@ -1144,7 +1176,27 @@
   (with-arguments-validation (who)
       ((curl-easy/alive	easy)
        (signed-int	option))
-    (capi.curl-easy-setopt easy option parameter)))
+    (cond ((<= CURLOPTTYPE_OFF_T option)
+	   (with-arguments-validation (who)
+	       ((off_t	parameter))
+	     (capi.curl-easy-setopt easy option parameter)))
+	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
+	   (with-arguments-validation (who)
+	       ((callback	parameter))
+	     (capi.curl-easy-setopt easy option parameter)))
+	  ((<= CURLOPTTYPE_OBJECTPOINT option)
+	   (with-arguments-validation (who)
+	       ((general-string/false	parameter))
+	     (with-general-strings/false/utf8 ((parameter^ parameter))
+	       (capi.curl-easy-setopt easy option parameter^))))
+	  ((<= CURLOPTTYPE_LONG option)
+	   (with-arguments-validation (who)
+	       ((signed-long	parameter))
+	     (capi.curl-easy-setopt easy option parameter)))
+	  (else
+	   (assertion-violation who
+	     "invalid parameter type for selected option"
+	     easy option parameter)))))
 
 (define (curl-easy-getinfo easy info)
   (define who 'curl-easy-getinfo)
@@ -1512,6 +1564,19 @@
 				       type data size
 				       (%cdata custom-data))))))))
 
+(define make-curl-ssl-ctx-callback
+  ;; CURLcode curl_ssl_ctx_callback (CURL *curl, void *ssl_ctx, void *userptr)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (handle ssl-ctx custom-data)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%make-curl-easy
+					   (pointer handle)
+					 (owner? #f))
+				       ssl-ctx (%cdata custom-data))))))))
+
 
 ;;;; callback makers still to be tested
 
@@ -1564,19 +1629,6 @@
 			  #;(pretty-print E (current-error-port))
 			  0))
 		 (user-scheme-callback buffer length)))))))
-
-(define make-curl-ssl-ctx-callback
-  ;; CURLcode curl_ssl_ctx_callback (CURL *curl, void *ssl_ctx, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (handle ssl-ctx custom-data)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
-				       ssl-ctx (%cdata custom-data))))))))
 
 (define make-curl-sshkey-callback
   ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
@@ -1735,5 +1787,6 @@
 ;;eval: (put '%make-curl-easy 'scheme-indent-function 1)
 ;;eval: (put '%make-curl-multi 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
+;;eval: (put 'with-general-strings/false/utf8 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/ascii 'scheme-indent-function 1)
 ;;End:
