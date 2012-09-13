@@ -183,6 +183,8 @@ replacing underscore characters @samp{_} with dash characters @samp{-};
 so @cfunc{curl_global_init} becomes @func{curl-global-init}.
 
 @item vicare net curl unsafe-capi
+@cindex @library{vicare net curl unsafe-api}, library
+@cindex Library @library{vicare net curl unsafe-api}
 It exports one syntax binding for each @curl{} public function.  All the
 Scheme syntax names are directly derived from the C function names by
 replacing underscore characters @samp{_} with dash characters @samp{-};
@@ -193,10 +195,14 @@ functions in the @value{PACKAGE} library; they are not meant to be
 called in normal usage of the package.
 
 @item vicare net curl constants
+@cindex @library{vicare net curl constants}, library
+@cindex Library @library{vicare net curl constants}
 It exports one binding for each constant value defined in the C language
 header @file{curl/curl.h}.
 
 @item vicare net curl features
+@cindex @library{vicare net curl features}, library
+@cindex Library @library{vicare net curl features}
 It exports one identifier syntax binding for each @code{HAVE_} constant
 defined by the @command{configure} script, expanding to @true{} or
 @false{}.
