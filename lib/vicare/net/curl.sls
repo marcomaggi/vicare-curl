@@ -1195,9 +1195,11 @@
 	     (with-general-strings/false/utf8 ((parameter^ parameter))
 	       (capi.curl-easy-setopt easy option parameter^))))
 	  ((<= CURLOPTTYPE_LONG option)
-	   (with-arguments-validation (who)
-	       ((signed-long	parameter))
-	     (capi.curl-easy-setopt easy option parameter)))
+	   (if (boolean? parameter)
+	       (capi.curl-easy-setopt easy option (if parameter 1 0))
+	     (with-arguments-validation (who)
+		 ((signed-long	parameter))
+	       (capi.curl-easy-setopt easy option parameter))))
 	  (else
 	   (assertion-violation who
 	     "invalid parameter type for selected option"
@@ -1527,6 +1529,16 @@
 			  CURL_SOCKET_BAD))
 		 (user-scheme-callback (%cdata custom-data) purpose address)))))))
 
+(define make-curl-close-socket-callback
+  ;; int curl_close-socket_callback (void *clientp, curl_socket_t item)
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data item)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  1))
+		 (user-scheme-callback (%cdata custom-data) item)))))))
+
 (define make-curl-progress-callback
   ;; int curl_progress_callback (void *clientp,
   ;;                             double dltotal, double dlnow,
@@ -1645,16 +1657,6 @@
 
 
 ;;;; callback makers still to be tested
-
-(define make-curl-close-socket-callback
-  ;; int curl_close-socket_callback (void *clientp, curl_socket_t item)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int))))
-    (lambda (user-scheme-callback)
-      (maker (lambda (custom-data item)
-	       (guard (E (else
-			  #;(pretty-print E (current-error-port))
-			  0))
-		 (user-scheme-callback (%cdata custom-data) item)))))))
 
 (define make-curl-conf-callback
   ;; CURLcode curl_conv_callback (char *buffer, size_t length)
