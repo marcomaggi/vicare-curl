@@ -144,7 +144,7 @@
   #f)
 
 
-(parametrise ((check-test-name	'options))
+(parametrise ((check-test-name	'perform))
 
   (check
       (let ((easy	(curl-easy-init))
@@ -154,14 +154,38 @@
 			     (fprintf (current-error-port)
 				      "Google's Home page:\n~a\n"
 				      (cstring->string buffer nbytes))
-			     nbytes)))))
+			     nbytes))))
+	    (debug-cb	(make-curl-debug-callback
+			 (lambda (easy type data size custom-data)
+			   (fprintf (current-error-port)
+				    (case-integers type
+				      ((CURLINFO_TEXT)
+				       "Text: ~a")
+				      ((CURLINFO_HEADER_IN)
+				       "Header-In: ~a")
+				      ((CURLINFO_HEADER_OUT)
+				       "Header-Out: ~a")
+				      ((CURLINFO_DATA_IN)
+				       "Data-In:\n~a\n")
+				      ((CURLINFO_DATA_OUT)
+				       "Data-Out:\n~a\n")
+				      (else
+				       "Boh:\n~a\n"))
+				    (cstring->string data size))
+			   0))))
 	(unwind-protect
 	    (begin
 	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
 	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
 	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (curl-easy-setopt easy CURLOPT_VERBOSE 1)
+	      (curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+	      (curl-easy-setopt easy CURLOPT_DEBUGDATA #f)
 	      (curl-easy-perform easy))
-	  (ffi.free-c-callback write-cb)))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
     => CURLE_OK)
 
   (collect))
