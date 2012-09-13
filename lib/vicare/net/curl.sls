@@ -109,20 +109,19 @@
     (rename (%set-curl-easy-destructor!		set-curl-easy-destructor!))
 
     ;; multi API
-    curl-multi-init
-    curl-multi-add-handle
-    curl-multi-remove-handle
-    curl-multi-fdset
-    curl-multi-perform
-    curl-multi-cleanup
-    curl-multi-info-read
-    curl-multi-strerror
-    curl-multi-socket
-    curl-multi-socket-action
+    curl-multi-init				curl-multi-cleanup
+    curl-multi-add-handle			curl-multi-remove-handle
+    curl-multi-setopt				curl-multi-fdset
+    curl-multi-perform				curl-multi-info-read
+    curl-multi-socket				curl-multi-socket-action
     curl-multi-socket-all
-    curl-multi-timeout
-    curl-multi-setopt
-    curl-multi-assign
+    curl-multi-timeout				curl-multi-assign
+    curl-multi-strerror
+
+    curl-multi
+    curl-multi?					curl-multi?/alive
+    curl-multi-destructor
+    (rename (%set-curl-multi-destructor!	set-curl-multi-destructor!))
 
     ;; callback makers
     make-curl-write-callback
@@ -1690,9 +1689,6 @@
 				       (%cdata callback-custom-data)
 				       (%cdata socket-custom-data))
 		 0))))))
-
-
-;;;; callback makers still to be tested
 
 (define make-curl-multi-timer-callback
   ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)

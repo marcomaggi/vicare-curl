@@ -922,7 +922,7 @@ Multi @api{} callbacks
 
 * plain callbacks socket::      Getting informations about
                                 socket status.
-* plain callbacks undoc::       Callback makers still undocumented.
+* plain callbacks mtimer::      Getting notifications of timeouts.
 @end menu
 
 @c page
@@ -2028,8 +2028,12 @@ Discard the values returned by @var{user-scheme-callback}; always return
 @end defun
 
 @c page
-@node plain callbacks undoc
-@subsection Callback makers still undocumented
+@node plain callbacks mtimer
+@subsection Getting notifications of timeouts
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun make-curl-multi-timer-callback @var{user-scheme-callback}
@@ -2039,15 +2043,32 @@ referencing a callback function suitable to be used as
 released with a call to @func{free-c-callback} from @library{vicare
 ffi}.
 
+This callback is associated to @code{curl-multi} instances with the
+@code{CURLMOPT_TIMERFUNCTION} option of @func{curl-multi-setopt}; it is
+invoked to notify the application about changes in timeout expirations.
+@curlref{curl_multi_setopt, CURLMOPT_TIMERFUNCTION}.
+
 @var{user-scheme-callback} must accept @math{5} arguments:
 
 @enumerate
 @item
-A pointer object referencing an application selected value; such value
-is chosen at callback registration time.
+An instance of @code{curl-multi} referencing the invoking session.
+
+@item
+An exact integer representing the number of milliseconds until the next
+timeout expiration; a value of @code{-1} means that there is no pending
+timeout; a value of @code{0} means that the timeout has already expired.
+
+@item
+@false{} or a pointer object referencing an application selected value;
+such value is associated to the @strong{callback} with the
+@code{CURLMOPT_TIMERDATA} option of @func{curl-multi-setopt}.
+@curlref{curl_multi_setopt, CURLMOPT_TIMERDATA}.
 @end enumerate
 
-@var{user-scheme-callback} must return a single value
+@var{user-scheme-callback} must return a single value being an exact
+integer of unknown meaning (but there is a meaning believe me, I just do
+not know what it is).
 
 @var{user-scheme-callback} is wrapped in an internally generated Scheme
 function which does the following:

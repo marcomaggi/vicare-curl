@@ -346,6 +346,21 @@
 	   (ffi.free-c-callback cb))))
     => `(0 ((#t 123 ,CURL_POLL_IN #f #f))))
 
+;;; --------------------------------------------------------------------
+
+  (check	;make-curl-multi-timer-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer signed-long pointer)))
+	     (cb (make-curl-multi-timer-callback
+		  (lambda (multi milliseconds custom-data)
+		    (add-result (list (curl-multi? multi) milliseconds custom-data))
+		    123))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 456 (null-pointer))
+	   (ffi.free-c-callback cb))))
+    => `(123 ((#t 456 #f))))
+
   #t)
 
 
