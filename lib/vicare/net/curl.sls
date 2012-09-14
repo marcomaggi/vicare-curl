@@ -158,6 +158,11 @@
     ;; accessors for "struct curl_khkey"
     curl-khkey.key
 
+    ;; accessors and mutators for "struct curl_forms" arrays
+    curl-forms-sizeof-array
+    curl-forms.option				curl-forms.option-set!
+    curl-forms.value				curl-forms.value-set!
+
     ;; debugging
     curl-easy-garbage-collection-log
     curl-form-data-garbage-collection-log
@@ -235,10 +240,22 @@
   (assertion-violation who
     "expected bytevector or pointer or memory-block as argument" obj))
 
+(define-argument-validation (general-data who obj)
+  (or (bytevector? obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected bytevector or pointer or memory-block as argument" obj))
+
 (define-argument-validation (list-of-strings who obj)
   (and (list? obj)
        (for-all string? obj))
   (assertion-violation who "expected list of strings as argument" obj))
+
+(define-argument-validation (pointer/memory-block who obj)
+  (or (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who "expected pointer or memory block as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -1591,6 +1608,46 @@
       ((pointer		stru))
     (let ((rv (capi.curl-khkey.key stru)))
       (values (unsafe.car rv) (unsafe.cdr rv)))))
+
+;;; --------------------------------------------------------------------
+;;; accessors and mutators for "struct curl_forms" arrays
+
+(define (curl-forms-sizeof-array number-of-structs)
+  (define who 'curl-forms-sizeof-array)
+  (with-arguments-validation (who)
+      ((non-negative-fixnum	number-of-structs))
+    (capi.curl-forms-sizeof-array number-of-structs)))
+
+(define (curl-forms.option pointer index)
+  (define who 'curl-forms.option)
+  (with-arguments-validation (who)
+      ((general-data		pointer)
+       (non-negative-fixnum	index))
+    (capi.curl-forms.option pointer index)))
+
+(define (curl-forms.value pointer index)
+  (define who 'curl-forms.value)
+  (with-arguments-validation (who)
+      ((general-data		pointer)
+       (non-negative-fixnum	index))
+    (capi.curl-forms.value pointer index)))
+
+(define (curl-forms.option-set! pointer index value)
+  (define who 'curl-forms.option-set!)
+  (with-arguments-validation (who)
+      ((general-data		pointer)
+       (non-negative-fixnum	index)
+       (signed-int		value))
+    (let ((rv (capi.curl-forms.option-set! pointer index value)))
+      (and rv (ascii->string rv)))))
+
+(define (curl-forms.value-set! pointer index value)
+  (define who 'curl-forms.value-set!)
+  (with-arguments-validation (who)
+      ((general-data		pointer)
+       (non-negative-fixnum	index)
+       (pointer/memory-block	value))
+    (capi.curl-forms.value-set! pointer index value)))
 
 
 ;;;; easy API callback makers

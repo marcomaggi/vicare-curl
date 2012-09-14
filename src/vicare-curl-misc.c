@@ -788,6 +788,59 @@ ikrt_curl_khkey_key (ikptr s_struct, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Accessors for "struct curl_forms".
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_forms	ik_curl_forms_t;
+
+ikptr
+ikrt_curl_forms_sizeof (ikptr s_number_of_items, ikpcb * pcb)
+{
+  int	nmemb = IK_UNFIX(s_number_of_items);
+  return ika_integer_from_int(pcb, nmemb*sizeof(ik_curl_forms_t));
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_forms_option (ikptr s_array_of_structs, ikptr s_index, ikpcb * pcb)
+{
+  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+  int			idx = IK_UNFIX(s_index);
+  return ika_integer_from_int(pcb, S[idx].option);
+}
+ikptr
+ikrt_curl_forms_option_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_value, ikpcb * pcb)
+{
+  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+  int			idx = IK_UNFIX(s_index);
+  CURLformoption	val = ik_integer_to_int(s_value);
+  S[idx].option = val;
+  return IK_VOID;
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_forms_value (ikptr s_array_of_structs, ikptr s_index, ikpcb * pcb)
+{
+  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+  int			idx = IK_UNFIX(s_index);
+  const char *		val = S[idx].value;
+  return (val)? ika_bytevector_from_cstring(pcb, val) : IK_FALSE;
+}
+ikptr
+ikrt_curl_forms_value_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_value, ikpcb * pcb)
+{
+  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+  int			idx = IK_UNFIX(s_index);
+  char *		val = IK_CHARP_FROM_POINTER_OR_MBLOCK(s_value);
+  S[idx].value = val;
+  return IK_VOID;
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

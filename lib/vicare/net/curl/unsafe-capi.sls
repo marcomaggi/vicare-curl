@@ -76,6 +76,11 @@
     ;; accessors for "struct curl_khkey"
     curl-khkey.key
 
+    ;; accessors and mutators for "struct curl_forms" arrays
+    curl-forms-sizeof-array
+    curl-forms.option			curl-forms.option-set!
+    curl-forms.value			curl-forms.value-set!
+
     ;; easy API
     curl-easy-init			curl-easy-cleanup
     curl-easy-reset
@@ -300,6 +305,24 @@
 
 (define-inline (curl-khkey.key struct)
   (foreign-call "ikrt_curl_khkey_key" struct))
+
+;;; --------------------------------------------------------------------
+;;; accessors and mutators for "struct curl_forms" arrays
+
+(define-inline (curl-forms-sizeof-array number-of-structs)
+  (foreign-call "ikrt_curl_forms_sizeof" number-of-structs))
+
+(define-inline (curl-forms.option array index)
+  (foreign-call "ikrt_curl_forms_option" array index))
+
+(define-inline (curl-forms.option-set! array index value)
+  (foreign-call "ikrt_curl_forms_option_set" array index value))
+
+(define-inline (curl-forms.value array index)
+  (foreign-call "ikrt_curl_forms_value" array index))
+
+(define-inline (curl-forms.value-set! array index value)
+  (foreign-call "ikrt_curl_forms_value_set" array index value))
 
 
 ;;;; easy API

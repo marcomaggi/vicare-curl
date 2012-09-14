@@ -2648,6 +2648,7 @@ an @ascii{} bytevector or string describing the associated error.
 * plain cstructs sockaddr::     Accessing @code{struct curl_sockaddr}.
 * plain cstructs fileinfo::     Accessing @code{struct curl_fileinfo}.
 * plain cstructs khkey::        Accessing @code{struct curl_khkey}.
+* plain cstructs forms::        Accessing @code{struct curl_forms} arrays.
 @end menu
 
 @c page
@@ -2799,6 +2800,52 @@ the second value holds raw data.
 @item
 A bytevector holding the key data.
 @end enumerate
+@end defun
+
+@c page
+@node plain cstructs forms
+@subsection Accessing @code{struct curl_forms} arrays
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-forms-sizeof-array @var{number-of-structs}
+Return the number of bytes to allocate to hold an array of
+@var{number-of-structs} instances of type @code{struct curl_forms}.
+@end defun
+
+
+@defun curl-forms.option @var{array} @var{index}
+Given @var{array} as bytevector or pointer object or @code{memory-block}
+holding an array of @code{struct curl_forms}, extract and return an
+exact integer representing the @code{option} field of the structure at
+@var{index}.
+@end defun
+
+
+@defun curl-forms.value @var{array} @var{index}
+Given @var{array} as bytevector or pointer object or @code{memory-block}
+holding an array of @code{struct curl_forms}, extract the @code{value}
+field of the structure at @var{index} and return @false{} if it is
+@cnull{} or a string if it is not.
+@end defun
+
+
+@defun curl-forms.option-set! @var{array} @var{index} @var{value}
+Given @var{array} as bytevector or pointer object or @code{memory-block}
+holding an array of @code{struct curl_forms}, store the exact integer
+@var{value} in the @code{option} field of the structure at @var{index}.
+@end defun
+
+
+@defun curl-forms.value-set! @var{array} @var{index} @var{value}
+Given @var{array} as bytevector or pointer object or @code{memory-block}
+holding an array of @code{struct curl_forms}, store the pointer from
+@code{value} in the field of the structure at @var{index}.
+
+@var{value} must be a pointer object or @code{memory-block}.
 @end defun
 
 @c page
