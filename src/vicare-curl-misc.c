@@ -668,6 +668,126 @@ ikrt_curl_sockaddr_addr (ikptr s_struct, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Accessors for "struct curl_fileinfo".
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_fileinfo	ik_curl_fileinfo_t;
+
+ikptr
+ikrt_curl_fileinfo_filename (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)(S->filename));
+}
+ikptr
+ikrt_curl_fileinfo_filetype (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->filetype);
+}
+ikptr
+ikrt_curl_fileinfo_time (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_sint64(pcb, (int64_t)(S->time));
+}
+ikptr
+ikrt_curl_fileinfo_perm (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_uint(pcb, S->perm);
+}
+ikptr
+ikrt_curl_fileinfo_uid (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->uid);
+}
+ikptr
+ikrt_curl_fileinfo_gid (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_uint(pcb, S->gid);
+}
+ikptr
+ikrt_curl_fileinfo_size (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_off_t(pcb, S->size);
+}
+ikptr
+ikrt_curl_fileinfo_hardlinks (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_ulong(pcb, S->hardlinks);
+}
+ikptr
+ikrt_curl_fileinfo_strings_time (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->strings.time);
+}
+ikptr
+ikrt_curl_fileinfo_strings_perm (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->strings.perm);
+}
+ikptr
+ikrt_curl_fileinfo_strings_user (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->strings.user);
+}
+ikptr
+ikrt_curl_fileinfo_strings_group (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->strings.group);
+}
+ikptr
+ikrt_curl_fileinfo_strings_target (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->strings.target);
+}
+ikptr
+ikrt_curl_fileinfo_flags (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_uint(pcb, S->flags);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Accessors for "struct curl_khkey".
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_khkey	ik_curl_khkey_t;
+
+ikptr
+ikrt_curl_khkey_key (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_khkey_t *	S  = IK_POINTER_DATA_VOIDP(s_struct);
+  ikptr			rv = ika_pair_alloc(pcb);
+  pcb->root0 = &rv;
+  {
+    if (S->len) {
+      /* The bytevector holds raw data. */
+      IK_CAR(rv) = IK_FALSE;
+      IK_ASS(IK_CDR(rv), ika_bytevector_from_memory_block(pcb, S->key, S->len));
+    } else {
+      /* The bytevector holds data encoded in base64. */
+      IK_CAR(rv) = IK_TRUE;
+      IK_ASS(IK_CDR(rv), ika_bytevector_from_cstring(pcb, S->key));
+    }
+  }
+  pcb->root0 = NULL;
+  return rv;
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

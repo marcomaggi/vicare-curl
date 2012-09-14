@@ -35,5 +35,141 @@
  ** Multi API.
  ** ----------------------------------------------------------------- */
 
+ikptr
+ikrt_curl_multi_init (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_INIT
+  CURLM *	 multi;
+  multi = curl_multi_init();
+  return (multi)? ika_pointer_alloc(pcb, (ik_ulong)multi) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
+ ** Still to be interfaced.
+ ** ----------------------------------------------------------------- */
+
+#if 0
+ikptr
+ikrt_curl_multi_add_handle (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_ADD_HANDLE
+  curl_multi_add_handle();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_remove_handle (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_REMOVE_HANDLE
+  curl_multi_remove_handle();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_fdset (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_FDSET
+  curl_multi_fdset();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_perform (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_PERFORM
+  curl_multi_perform();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_cleanup (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_CLEANUP
+  curl_multi_cleanup();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_info_read (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_INFO_READ
+  curl_multi_info_read();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_strerror (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_STRERROR
+  curl_multi_strerror();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_socket (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SOCKET
+  curl_multi_socket();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_socket_action (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SOCKET_ACTION
+  curl_multi_socket_action();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_socket_all (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SOCKET_ALL
+  curl_multi_socket_all();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_timeout (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_TIMEOUT
+  curl_multi_timeout();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_setopt (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SETOPT
+  curl_multi_setopt();
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_assign (ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_ASSIGN
+  curl_multi_assign();
+#else
+  feature_failure(__func__);
+#endif
+}
+#endif
 
 /* end of file */

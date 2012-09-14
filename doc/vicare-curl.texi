@@ -235,10 +235,12 @@ to the @curl{}'s documentation for details.
 * plain init::                  Global initialisation and
                                 finalisation.
 * plain easy::                  Easy operations.
+* plain multi::                 Multi operations.
 * plain callbacks::             Callback makers.
 * plain slists::                String lists.
 * plain forms::                 Multipart/formdata composition.
 * plain shares::                Shared configuration option sets.
+* plain cstructs::              Accessing C language data structures.
 * plain misc::                  Miscellaneous functions.
 * plain debug::                 Debugging facilities.
 @end menu
@@ -885,6 +887,11 @@ Return a string representing the description of the given @code{CURLE_}
 error code; if @var{code} is invalid, return @false{}.
 @curlman{curl_easy_strerror}.
 @end defun
+
+@c page
+@node plain multi
+@section Multi operations
+
 
 @c page
 @node plain callbacks
@@ -2633,6 +2640,168 @@ an @ascii{} bytevector or string describing the associated error.
 @end defun
 
 @c page
+@node plain cstructs
+@section Accessing C language data structures
+
+
+@menu
+* plain cstructs sockaddr::     Accessing @code{struct curl_sockaddr}.
+* plain cstructs fileinfo::     Accessing @code{struct curl_fileinfo}.
+* plain cstructs khkey::        Accessing @code{struct curl_khkey}.
+@end menu
+
+@c page
+@node plain cstructs sockaddr
+@subsection Accessing @code{struct curl_sockaddr}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-sockaddr.family @var{pointer}
+@defunx curl-sockaddr.socktype @var{pointer}
+@defunx curl-sockaddr.protocol @var{pointer}
+@defunx curl-sockaddr.addrlen @var{pointer}
+@defunx curl-sockaddr.addr @var{pointer}
+Given a pointer to a @code{struct curl_sockaddr}, return the value of
+each field in such structure.  All the functions return an exact
+integer, but @func{curl-sockaddr.addr} which returns a bytevector
+holding the whole @code{struct sockaddr} field.
+@end defun
+
+@c page
+@node plain cstructs fileinfo
+@subsection Accessing @code{struct curl_fileinfo}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@deftp {Struct Type} curl-fileinfo
+Structure type mirroring a C language structure of type @code{struct
+curl_fileinfo}.  It has the following fields:
+
+@table @code
+@item filename
+@false{} or a string.
+
+@item filetype
+An exact integer.
+
+@item time
+An exact integer.
+
+@item perm
+An exact integer.
+
+@item uid
+An exact integer.
+
+@item gid
+An exact integer.
+
+@item size
+An exact integer.
+
+@item hardlinks
+An exact integer.
+
+@item strings.time
+@false{} or a string.
+
+@item strings.perm
+@false{} or a string.
+
+@item strings.user
+@false{} or a string.
+
+@item strings.group
+@false{} or a string.
+
+@item strings.target
+@false{} or a string.
+
+@item flags
+An exact integer.
+@end table
+@end deftp
+
+
+@defun curl-fileinfo? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-fileinfo}.
+@end defun
+
+
+@defun curl-fileinfo->struct @var{pointer}
+Given a pointer object referencing a C language @code{struct
+curl_fileinfo}, build and return an instance of @code{curl-fileinfo}
+mirroring it.
+@end defun
+
+
+@defun curl-fileinfo-filename @var{fileinfo}
+@defunx curl-fileinfo-filetype @var{fileinfo}
+@defunx curl-fileinfo-time @var{fileinfo}
+@defunx curl-fileinfo-perm @var{fileinfo}
+@defunx curl-fileinfo-uid @var{fileinfo}
+@defunx curl-fileinfo-gid @var{fileinfo}
+@defunx curl-fileinfo-size @var{fileinfo}
+@defunx curl-fileinfo-hardlinks @var{fileinfo}
+@defunx curl-fileinfo-strings.time @var{fileinfo}
+@defunx curl-fileinfo-strings.perm @var{fileinfo}
+@defunx curl-fileinfo-strings.user @var{fileinfo}
+@defunx curl-fileinfo-strings.group @var{fileinfo}
+@defunx curl-fileinfo-strings.target @var{fileinfo}
+@defunx curl-fileinfo-flags @var{fileinfo}
+Accessors for the fields of a @code{curl-fileinfo} instance.
+@end defun
+
+
+@defun curl-fileinfo.filename @var{pointer}
+@defunx curl-fileinfo.filetype @var{pointer}
+@defunx curl-fileinfo.time @var{pointer}
+@defunx curl-fileinfo.perm @var{pointer}
+@defunx curl-fileinfo.uid @var{pointer}
+@defunx curl-fileinfo.gid @var{pointer}
+@defunx curl-fileinfo.size @var{pointer}
+@defunx curl-fileinfo.hardlinks @var{pointer}
+@defunx curl-fileinfo.strings.time @var{pointer}
+@defunx curl-fileinfo.strings.perm @var{pointer}
+@defunx curl-fileinfo.strings.user @var{pointer}
+@defunx curl-fileinfo.strings.group @var{pointer}
+@defunx curl-fileinfo.strings.target @var{pointer}
+@defunx curl-fileinfo.flags @var{pointer}
+Accessors for C language @code{struct curl_fileinfo} instances
+referenced by a pointer object.  When a struct field is of type
+@code{char *}: the corresponding accessor returns a pointer object.
+@end defun
+
+@c page
+@node plain cstructs khkey
+@subsection Accessing @code{struct curl_khkey}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-khkey.key @var{pointer}
+Given a pointer object referencing a C language @code{struct
+curl_khkey}, return two values:
+
+@enumerate
+@item
+@true{} if the second value holds data encoded in base64, @false{} if
+the second value holds raw data.
+
+@item
+A bytevector holding the key data.
+@end enumerate
+@end defun
+
+@c page
 @node plain misc
 @section Miscellaneous functions
 
@@ -2717,19 +2886,6 @@ string.
 (curl-getdate "Sun Nov 6 94")
 @result{} 784080000
 @end example
-@end defun
-
-@c ------------------------------------------------------------
-
-@defun curl-sockaddr.family @var{pointer}
-@defunx curl-sockaddr.socktype @var{pointer}
-@defunx curl-sockaddr.protocol @var{pointer}
-@defunx curl-sockaddr.addrlen @var{pointer}
-@defunx curl-sockaddr.addr @var{pointer}
-Given a pointer to a @code{struct curl_sockaddr}, return the value of
-each field in such structure.  All the functions return an exact
-integer, but @func{curl-sockaddr.addr} which returns a bytevector
-holding the whole @code{struct sockaddr} field.
 @end defun
 
 @c page

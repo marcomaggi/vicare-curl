@@ -59,9 +59,22 @@
     ;; miscellaneous functions
     curl-free				curl-getdate
 
+    ;; accessors for "struct curl_sockaddr"
     curl-sockaddr.family		curl-sockaddr.socktype
     curl-sockaddr.protocol		curl-sockaddr.addrlen
     curl-sockaddr.addr
+
+    ;; accessors for "struct curl_fileinfo"
+    curl-fileinfo.filename		curl-fileinfo.filetype
+    curl-fileinfo.time			curl-fileinfo.perm
+    curl-fileinfo.uid			curl-fileinfo.gid
+    curl-fileinfo.size			curl-fileinfo.hardlinks
+    curl-fileinfo.strings.time		curl-fileinfo.strings.perm
+    curl-fileinfo.strings.user		curl-fileinfo.strings.group
+    curl-fileinfo.strings.target	curl-fileinfo.flags
+
+    ;; accessors for "struct curl_khkey"
+    curl-khkey.key
 
     ;; easy API
     curl-easy-init			curl-easy-cleanup
@@ -73,21 +86,14 @@
     curl-easy-escape			curl-easy-unescape
 
     ;; multi API
-    curl-multi-init
-    curl-multi-cleanup
-    curl-multi-add-handle
-    curl-multi-remove-handle
-    curl-multi-fdset
-    curl-multi-perform
-    curl-multi-info-read
-    curl-multi-strerror
-    curl-multi-socket
-    curl-multi-socket-action
+    curl-multi-init			curl-multi-cleanup
+    curl-multi-add-handle		curl-multi-remove-handle
+    curl-multi-setopt			curl-multi-fdset
+    curl-multi-perform			curl-multi-info-read
+    curl-multi-socket			curl-multi-socket-action
     curl-multi-socket-all
-    curl-multi-timeout
-    curl-multi-setopt
-    curl-multi-assign
-    )
+    curl-multi-timeout			curl-multi-assign
+    curl-multi-strerror)
   (import (vicare))
 
 
@@ -227,6 +233,7 @@
   (foreign-call "ikrt_curl_getdate" date))
 
 ;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_sockaddr"
 
 (define-inline (curl-sockaddr.family pointer)
   (foreign-call "ikrt_curl_sockaddr_family" pointer))
@@ -242,6 +249,57 @@
 
 (define-inline (curl-sockaddr.addr pointer)
   (foreign-call "ikrt_curl_sockaddr_addr" pointer))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_fileinfo"
+
+(define-inline (curl-fileinfo.filename struct)
+  (foreign-call "ikrt_curl_fileinfo_filename" struct))
+
+(define-inline (curl-fileinfo.filetype struct)
+  (foreign-call "ikrt_curl_fileinfo_filetype" struct))
+
+(define-inline (curl-fileinfo.time struct)
+  (foreign-call "ikrt_curl_fileinfo_time" struct))
+
+(define-inline (curl-fileinfo.perm struct)
+  (foreign-call "ikrt_curl_fileinfo_perm" struct))
+
+(define-inline (curl-fileinfo.uid struct)
+  (foreign-call "ikrt_curl_fileinfo_uid" struct))
+
+(define-inline (curl-fileinfo.gid struct)
+  (foreign-call "ikrt_curl_fileinfo_gid" struct))
+
+(define-inline (curl-fileinfo.size struct)
+  (foreign-call "ikrt_curl_fileinfo_size" struct))
+
+(define-inline (curl-fileinfo.hardlinks struct)
+  (foreign-call "ikrt_curl_fileinfo_hardlinks" struct))
+
+(define-inline (curl-fileinfo.strings.time struct)
+  (foreign-call "ikrt_curl_fileinfo_strings_time" struct))
+
+(define-inline (curl-fileinfo.strings.perm struct)
+  (foreign-call "ikrt_curl_fileinfo_strings_perm" struct))
+
+(define-inline (curl-fileinfo.strings.user struct)
+  (foreign-call "ikrt_curl_fileinfo_strings_user" struct))
+
+(define-inline (curl-fileinfo.strings.group struct)
+  (foreign-call "ikrt_curl_fileinfo_strings_group" struct))
+
+(define-inline (curl-fileinfo.strings.target struct)
+  (foreign-call "ikrt_curl_fileinfo_strings_target" struct))
+
+(define-inline (curl-fileinfo.flags struct)
+  (foreign-call "ikrt_curl_fileinfo_flags" struct))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_khkey"
+
+(define-inline (curl-khkey.key struct)
+  (foreign-call "ikrt_curl_khkey_key" struct))
 
 
 ;;;; easy API

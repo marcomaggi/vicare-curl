@@ -86,13 +86,6 @@
     curl-share-destructor
     (rename (%set-curl-share-destructor!	set-curl-share-destructor!))
 
-    ;; miscellaneous functions
-    curl-free					curl-getdate
-
-    curl-sockaddr.family			curl-sockaddr.socktype
-    curl-sockaddr.protocol			curl-sockaddr.addrlen
-    curl-sockaddr.addr
-
     ;; easy API
     curl-easy-init				curl-easy-cleanup
     curl-easy-reset
@@ -124,27 +117,46 @@
     (rename (%set-curl-multi-destructor!	set-curl-multi-destructor!))
 
     ;; callback makers
-    make-curl-write-callback
-    make-curl-read-callback
-    make-curl-ioctl-callback
-    make-curl-seek-callback
-    make-curl-socket-option-callback
-    make-curl-open-socket-callback
-    make-curl-close-socket-callback
-    make-curl-progress-callback
-    make-curl-header-callback
-    make-curl-debug-callback
-    make-curl-ssl-ctx-callback
-    make-curl-conv-to-network-callback
-    make-curl-conv-from-network-callback
-    make-curl-conv-from-utf8-callback
-    make-curl-interleave-callback
-    make-curl-chunk-begin-callback
-    make-curl-chunk-end-callback
-    make-curl-fnmatch-callback
-    make-curl-sshkey-callback
-    make-curl-socket-callback
+    make-curl-write-callback			make-curl-read-callback
+    make-curl-ioctl-callback			make-curl-seek-callback
+    make-curl-socket-option-callback		make-curl-open-socket-callback
+    make-curl-close-socket-callback		make-curl-progress-callback
+    make-curl-header-callback			make-curl-debug-callback
+    make-curl-ssl-ctx-callback			make-curl-conv-to-network-callback
+    make-curl-conv-from-network-callback	make-curl-conv-from-utf8-callback
+    make-curl-interleave-callback		make-curl-chunk-begin-callback
+    make-curl-chunk-end-callback		make-curl-fnmatch-callback
+    make-curl-sshkey-callback			make-curl-socket-callback
     make-curl-multi-timer-callback
+
+    ;; miscellaneous functions
+    curl-free					curl-getdate
+
+    ;; accessors for "struct curl_sockaddr"
+    curl-sockaddr.family			curl-sockaddr.socktype
+    curl-sockaddr.protocol			curl-sockaddr.addrlen
+    curl-sockaddr.addr
+
+    ;; accessors for "struct curl_fileinfo"
+    curl-fileinfo.filename			curl-fileinfo.filetype
+    curl-fileinfo.time				curl-fileinfo.perm
+    curl-fileinfo.uid				curl-fileinfo.gid
+    curl-fileinfo.size				curl-fileinfo.hardlinks
+    curl-fileinfo.strings.time			curl-fileinfo.strings.perm
+    curl-fileinfo.strings.user			curl-fileinfo.strings.group
+    curl-fileinfo.strings.target		curl-fileinfo.flags
+
+    curl-fileinfo?				curl-fileinfo->struct
+    curl-fileinfo-filename			curl-fileinfo-filetype
+    curl-fileinfo-time				curl-fileinfo-perm
+    curl-fileinfo-uid				curl-fileinfo-gid
+    curl-fileinfo-size				curl-fileinfo-hardlinks
+    curl-fileinfo-strings.time			curl-fileinfo-strings.perm
+    curl-fileinfo-strings.user			curl-fileinfo-strings.group
+    curl-fileinfo-strings.target		curl-fileinfo-flags
+
+    ;; accessors for "struct curl_khkey"
+    curl-khkey.key
 
     ;; debugging
     curl-easy-garbage-collection-log
@@ -318,6 +330,9 @@
 
 ;;;; helpers
 
+(define-inline (unimplemented who)
+  (assertion-violation who "unimplemented function"))
+
 (define-auxiliary-syntaxes
   pointer
   owner?)
@@ -385,6 +400,18 @@
 
 (define-inline (%callback? ?obj)
   (or (not ?obj) (pointer? ?obj)))
+
+(define-inline (%define-raw-struct-accessor ?who ?accessor)
+  ;;Used  to define  a  function to  access a  C  language struct  field
+  ;;through a pointer to it.
+  ;;
+  (define (?who stru)
+    (define who '?who)
+    (with-arguments-validation (who)
+	((pointer	stru))
+      (?accessor stru))))
+
+;;; --------------------------------------------------------------------
 
 (define-syntax with-general-strings/utf8
   (syntax-rules ()
@@ -1392,11 +1419,89 @@
 
 ;;; --------------------------------------------------------------------
 
-#;(define (curl-multi-init)
+(define (curl-multi-init)
   (let ((rv (capi.curl-multi-init)))
     (and rv (%make-curl-multi
 		(pointer rv)
 	      (owner? #t)))))
+
+(define (curl-multi-add-handle . args)
+  (define who 'curl-multi-add-handle)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-remove-handle . args)
+  (define who 'curl-multi-remove-handle)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-fdset . args)
+  (define who 'curl-multi-fdset)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-perform . args)
+  (define who 'curl-multi-perform)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-cleanup . args)
+  (define who 'curl-multi-cleanup)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-info-read . args)
+  (define who 'curl-multi-info-read)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-strerror . args)
+  (define who 'curl-multi-strerror)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket . args)
+  (define who 'curl-multi-socket)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket-action . args)
+  (define who 'curl-multi-socket-action)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-socket-all . args)
+  (define who 'curl-multi-socket-all)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-timeout . args)
+  (define who 'curl-multi-timeout)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-setopt . args)
+  (define who 'curl-multi-setopt)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+(define (curl-multi-assign . args)
+  (define who 'curl-multi-assign)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
 
 
 ;;;; miscellaneous functions
@@ -1415,36 +1520,77 @@
       (capi.curl-getdate date^))))
 
 ;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_sockaddr"
 
-(define (curl-sockaddr.family pointer)
-  (define who 'curl-sockaddr.family)
-  (with-arguments-validation (who)
-      ((pointer	pointer))
-    (capi.curl-sockaddr.family pointer)))
+(%define-raw-struct-accessor curl-sockaddr.family	capi.curl-sockaddr.family)
+(%define-raw-struct-accessor curl-sockaddr.socktype	capi.curl-sockaddr.socktype)
+(%define-raw-struct-accessor curl-sockaddr.protocol	capi.curl-sockaddr.protocol)
+(%define-raw-struct-accessor curl-sockaddr.addrlen	capi.curl-sockaddr.addrlen)
+(%define-raw-struct-accessor curl-sockaddr.addr		capi.curl-sockaddr.addr)
 
-(define (curl-sockaddr.socktype pointer)
-  (define who 'curl-sockaddr.socktype)
-  (with-arguments-validation (who)
-      ((pointer	pointer))
-    (capi.curl-sockaddr.socktype pointer)))
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_fileinfo"
 
-(define (curl-sockaddr.protocol pointer)
-  (define who 'curl-sockaddr.protocol)
-  (with-arguments-validation (who)
-      ((pointer	pointer))
-    (capi.curl-sockaddr.protocol pointer)))
+(define-struct curl-fileinfo
+  (filename
+   filetype
+   time
+   perm
+   uid
+   gid
+   size
+   hardlinks
+   strings.time
+   strings.perm
+   strings.user
+   strings.group
+   strings.target
+   flags))
 
-(define (curl-sockaddr.addrlen pointer)
-  (define who 'curl-sockaddr.addrlen)
-  (with-arguments-validation (who)
-      ((pointer	pointer))
-    (capi.curl-sockaddr.addrlen pointer)))
+(define (curl-fileinfo->struct stru)
+  (define-inline (%accessor->string ?accessor)
+    (let ((o (?accessor stru)))
+      (and o (cstring->string o))))
+  (make-curl-fileinfo
+   (%accessor->string curl-fileinfo.filename)
+   (curl-fileinfo.filetype	stru)
+   (curl-fileinfo.time		stru)
+   (curl-fileinfo.perm		stru)
+   (curl-fileinfo.uid		stru)
+   (curl-fileinfo.gid		stru)
+   (curl-fileinfo.size		stru)
+   (curl-fileinfo.hardlinks	stru)
+   (%accessor->string curl-fileinfo.strings.time)
+   (%accessor->string curl-fileinfo.strings.perm)
+   (%accessor->string curl-fileinfo.strings.user)
+   (%accessor->string curl-fileinfo.strings.group)
+   (%accessor->string curl-fileinfo.strings.target)
+   (curl-fileinfo.flags		stru)))
 
-(define (curl-sockaddr.addr pointer)
-  (define who 'curl-sockaddr.addr)
+(%define-raw-struct-accessor curl-fileinfo.filename	capi.curl-fileinfo.filename)
+(%define-raw-struct-accessor curl-fileinfo.filetype	capi.curl-fileinfo.filetype)
+(%define-raw-struct-accessor curl-fileinfo.time		capi.curl-fileinfo.time)
+(%define-raw-struct-accessor curl-fileinfo.perm		capi.curl-fileinfo.perm)
+(%define-raw-struct-accessor curl-fileinfo.uid		capi.curl-fileinfo.uid)
+(%define-raw-struct-accessor curl-fileinfo.gid		capi.curl-fileinfo.gid)
+(%define-raw-struct-accessor curl-fileinfo.size		capi.curl-fileinfo.size)
+(%define-raw-struct-accessor curl-fileinfo.hardlinks	capi.curl-fileinfo.hardlinks)
+(%define-raw-struct-accessor curl-fileinfo.strings.time	capi.curl-fileinfo.strings.time)
+(%define-raw-struct-accessor curl-fileinfo.strings.perm	capi.curl-fileinfo.strings.perm)
+(%define-raw-struct-accessor curl-fileinfo.strings.user	capi.curl-fileinfo.strings.user)
+(%define-raw-struct-accessor curl-fileinfo.strings.group capi.curl-fileinfo.strings.group)
+(%define-raw-struct-accessor curl-fileinfo.strings.target capi.curl-fileinfo.strings.target)
+(%define-raw-struct-accessor curl-fileinfo.flags	capi.curl-fileinfo.flags)
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_khkey"
+
+(define (curl-khkey.key stru)
+  (define who 'curl-khkey.key)
   (with-arguments-validation (who)
-      ((pointer	pointer))
-    (capi.curl-sockaddr.addr pointer)))
+      ((pointer		stru))
+    (let ((rv (capi.curl-khkey.key stru)))
+      (values (unsafe.car rv) (unsafe.cdr rv)))))
 
 
 ;;;; easy API callback makers
@@ -1704,96 +1850,6 @@
 				       timeout-ms (%cdata custom-data))))))))
 
 
-;;;; still to be implemented
-
-(define-inline (unimplemented who)
-  (assertion-violation who "unimplemented function"))
-
-(define (curl-multi-init . args)
-  (define who 'curl-multi-init)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-add-handle . args)
-  (define who 'curl-multi-add-handle)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-remove-handle . args)
-  (define who 'curl-multi-remove-handle)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-fdset . args)
-  (define who 'curl-multi-fdset)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-perform . args)
-  (define who 'curl-multi-perform)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-cleanup . args)
-  (define who 'curl-multi-cleanup)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-info-read . args)
-  (define who 'curl-multi-info-read)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-strerror . args)
-  (define who 'curl-multi-strerror)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-socket . args)
-  (define who 'curl-multi-socket)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-socket-action . args)
-  (define who 'curl-multi-socket-action)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-socket-all . args)
-  (define who 'curl-multi-socket-all)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-timeout . args)
-  (define who 'curl-multi-timeout)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-setopt . args)
-  (define who 'curl-multi-setopt)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-assign . args)
-  (define who 'curl-multi-assign)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-
 ;;;; done
 
 (set-rtd-printer! (type-descriptor curl-version-info-data)
@@ -1818,4 +1874,5 @@
 ;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/false/utf8 'scheme-indent-function 1)
 ;;eval: (put 'with-general-strings/ascii 'scheme-indent-function 1)
+;;eval: (put '%define-raw-struct-accessor 'scheme-indent-function 1)
 ;;End:
