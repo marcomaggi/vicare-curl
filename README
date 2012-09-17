@@ -72,11 +72,20 @@ shared libraries and disable static libraries: this must not
 be  changed, because  the package  is meant  to install  a C
 shared library to be dynamically loaded.
 
-  Notice that to successfully run  the test suite we must be
-connected  to the  Internet, because  some tests  access the
-following URLs:
+  Notice that to  successfully run the test suite  we do not
+need to  be connected to the  Net.  Additional demonstration
+tests are in the "tests/demo-*.sps"  files, and to run those
+we must  be connected  to the  Internet, because  some tests
+access the following URLs:
 
     http://google.com/
+    https://github.com/
+
+to run the demonstrations do:
+
+    $ make demo
+
+and expect a lot of output.
 
   To test what a rule will do use the "-n" option; example:
 

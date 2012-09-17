@@ -45,6 +45,29 @@
 (define-inline (%pretty-print ?thing)
   (pretty-print ?thing (current-error-port)))
 
+(define debug-print-data
+  (make-parameter #f))
+
+(define (debug-func easy type data size custom-data)
+  (define (%print template)
+    (fprintf (current-error-port) template (cstring->string data size)))
+  (case-integers type
+    ((CURLINFO_TEXT)
+     (%print "Text: ~a"))
+    ((CURLINFO_HEADER_IN)
+     (%print "Header-In: ~a"))
+    ((CURLINFO_HEADER_OUT)
+     (%print "Header-Out: ~a"))
+    ((CURLINFO_DATA_IN)
+     (when (debug-print-data)
+       (%print "Data-In:\n~a\n")))
+    ((CURLINFO_DATA_OUT)
+     (when (debug-print-data)
+       (%print "Data-Out:\n~a\n")))
+    (else
+     (%print "Boh:\n~a\n")))
+  0)
+
 
 (parametrise ((check-test-name	'perform))
 
@@ -56,24 +79,6 @@
 		 (utf8->string (cstring->bytevector buffer nbytes))))
 ;;;      (check-pretty-print (list 'leave size nitems nbytes))
       nbytes))
-
-  (define (debug-func easy type data size custom-data)
-    #;(fprintf (current-error-port)
-	     (case-integers type
-	       ((CURLINFO_TEXT)
-		"Text: ~a")
-	       ((CURLINFO_HEADER_IN)
-		"Header-In: ~a")
-	       ((CURLINFO_HEADER_OUT)
-		"Header-Out: ~a")
-	       ((CURLINFO_DATA_IN)
-		"Data-In:\n~a\n")
-	       ((CURLINFO_DATA_OUT)
-		"Data-Out:\n~a\n")
-	       (else
-		"Boh:\n~a\n"))
-	     (cstring->string data size))
-    0)
 
 ;;; --------------------------------------------------------------------
 
@@ -123,6 +128,144 @@
 
 
   (collect))
+
+
+(parametrise ((check-test-name	'getinfo))
+
+  (check	;CURLINFO_EFFECTIVE_URL, string return value
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda (buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://www.google.com/")
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (let-values (((code info)
+			    (curl-easy-getinfo easy CURLINFO_EFFECTIVE_URL)))
+		(check-pretty-print info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  (check	;CURLINFO_RESPONSE_CODE, "long" return value
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda (buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "https://www.google.com/")
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (let-values (((code info)
+			    (curl-easy-getinfo easy CURLINFO_RESPONSE_CODE)))
+		(check-pretty-print info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  (check	;CURLINFO_TOTAL_TIME, "double" return value
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda (buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "https://www.google.com/")
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (let-values (((code info)
+			    (curl-easy-getinfo easy CURLINFO_TOTAL_TIME)))
+		(check-pretty-print info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  #t)
+
+
+(parametrise ((check-test-name	'certinfo))
+
+;;;Certificate  informations are  big, so  this  test is  in a  separate
+;;;secion.
+
+  (check	;certinfo
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda ( buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "https://github.com/")
+	      (curl-easy-setopt easy CURLOPT_CERTINFO #t)
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (let-values (((code info)
+			    (curl-easy-getinfo easy CURLINFO_CERTINFO)))
+		(check-pretty-print info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  #t)
 
 
 ;;;; done

@@ -122,69 +122,88 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
   CURL *	easy	= IK_CURL_EASY(s_easy);
   CURLINFO	info	= ik_integer_to_int(s_info);
   CURLcode	rv;
-  switch (CURLINFO_TYPEMASK & info) {
-  case CURLINFO_SLIST: {
-    struct curl_slist *	result;
+  if (CURLINFO_CERTINFO == info) {
+    /* cURL version 7.27.0 classifies this  option as returning a slist,
+       but this is  not true: the returned pointer  references a "struct
+       curl_certinfo".  For  this reason we  have to handle  this option
+       separately.  (Marco Maggi; Mon Sep 17, 2012) */
+    struct curl_certinfo *	result;
     rv = curl_easy_getinfo(easy, info, &result);
     if (CURLE_OK == rv) {
       ikptr s_pair = ika_pair_alloc(pcb);
       pcb->root0 = &s_pair;
       {
-	IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_SLIST));
+	IK_ASS(IK_CAR(s_pair), IK_FALSE);
 	IK_ASS(IK_CDR(s_pair), ika_pointer_alloc(pcb, (ik_ulong)result));
       }
       pcb->root0 = NULL;
       return s_pair;
     }
-    break;
-  }
-  case CURLINFO_DOUBLE: {
-    double	result;
-    rv = curl_easy_getinfo(easy, info, &result);
-    if (CURLE_OK == rv) {
-      ikptr s_pair = ika_pair_alloc(pcb);
-      pcb->root0 = &s_pair;
-      {
-	IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_DOUBLE));
-	IK_ASS(IK_CDR(s_pair), ika_flonum_from_double(pcb, result));
+  } else {
+    switch (CURLINFO_TYPEMASK & info) {
+    case CURLINFO_SLIST: {
+      struct curl_slist *	result;
+      rv = curl_easy_getinfo(easy, info, &result);
+      if (CURLE_OK == rv) {
+	ikptr s_pair = ika_pair_alloc(pcb);
+	pcb->root0 = &s_pair;
+	{
+	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_SLIST));
+	  IK_ASS(IK_CDR(s_pair), ika_pointer_alloc(pcb, (ik_ulong)result));
+	}
+	pcb->root0 = NULL;
+	return s_pair;
       }
-      pcb->root0 = NULL;
-      return s_pair;
+      break;
     }
-    break;
-  }
-  case CURLINFO_LONG: {
-    long	result;
-    rv = curl_easy_getinfo(easy, info, &result);
-    if (CURLE_OK == rv) {
-      ikptr s_pair = ika_pair_alloc(pcb);
-      pcb->root0 = &s_pair;
-      {
-	IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_LONG));
-	IK_ASS(IK_CDR(s_pair), ika_integer_from_long(pcb, result));
+    case CURLINFO_DOUBLE: {
+      double	result;
+      rv = curl_easy_getinfo(easy, info, &result);
+      if (CURLE_OK == rv) {
+	ikptr s_pair = ika_pair_alloc(pcb);
+	pcb->root0 = &s_pair;
+	{
+	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_DOUBLE));
+	  IK_ASS(IK_CDR(s_pair), ika_flonum_from_double(pcb, result));
+	}
+	pcb->root0 = NULL;
+	return s_pair;
       }
-      pcb->root0 = NULL;
-      return s_pair;
+      break;
     }
-    break;
-  }
-  case CURLINFO_STRING: {
-    const char *result;
-    rv = curl_easy_getinfo(easy, info, &result);
-    if (CURLE_OK == rv) {
-      ikptr s_pair = ika_pair_alloc(pcb);
-      pcb->root0 = &s_pair;
-      {
-	IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_STRING));
-	IK_ASS(IK_CDR(s_pair), ika_bytevector_from_cstring(pcb, result));
+    case CURLINFO_LONG: {
+      long	result;
+      rv = curl_easy_getinfo(easy, info, &result);
+      if (CURLE_OK == rv) {
+	ikptr s_pair = ika_pair_alloc(pcb);
+	pcb->root0 = &s_pair;
+	{
+	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_LONG));
+	  IK_ASS(IK_CDR(s_pair), ika_integer_from_long(pcb, result));
+	}
+	pcb->root0 = NULL;
+	return s_pair;
       }
-      pcb->root0 = NULL;
-      return s_pair;
+      break;
     }
-    break;
-  }
-  default:
-    return IK_FALSE; /* unknown info type */
+    case CURLINFO_STRING: {
+      const char *result;
+      rv = curl_easy_getinfo(easy, info, &result);
+      if (CURLE_OK == rv) {
+	ikptr s_pair = ika_pair_alloc(pcb);
+	pcb->root0 = &s_pair;
+	{
+	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_STRING));
+	  IK_ASS(IK_CDR(s_pair), ika_bytevector_from_cstring(pcb, result));
+	}
+	pcb->root0 = NULL;
+	return s_pair;
+      }
+      break;
+    }
+    default:
+      return IK_FALSE; /* unknown info type */
+    }
   }
   return ika_integer_from_curlcode(pcb, rv);
 #else

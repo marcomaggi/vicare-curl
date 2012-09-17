@@ -230,16 +230,24 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{IP}
 @end macro
 
-@macro tcp{}
-@acronym{TCP}
-@end macro
-
 @macro udp{}
 @acronym{UDP}
 @end macro
 
 @macro smtp{}
 @acronym{SMTP}
+@end macro
+
+@macro ssl{}
+@acronym{SSL}
+@end macro
+
+@macro tcp{}
+@acronym{TCP}
+@end macro
+
+@macro tls{}
+@acronym{TLS}
 @end macro
 
 @c ------------------------------------------------------------

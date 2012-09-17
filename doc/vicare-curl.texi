@@ -551,8 +551,9 @@ handle raw memory allocation:
 * plain easy struct::           Easy operations handle.
 * plain easy init::             Easy initialisation and finalisation.
 * plain easy config::           Selecting options for easy operations.
-* plain easy ops::              Performing easy operations.
-* plain easy data::             Sending and receiving data.
+* plain easy perform::          Performing easy operations.
+* plain easy info::             Retrieving transfer informations.
+* plain easy data::             Sending and receiving raw data.
 * plain easy escape::           Escaping @aurl{} strings.
 * plain easy misc::             Miscellaneous functions.
 @end menu
@@ -709,29 +710,8 @@ referencing some data.
 @end itemize
 @end defun
 
-
-@defun curl-easy-getinfo @var{easy} @var{info}
-Extract informations from an @var{easy} handle; return @math{2} values:
-
-@itemize
-@item
-If successful @code{CURLE_OK} and a value representing the requested
-information.
-
-@item
-If @var{info} is not recognised: @false{} and @false{}.
-
-@item
-Else return: a @code{CURLE_} constant and @false{}.
-@end itemize
-
-@curlman{curl_easy_getinfo}.
-
-@var{info} must be one of the @code{CURLINFO_} constants.
-@end defun
-
 @c page
-@node plain easy ops
+@node plain easy perform
 @subsection Performing easy operations
 
 
@@ -761,8 +741,187 @@ combination of the @code{CURLPAUSE_} constants: @code{CURLPAUSE_RECV},
 @end defun
 
 @c page
+@node plain easy info
+@subsection Retrieving transfer informations
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-easy-getinfo @var{easy} @var{info}
+Extract informations from an @var{easy} handle; return @math{2} values:
+
+@itemize
+@item
+If successful: @code{CURLE_OK} and a value representing the requested
+information.
+
+@item
+If @var{info} is not recognised: @false{} and @false{}.
+
+@item
+Else return: a @code{CURLE_} constant and @false{}.
+@end itemize
+
+@curlman{curl_easy_getinfo}.
+
+@var{info} must be one of the @code{CURLINFO_} constants and it drives
+the type of the second returned value:
+
+@itemize
+@item
+When the information type is an instance of the C language type
+@code{long} or @code{double}: the returned value is an exact integer or
+a flonum.
+
+@item
+When the information type is a C language string: the returned value is
+a Scheme string.
+
+@item
+When the information type is a @curl{} slist: the returned value is a
+list of Scheme strings.
+
+@item
+As a special case when @var{info} is @code{CURLINFO_CERNTINFO}: the
+returned value is a vector holding one item for each @ssl{}/@tls{}
+certificate; each item is a list of strings representing informations
+about the certificate; each string has the format @code{name:value}.
+@end itemize
+@end defun
+
+
+In the following example we discard the received data and just  print
+the value of some options:
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (vicare syntactic-extensions))
+
+(define (dummy-write-cb buffer size nitems outstream)
+  (* size nitems))
+
+(let ((easy     (curl-easy-init))
+      (write-cb (make-curl-write-callback dummy-write-cb)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL
+          "http://www.google.com/")
+
+        ;;In a way or the other a WRITEFUNCTION is always
+        ;;there; to discard data we have to register a
+        ;;WRITEFUNCTION that does nothing!!!
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+
+        (assert (= CURLE_OK (curl-easy-perform easy)))
+
+        (let-values
+            (((code info)
+              (curl-easy-getinfo easy CURLINFO_EFFECTIVE_URL)))
+          (assert (= code CURLE_OK))
+          (printf "Effective URL: ~a\n" info))
+
+        (let-values
+            (((code info)
+              (curl-easy-getinfo easy CURLINFO_RESPONSE_CODE)))
+          (assert (= code CURLE_OK))
+          (printf "Response code: ~a\n" info))
+
+        (let-values
+            (((code info)
+              (curl-easy-getinfo easy CURLINFO_TOTAL_TIME)))
+          (assert (= code CURLE_OK))
+          (printf "Total time: ~a\n" info))
+
+        (flush-output-port (current-output-port)))
+
+    ;;Close the connection before releasing the callbacks!!!
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)))
+@print{} Effective URL: https://www.google.com/
+@print{} Response code: 302
+@print{} Total time: 0.392977
+@end example
+
+The following example discards the received data and just prints
+certificate informations (which is shown with ellipses to make it
+short):
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (vicare syntactic-extensions))
+
+(define (dummy-write-cb buffer size nitems outstream)
+  (* size nitems))
+
+(let ((easy     (curl-easy-init))
+      (write-cb (make-curl-write-callback dummy-write-cb)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL "https://github.com/")
+
+        ;;In a way or the other a WRITEFUNCTION is always
+        ;;there; to discard data we have to register a
+        ;;WRITEFUNCTION that does nothing!!!
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+
+        (curl-easy-setopt easy CURLOPT_CERTINFO #t)
+        (assert (= CURLE_OK (curl-easy-perform easy)))
+
+        (let-values
+            (((code info)
+              (curl-easy-getinfo easy CURLINFO_CERTINFO)))
+          (assert (= code CURLE_OK))
+          (printf "Number of certificates: ~a\n"
+                  (vector-length info))
+          (printf "First certificate data: \n")
+          (pretty-print (vector-ref info 0)))
+
+         (flush-output-port (current-output-port)))
+
+    ;;Close the connection before releasing the callbacks!!!
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)))
+@print{} Number of certificates: 2
+@print{} First certificate data:
+ ("Subject:businessCategory=Private ..."
+  "Issuer:C=US; O=DigiCert Inc; ..."
+  "Version:2"
+  "Signature Algorithm:sha1WithRSAEncryption"
+  "Start date:2011-05-27 00:00:00 GMT"
+  "Expire date:2013-07-29 12:00:00 GMT"
+  "Public Key Algorithm:rsaEncryption"
+  "RSA Public Key:2048"
+  "rsa(n):ed:d3:89:c3:5d:70:72:09:..."
+  "rsa(e):01:00:01:"
+  "X509v3 Authority Key Identifier:..."
+  "X509v3 Subject Key Identifier:87:D1..."
+  "X509v3 Subject Alternative Name:..."
+  "Authority Information Access:OCSP-URI:..."
+  "X509v3 Basic Constraints:CA:FALSE"
+  "X509v3 CRL Distribution Points:URI:..."
+  "X509v3 Certificate Policies:Policy:..."
+  "X509v3 Extended Key Usage:..."
+  "Netscape Cert Type:SSLClient,SSLServer"
+  "X509v3 Key Usage:DigitalSignature,KeyEncipherment"
+  "Signature:14:52:71:1f:86:9d:6d:35:3e:..."
+  "Cert:-----BEGIN CERTIFICATE-----\nMIIHKjC...")
+@end example
+
+@c page
 @node plain easy data
-@subsection Sending and receiving data
+@subsection Sending and receiving raw data
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2013,7 +2172,7 @@ such value is associated to the @strong{callback} with the
 @item
 @false{} or a pointer object referencing an application selected value;
 such value is associated to the @strong{socket descriptor} with the
-function @func{curl-multi-assign}.  @curlref{curl_multi_assign}.
+function @func{curl-multi-assign}.  @curlman{curl_multi_assign}.
 @end enumerate
 
 @var{user-scheme-callback} can return unspecified values.
@@ -2649,6 +2808,7 @@ an @ascii{} bytevector or string describing the associated error.
 * plain cstructs fileinfo::     Accessing @code{struct curl_fileinfo}.
 * plain cstructs khkey::        Accessing @code{struct curl_khkey}.
 * plain cstructs forms::        Accessing @code{struct curl_forms} arrays.
+* plain cstructs certinfo::     Accessing @code{struct curl_certinfo}.
 @end menu
 
 @c page
@@ -2846,6 +3006,26 @@ holding an array of @code{struct curl_forms}, store the pointer from
 @code{value} in the field of the structure at @var{index}.
 
 @var{value} must be a pointer object or @code{memory-block}.
+@end defun
+
+@c page
+@node plain cstructs certinfo
+@subsection Accessing @code{struct curl_certinfo}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-certinfo.certinfo @var{pointer}
+Given a pointer to an instance of @code{struct curl_certinfo}: return a
+vector holding one item for each certificate in the structure; each item
+is a list of strings representing informations about the certificate;
+each string has the format @code{name:value}.
+
+Notice that when using @func{curl-easy-getinfo} with the
+@code{CURLINFO_CERTINFO} option: the returned value is already the
+vector of lists of strings.
 @end defun
 
 @c page

@@ -81,6 +81,9 @@
     curl-forms.option			curl-forms.option-set!
     curl-forms.value			curl-forms.value-set!
 
+    ;; accessors for "struct curl_certinfo"
+    curl-certinfo.certinfo
+
     ;; easy API
     curl-easy-init			curl-easy-cleanup
     curl-easy-reset
@@ -323,6 +326,12 @@
 
 (define-inline (curl-forms.value-set! array index value)
   (foreign-call "ikrt_curl_forms_value_set" array index value))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_certinfo"
+
+(define-inline (curl-certinfo.certinfo struct)
+  (foreign-call "ikrt_curl_certinfo_certinfo" struct))
 
 
 ;;;; easy API

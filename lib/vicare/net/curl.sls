@@ -163,6 +163,9 @@
     curl-forms.option				curl-forms.option-set!
     curl-forms.value				curl-forms.value-set!
 
+    ;; accessors for "struct curl_certinfo"
+    curl-certinfo.certinfo
+
     ;; debugging
     curl-easy-garbage-collection-log
     curl-form-data-garbage-collection-log
@@ -1253,7 +1256,21 @@
        (signed-int	info))
     (let ((rv (capi.curl-easy-getinfo easy info)))
       (if (pair? rv)
-	  (values (unsafe.car rv) (unsafe.cdr rv))
+	  (let ((retval.type	(unsafe.car rv))
+		(retval.value	(unsafe.cdr rv)))
+	    (cond ((= info CURLINFO_CERTINFO)
+		   (values CURLE_OK
+			   (curl-certinfo.certinfo retval.value)))
+		  (else
+		   (case-integers retval.type
+		     ((CURLINFO_SLIST)
+		      (values CURLE_OK (curl-slist->list retval.value)))
+		     ((CURLINFO_DOUBLE CURLINFO_LONG)
+		      (values CURLE_OK retval.value))
+		     ((CURLINFO_STRING)
+		      (values CURLE_OK (ascii->string retval.value)))
+		     (else
+		      (values CURLE_OK retval.value))))))
 	(values rv #f)))))
 
 ;;; --------------------------------------------------------------------
@@ -1648,6 +1665,18 @@
        (non-negative-fixnum	index)
        (pointer/memory-block	value))
     (capi.curl-forms.value-set! pointer index value)))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_certinfo"
+
+(define (curl-certinfo.certinfo pointer)
+  (define who 'curl-certinfo.certinfo)
+  (with-arguments-validation (who)
+      ((pointer		pointer))
+    (let ((rv (capi.curl-certinfo.certinfo pointer)))
+      (vector-map (lambda (slist)
+		    (curl-slist->list slist))
+	rv))))
 
 
 ;;;; easy API callback makers

@@ -841,6 +841,31 @@ ikrt_curl_forms_value_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_valu
 
 
 /** --------------------------------------------------------------------
+ ** Accessors for "struct curl_certinfo".
+ ** ----------------------------------------------------------------- */
+
+typedef struct curl_certinfo	ik_curl_certinfo_t;
+
+ikptr
+ikrt_curl_certinfo_certinfo (ikptr s_struct, ikpcb * pcb)
+/* Given  a pointer  to a  "struct  curl_certinfo", build  and return  a
+   vector of pointer object referencing the individual slists. */
+{
+  ik_curl_certinfo_t *	S	= IK_POINTER_DATA_VOIDP(s_struct);
+  ikptr			rv	= ika_vector_alloc_and_init(pcb, S->num_of_certs);
+  pcb->root0 = &rv;
+  {
+    int		i;
+    for (i=0; i<S->num_of_certs; ++i) {
+      IK_ASS(IK_ITEM(rv,i), ika_pointer_alloc(pcb, (ik_ulong)(S->certinfo[i])));
+    }
+  }
+  pcb->root0 = NULL;
+  return rv;
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 
