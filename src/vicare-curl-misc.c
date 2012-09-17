@@ -866,6 +866,38 @@ ikrt_curl_certinfo_certinfo (ikptr s_struct, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Accessors for "struct CURLMsg".
+ ** ----------------------------------------------------------------- */
+
+typedef struct CURLMsg		ik_curl_msg_t;
+
+ikptr
+ikrt_curl_msg_msg (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->msg);
+}
+ikptr
+ikrt_curl_msg_easy_handle (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->easy_handle);
+}
+ikptr
+ikrt_curl_msg_data_whatever (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ik_ulong)S->data.whatever);
+}
+ikptr
+ikrt_curl_msg_data_result (ikptr s_struct, ikpcb * pcb)
+{
+  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, S->data.result);
+}
+
+
+/** --------------------------------------------------------------------
  ** Miscellaneous functions.
  ** ----------------------------------------------------------------- */
 

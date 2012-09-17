@@ -166,6 +166,10 @@
     ;; accessors for "struct curl_certinfo"
     curl-certinfo.certinfo
 
+    ;; accessors for "struct CURLMsg"
+    curl-msg.msg				curl-msg.easy_handle
+    curl-msg.data.whatever			curl-msg.data.result
+
     ;; debugging
     curl-easy-garbage-collection-log
     curl-form-data-garbage-collection-log
@@ -1677,6 +1681,21 @@
       (vector-map (lambda (slist)
 		    (curl-slist->list slist))
 	rv))))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct CURLMsg"
+
+(%define-raw-struct-accessor curl-msg.msg		capi.curl-msg.msg)
+(%define-raw-struct-accessor curl-msg.data.whatever	capi.curl-msg.data.whatever)
+(%define-raw-struct-accessor curl-msg.data.result	capi.curl-msg.data.result)
+
+(define (curl-msg.easy_handle stru)
+  (define who 'curl-msg.easy_handle)
+  (with-arguments-validation (who)
+      ((pointer	stru))
+    (%make-curl-easy
+	(pointer (capi.curl-msg.easy_handle stru))
+      (owner? #f))))
 
 
 ;;;; easy API callback makers

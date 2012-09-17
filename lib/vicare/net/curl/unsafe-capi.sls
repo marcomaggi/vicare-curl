@@ -84,6 +84,10 @@
     ;; accessors for "struct curl_certinfo"
     curl-certinfo.certinfo
 
+    ;; accessors for "struct CURLMsg"
+    curl-msg.msg			curl-msg.easy_handle
+    curl-msg.data.whatever		curl-msg.data.result
+
     ;; easy API
     curl-easy-init			curl-easy-cleanup
     curl-easy-reset
@@ -332,6 +336,21 @@
 
 (define-inline (curl-certinfo.certinfo struct)
   (foreign-call "ikrt_curl_certinfo_certinfo" struct))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct CURLMsg"
+
+(define-inline (curl-msg.msg struct)
+  (foreign-call "ikrt_curl_msg_msg" struct))
+
+(define-inline (curl-msg.easy_handle struct)
+  (foreign-call "ikrt_curl_msg_easy_handle" struct))
+
+(define-inline (curl-msg.data.whatever struct)
+  (foreign-call "ikrt_curl_msg_data_whatever" struct))
+
+(define-inline (curl-msg.data.result struct)
+  (foreign-call "ikrt_curl_msg_data_result" struct))
 
 
 ;;;; easy API

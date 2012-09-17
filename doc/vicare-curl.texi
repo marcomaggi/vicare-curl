@@ -2809,6 +2809,7 @@ an @ascii{} bytevector or string describing the associated error.
 * plain cstructs khkey::        Accessing @code{struct curl_khkey}.
 * plain cstructs forms::        Accessing @code{struct curl_forms} arrays.
 * plain cstructs certinfo::     Accessing @code{struct curl_certinfo}.
+* plain cstructs msg::          Accessing @code{struct CURLMsg}.
 @end menu
 
 @c page
@@ -3026,6 +3027,41 @@ each string has the format @code{name:value}.
 Notice that when using @func{curl-easy-getinfo} with the
 @code{CURLINFO_CERTINFO} option: the returned value is already the
 vector of lists of strings.
+@end defun
+
+@c page
+@node plain cstructs msg
+@subsection Accessing @code{struct CURLMsg}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-msg.msg @var{pointer}
+Given a pointer to an instance of @code{struct CURLMsg}, return an exact
+integer representing the value of the field @code{CURLMSG msg}.
+@end defun
+
+
+@defun curl-msg.easy_handle @var{pointer}
+Given a pointer to an instance of @code{struct CURLMsg}, return a
+temporary instance of @code{curl-easy} referencing the value of the
+field @code{CURL *easy_handle}.
+@end defun
+
+
+@defun curl-msg.data.whatever @var{pointer}
+Given a pointer to an instance of @code{struct CURLMsg}, return a
+pointer object representing the value of the field @code{void *
+whatever} in the union @code{data}.
+@end defun
+
+
+@defun curl-msg.data.result @var{pointer}
+Given a pointer to an instance of @code{struct CURLMsg}, return an exact
+integer representing the value of the field @code{CURLcode result} in
+the union @code{data}.
 @end defun
 
 @c page
