@@ -793,9 +793,10 @@ certificate; each item is a list of strings representing informations
 about the certificate; each string has the format @code{name:value}.
 
 @item CURLINFO_PRIVATE
-@false{} or a pointer object referencing the data previously registered
-in the easy handle with @func{curl-easy-setopt} and
-@code{CURLOPT_PRIVATE}.
+The returned value is @false{} or a pointer object referencing the data
+previously registered in the easy handle with @func{curl-easy-setopt}
+and @code{CURLOPT_PRIVATE}; @false{} is returned if the data is the
+@cnull{} pointer.
 @end table
 @end itemize
 @end defun
