@@ -784,10 +784,19 @@ When the information type is a @curl{} slist: the returned value is a
 list of Scheme strings.
 
 @item
-As a special case when @var{info} is @code{CURLINFO_CERNTINFO}: the
-returned value is a vector holding one item for each @ssl{}/@tls{}
+As special cases when @var{info} is
+
+@table @code
+@item CURLINFO_CERNTINFO
+The returned value is a vector holding one item for each @ssl{}/@tls{}
 certificate; each item is a list of strings representing informations
 about the certificate; each string has the format @code{name:value}.
+
+@item CURLINFO_PRIVATE
+@false{} or a pointer object referencing the data previously registered
+in the easy handle with @func{curl-easy-setopt} and
+@code{CURLOPT_PRIVATE}.
+@end table
 @end itemize
 @end defun
 

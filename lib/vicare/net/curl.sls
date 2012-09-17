@@ -1265,6 +1265,8 @@
 	    (cond ((= info CURLINFO_CERTINFO)
 		   (values CURLE_OK
 			   (curl-certinfo.certinfo retval.value)))
+		  ((= info CURLINFO_PRIVATE)
+		   (values CURLE_OK retval.value))
 		  (else
 		   (case-integers retval.type
 		     ((CURLINFO_SLIST)

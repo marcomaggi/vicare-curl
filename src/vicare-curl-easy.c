@@ -123,18 +123,41 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
   CURLINFO	info	= ik_integer_to_int(s_info);
   CURLcode	rv;
   if (CURLINFO_CERTINFO == info) {
-    /* cURL version 7.27.0 classifies this  option as returning a slist,
-       but this is  not true: the returned pointer  references a "struct
-       curl_certinfo".  For  this reason we  have to handle  this option
-       separately.  (Marco Maggi; Mon Sep 17, 2012) */
+    /* The header file of cURL  version 7.27.0 classifies this option as
+       returning a  slist, but  this is not  true: the  returned pointer
+       references a "struct curl_certinfo".  For  this reason we have to
+       handle  this  option  separately.   (Marco  Maggi;  Mon  Sep  17,
+       2012) */
+    struct curl_slist *		_result;
     struct curl_certinfo *	result;
-    rv = curl_easy_getinfo(easy, info, &result);
+    rv = curl_easy_getinfo(easy, info, &_result);
+    result = (struct curl_certinfo *)_result;
     if (CURLE_OK == rv) {
       ikptr s_pair = ika_pair_alloc(pcb);
       pcb->root0 = &s_pair;
       {
 	IK_ASS(IK_CAR(s_pair), IK_FALSE);
 	IK_ASS(IK_CDR(s_pair), ika_pointer_alloc(pcb, (ik_ulong)result));
+      }
+      pcb->root0 = NULL;
+      return s_pair;
+    }
+  } else if (CURLINFO_PRIVATE == info) {
+    /* The header file of cURL  version 7.27.0 classifies this option as
+       returning a string, but this is not true: the returned pointer is
+       a "void *"  referencing whatever data was registered  in the easy
+       handler with  the option  CURLOPT_PRIVATE .   For this  reason we
+       have to handle this option separately.  (Marco Maggi; Mon Sep 17,
+       2012) */
+    char *	result;
+    rv = curl_easy_getinfo(easy, info, &result);
+    if (CURLE_OK == rv) {
+      ikptr s_pair = ika_pair_alloc(pcb);
+      pcb->root0 = &s_pair;
+      {
+	IK_ASS(IK_CAR(s_pair), IK_FALSE);
+	IK_ASS(IK_CDR(s_pair),
+	       ((result)? ika_pointer_alloc(pcb, (ik_ulong)result) : IK_FALSE));
       }
       pcb->root0 = NULL;
       return s_pair;
