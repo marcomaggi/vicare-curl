@@ -163,6 +163,8 @@
 	  (ffi.free-c-callback debug-cb)))
     => CURLE_OK)
 
+;;; --------------------------------------------------------------------
+
   (check	;CURLINFO_RESPONSE_CODE, "long" return value
       (let ((easy	(curl-easy-init))
 	    (write-cb	(make-curl-write-callback
@@ -171,7 +173,7 @@
 	    (debug-cb	(make-curl-debug-callback debug-func)))
 	(unwind-protect
 	    (begin
-	      (curl-easy-setopt easy CURLOPT_URL "https://www.google.com/")
+	      (curl-easy-setopt easy CURLOPT_URL "http://www.google.com/")
 	      ;;In a way  or the other a WRITEFUNCTION  is always there;
 	      ;;to discard data we have to register a WRITEFUNCTION that
 	      ;;does nothing!!!
@@ -194,6 +196,8 @@
 	  (ffi.free-c-callback debug-cb)))
     => CURLE_OK)
 
+;;; --------------------------------------------------------------------
+
   (check	;CURLINFO_TOTAL_TIME, "double" return value
       (let ((easy	(curl-easy-init))
 	    (write-cb	(make-curl-write-callback
@@ -202,7 +206,7 @@
 	    (debug-cb	(make-curl-debug-callback debug-func)))
 	(unwind-protect
 	    (begin
-	      (curl-easy-setopt easy CURLOPT_URL "https://www.google.com/")
+	      (curl-easy-setopt easy CURLOPT_URL "http://www.google.com/")
 	      ;;In a way  or the other a WRITEFUNCTION  is always there;
 	      ;;to discard data we have to register a WRITEFUNCTION that
 	      ;;does nothing!!!
@@ -215,6 +219,39 @@
 	      (curl-easy-perform easy)
 	      (let-values (((code info)
 			    (curl-easy-getinfo easy CURLINFO_TOTAL_TIME)))
+		(check-pretty-print info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check	;CURLINFO_SSL_ENGINES, slist return value
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda (buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "https://github.com/")
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (let-values (((code info)
+			    (curl-easy-getinfo easy CURLINFO_SSL_ENGINES)))
 		(check-pretty-print info)
 		(unless (= code CURLE_OK)
 		  (check-pretty-print (curl-easy-strerror code)))

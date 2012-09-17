@@ -1268,7 +1268,9 @@
 		  (else
 		   (case-integers retval.type
 		     ((CURLINFO_SLIST)
-		      (values CURLE_OK (curl-slist->list retval.value)))
+		      (let ((rv (curl-slist->list retval.value)))
+			(curl-slist-free-all retval.value)
+			(values CURLE_OK rv)))
 		     ((CURLINFO_DOUBLE CURLINFO_LONG)
 		      (values CURLE_OK retval.value))
 		     ((CURLINFO_STRING)
