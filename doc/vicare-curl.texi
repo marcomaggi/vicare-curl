@@ -777,20 +777,24 @@ a flonum.
 
 @item
 When the information type is a C language string: the returned value is
-a Scheme string.
+@false{} or a Scheme string; @false{} is returned when no string is
+available from @curl{}.
 
 @item
-When the information type is a @curl{} slist: the returned value is a
-list of Scheme strings.
+When the information type is a @curl{} slist: the returned value is
+@false{} or a list of Scheme strings; @false{} is returned if the list
+is empty.
 
 @item
-As special cases when @var{info} is
+As special cases when @var{info} is:
 
 @table @code
 @item CURLINFO_CERNTINFO
-The returned value is a vector holding one item for each @ssl{}/@tls{}
-certificate; each item is a list of strings representing informations
-about the certificate; each string has the format @code{name:value}.
+The returned value is @false{} or a vector holding one item for each
+@ssl{}/@tls{} certificate; each item is a list of strings representing
+informations about the certificate; each string has the format
+@code{name:value}.  @false{} is returned when no certificate
+informations are available.
 
 @item CURLINFO_PRIVATE
 The returned value is @false{} or a pointer object referencing the data

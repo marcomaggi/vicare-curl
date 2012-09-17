@@ -137,7 +137,8 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = &s_pair;
       {
 	IK_ASS(IK_CAR(s_pair), IK_FALSE);
-	IK_ASS(IK_CDR(s_pair), ika_pointer_alloc(pcb, (ik_ulong)result));
+	IK_ASS(IK_CDR(s_pair),
+	       ((result)? ika_pointer_alloc(pcb, (ik_ulong)result) : IK_FALSE));
       }
       pcb->root0 = NULL;
       return s_pair;
@@ -172,7 +173,8 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
 	pcb->root0 = &s_pair;
 	{
 	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_SLIST));
-	  IK_ASS(IK_CDR(s_pair), ika_pointer_alloc(pcb, (ik_ulong)result));
+	  IK_ASS(IK_CDR(s_pair),
+		 ((result)? ika_pointer_alloc(pcb, (ik_ulong)result) : IK_FALSE));
 	}
 	pcb->root0 = NULL;
 	return s_pair;
@@ -217,7 +219,8 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
 	pcb->root0 = &s_pair;
 	{
 	  IK_ASS(IK_CAR(s_pair), ika_integer_from_int(pcb, CURLINFO_STRING));
-	  IK_ASS(IK_CDR(s_pair), ika_bytevector_from_cstring(pcb, result));
+	  IK_ASS(IK_CDR(s_pair),
+		 ((result)? ika_bytevector_from_cstring(pcb, result) : IK_FALSE));
 	}
 	pcb->root0 = NULL;
 	return s_pair;

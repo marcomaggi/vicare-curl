@@ -1262,23 +1262,25 @@
       (if (pair? rv)
 	  (let ((retval.type	(unsafe.car rv))
 		(retval.value	(unsafe.cdr rv)))
-	    (cond ((= info CURLINFO_CERTINFO)
-		   (values CURLE_OK
-			   (curl-certinfo.certinfo retval.value)))
-		  ((= info CURLINFO_PRIVATE)
-		   (values CURLE_OK retval.value))
-		  (else
-		   (case-integers retval.type
-		     ((CURLINFO_SLIST)
-		      (let ((rv (curl-slist->list retval.value)))
-			(curl-slist-free-all retval.value)
-			(values CURLE_OK rv)))
-		     ((CURLINFO_DOUBLE CURLINFO_LONG)
-		      (values CURLE_OK retval.value))
-		     ((CURLINFO_STRING)
-		      (values CURLE_OK (ascii->string retval.value)))
-		     (else
-		      (values CURLE_OK retval.value))))))
+	    (case-integers info
+	      ((CURLINFO_CERTINFO)
+	       (values CURLE_OK (and retval.value
+				     (curl-certinfo.certinfo retval.value))))
+	      ((CURLINFO_PRIVATE)
+	       (values CURLE_OK retval.value))
+	      (else
+	       (case-integers retval.type
+		 ((CURLINFO_SLIST)
+		  (values CURLE_OK (and retval.value
+					(let ((rv (curl-slist->list retval.value)))
+					  (curl-slist-free-all retval.value)
+					  rv))))
+		 ((CURLINFO_DOUBLE CURLINFO_LONG)
+		  (values CURLE_OK retval.value))
+		 ((CURLINFO_STRING)
+		  (values CURLE_OK (and retval.value (ascii->string retval.value))))
+		 (else
+		  (values CURLE_OK retval.value))))))
 	(values rv #f)))))
 
 ;;; --------------------------------------------------------------------
