@@ -773,22 +773,11 @@
   (%display "]"))
 
 (define (%unsafe.curl-formfree post)
+  (%guardian-destructor-debugging-log post curl-form-data-garbage-collection-log)
   (struct-destructor-application post
 				 $curl-form-data-destructor
 				 $set-curl-form-data-destructor!)
   (capi.curl-formfree post))
-
-;;; --------------------------------------------------------------------
-
-(define %curl-form-data-guardian
-  (make-guardian))
-
-(define (%curl-form-data-guardian-destructor)
-  (do ((P (%curl-form-data-guardian) (%curl-form-data-guardian)))
-      ((not P))
-    (%guardian-destructor-debugging-log P curl-form-data-garbage-collection-log)
-    (%unsafe.curl-formfree P)
-    (struct-reset P)))
 
 (define curl-form-data-garbage-collection-log
   (make-parameter #f
@@ -801,7 +790,7 @@
        (not (pointer-null? (curl-form-data-pointer obj)))))
 
 (define (%make-curl-form-data)
-  (%curl-form-data-guardian (make-curl-form-data (null-pointer) #f)))
+  (make-curl-form-data (null-pointer) #f))
 
 (define (%set-curl-form-data-destructor! struct destructor-func)
   (define who 'set-curl-form-data-destructor!)
@@ -1035,20 +1024,9 @@
   (%display "]"))
 
 (define (%unsafe.curl-share-cleanup share)
+  (%guardian-destructor-debugging-log share curl-share-garbage-collection-log)
   (struct-destructor-application share $curl-share-destructor $set-curl-share-destructor!)
   (capi.curl-share-cleanup share))
-
-;;; --------------------------------------------------------------------
-
-(define %curl-share-guardian
-  (make-guardian))
-
-(define (%curl-share-guardian-destructor)
-  (do ((P (%curl-share-guardian) (%curl-share-guardian)))
-      ((not P))
-    (%guardian-destructor-debugging-log P curl-share-garbage-collection-log)
-    (%unsafe.curl-share-cleanup P)
-    (struct-reset P)))
 
 (define curl-share-garbage-collection-log
   (make-parameter #f
@@ -1057,7 +1035,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-inline (%make-curl-share pointer)
-  (%curl-share-guardian (make-curl-share pointer #f)))
+  (make-curl-share pointer #f))
 
 (define (curl-share?/alive obj)
   (and (curl-share? obj)
@@ -1167,15 +1145,16 @@
 (define-syntax %make-curl-easy
   (syntax-rules (pointer owner?)
     ((_ (pointer ?pointer) (owner? ?owner?))
-     (%curl-easy-guardian (make-curl-easy ?pointer ?owner? #f)))
+     (make-curl-easy ?pointer ?owner? #f))
     ((_ ?pointer ?owner?)
-     (%curl-easy-guardian (make-curl-easy ?pointer ?owner? #f)))))
+     (make-curl-easy ?pointer ?owner? #f))))
 
 (define (curl-easy?/alive obj)
   (and (curl-easy? obj)
        (not (pointer-null? (curl-easy-pointer obj)))))
 
 (define (%unsafe.curl-easy-cleanup easy)
+  (%guardian-destructor-debugging-log easy curl-easy-garbage-collection-log)
   (struct-destructor-application easy $curl-easy-destructor $set-curl-easy-destructor!)
   (capi.curl-easy-cleanup easy))
 
@@ -1185,18 +1164,6 @@
       ((curl-easy	struct)
        (procedure/false	destructor-func))
     ($set-curl-easy-destructor! struct destructor-func)))
-
-;;; --------------------------------------------------------------------
-
-(define %curl-easy-guardian
-  (make-guardian))
-
-(define (%curl-easy-guardian-destructor)
-  (do ((P (%curl-easy-guardian) (%curl-easy-guardian)))
-      ((not P))
-    (%guardian-destructor-debugging-log P curl-easy-garbage-collection-log)
-    (%unsafe.curl-easy-cleanup P)
-    (struct-reset P)))
 
 (define curl-easy-garbage-collection-log
   (make-parameter #f
@@ -1426,15 +1393,16 @@
 (define-syntax %make-curl-multi
   (syntax-rules (pointer owner?)
     ((_ (pointer ?pointer) (owner? ?owner?))
-     (%curl-multi-guardian (make-curl-multi ?pointer ?owner? #f)))
+     (make-curl-multi ?pointer ?owner? #f))
     ((_ ?pointer ?owner?)
-     (%curl-multi-guardian (make-curl-multi ?pointer ?owner? #f)))))
+     (make-curl-multi ?pointer ?owner? #f))))
 
 (define (curl-multi?/alive obj)
   (and (curl-multi? obj)
        (not (pointer-null? (curl-multi-pointer obj)))))
 
 (define (%unsafe.curl-multi-cleanup multi)
+  (%guardian-destructor-debugging-log multi curl-multi-garbage-collection-log)
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
   #;(capi.curl-multi-cleanup multi))
 
@@ -1444,18 +1412,6 @@
       ((curl-multi	struct)
        (procedure/false	destructor-func))
     ($set-curl-multi-destructor! struct destructor-func)))
-
-;;; --------------------------------------------------------------------
-
-(define %curl-multi-guardian
-  (make-guardian))
-
-(define (%curl-multi-guardian-destructor)
-  (do ((P (%curl-multi-guardian) (%curl-multi-guardian)))
-      ((not P))
-    (%guardian-destructor-debugging-log P curl-multi-garbage-collection-log)
-    (%unsafe.curl-multi-cleanup P)
-    (struct-reset P)))
 
 (define curl-multi-garbage-collection-log
   (make-parameter #f
@@ -1970,11 +1926,10 @@
 (set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
 (set-rtd-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
 
-(post-gc-hooks (cons* %curl-form-data-guardian-destructor
-		      %curl-share-guardian-destructor
-		      %curl-easy-guardian-destructor
-		      %curl-multi-guardian-destructor
-		      (post-gc-hooks)))
+(set-rtd-destructor! (type-descriptor curl-form-data)	%unsafe.curl-formfree)
+(set-rtd-destructor! (type-descriptor curl-share)	%unsafe.curl-share-cleanup)
+(set-rtd-destructor! (type-descriptor curl-easy)	%unsafe.curl-easy-cleanup)
+(set-rtd-destructor! (type-descriptor curl-multi)	%unsafe.curl-multi-cleanup)
 
 )
 
