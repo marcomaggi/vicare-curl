@@ -725,7 +725,7 @@ return a @code{CURLE_} error code.  @curlman{curl_easy_perform}.
 
 
 @defun curl-easy-duphandle @var{easy}
-Clone an session handle; if successful return a new instance of
+Clone a session handle; if successful return a new instance of
 @code{curl-easy}, else return @false{}.  @curlman{curl_easy_duphandle}.
 @end defun
 
@@ -960,7 +960,7 @@ Else a @code{CURLE_} error code and @false{}.
 @code{memory-block}; it is the output buffer in which received data will
 be written.
 
-The optional @var{buffer.len} is used only when @code{buffer.data} is a
+The optional @var{buffer.len} is used only when @var{buffer.data} is a
 pointer object, in the other cases it is ignored; when used, it must be
 an exact integer, in the range of the C language type @code{size_t},
 representing the number of free bytes available in the output buffer.
@@ -983,11 +983,10 @@ Else a @code{CURLE_} error code and @false{}.
 @curlman{curl_easy_send}.
 
 @var{buffer.data} must be a string, bytevector, pointer object or
-@code{memory-block}; it is the input buffer in which received data will
-be written; the string is converted to a bytevector with
-@code{string->utf8}.
+@code{memory-block}; it is the input buffer from which sent data will be
+read; the string is converted to a bytevector with @code{string->utf8}.
 
-The optional @var{buffer.len} is used only when @code{buffer.data} is a
+The optional @var{buffer.len} is used only when @var{buffer.data} is a
 pointer object, in the other cases it is ignored; when used, it must be
 an exact integer, in the range of the C language type @code{size_t},
 representing the number of bytes available in the input buffer to be

@@ -106,6 +106,23 @@
 	 (curl-easy-cleanup easy)))
     => `(,(void) (123)))
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((easy  (curl-easy-init))
+	     (clone (curl-easy-duphandle easy)))
+  	(curl-easy-cleanup easy)
+	(curl-easy-cleanup clone))
+    => (void))
+
+  (check
+      (let* ((easy (curl-easy-init))
+	     (rv1  (curl-easy-pause easy CURLPAUSE_RECV))
+	     (rv2  (curl-easy-pause easy CURLPAUSE_RECV)))
+	(curl-easy-cleanup easy)
+	(list rv1 rv2))
+    => (list CURLE_OK CURLE_OK))
+
   (collect))
 
 

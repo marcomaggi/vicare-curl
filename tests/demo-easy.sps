@@ -124,12 +124,6 @@
   (collect))
 
 
-(parametrise ((check-test-name	'pause))
-
-
-  (collect))
-
-
 (parametrise ((check-test-name	'getinfo))
 
   (check	;CURLINFO_EFFECTIVE_URL, string return value
@@ -333,6 +327,47 @@
 	  (curl-easy-cleanup easy)
 	  (ffi.free-c-callback write-cb)
 	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  #t)
+
+
+(parametrise ((check-test-name	'raw-data))
+
+  (define (write-func buffer size nitems outstream)
+    (let ((nbytes (* size nitems)))
+;;;      (check-pretty-print (list 'enter size nitems nbytes))
+      (guard (E (else (check-pretty-print E) nbytes))
+	(fprintf (current-error-port) "Google's Home page:\n~a\n"
+		 (utf8->string (cstring->bytevector buffer nbytes))))
+;;;      (check-pretty-print (list 'leave size nitems nbytes))
+      nbytes))
+
+;;; --------------------------------------------------------------------
+
+  (check	;no redirection
+      (let ((easy	(curl-easy-init)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+	      (curl-easy-setopt easy CURLOPT_CONNECT_ONLY #t)
+	      (assert (= CURLE_OK (curl-easy-perform easy)))
+	      (let-values (((code sent)
+			    (curl-easy-send easy "GET index.html HTTP/1.1\r\n\r\n")))
+		#;(check-pretty-print (curl-easy-strerror code))
+		code)
+	      (let ((buffer (make-bytevector 4096)))
+		(let loop ()
+		  (let-values (((code recv)
+				(curl-easy-recv easy buffer)))
+		    (if (= code CURLE_AGAIN)
+			(loop)
+		      (begin
+			#;(check-pretty-print (ascii->string (subbytevector-u8 buffer 0 recv)))
+			#;(check-pretty-print (curl-easy-strerror code))
+			code))))))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)))
     => CURLE_OK)
 
   #t)

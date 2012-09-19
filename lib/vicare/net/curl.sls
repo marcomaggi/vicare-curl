@@ -758,7 +758,7 @@
 
 (define (curl-form-data?/filled obj)
   (and (curl-form-data? obj)
-       (not (pointer-null? (curl-form-data-pointer obj)))))
+       (not (pointer-null? ($curl-form-data-pointer obj)))))
 
 (define (%make-curl-form-data)
   (make-curl-form-data (null-pointer) #f))
