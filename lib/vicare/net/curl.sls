@@ -168,12 +168,7 @@
 
     ;; accessors for "struct CURLMsg"
     curl-msg.msg				curl-msg.easy_handle
-    curl-msg.data.whatever			curl-msg.data.result
-
-    ;; debugging
-    curl-easy-garbage-collection-log
-    curl-form-data-garbage-collection-log
-    curl-share-garbage-collection-log)
+    curl-msg.data.whatever			curl-msg.data.result)
   (import (vicare)
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi)
@@ -400,25 +395,6 @@
 	     (guard (E (else (void)))
 	       (destructor ?struct))
 	     (?mutator ?struct #f)))))))
-
-(define (%guardian-destructor-debugging-log struct-instance log-param)
-  (let ((obj (log-param)))
-    (define (%print port)
-      (fprintf port "Vicare/cURL: guardian finalising ~a\n" struct-instance))
-    (cond ((output-port? obj)
-	   (%print obj))
-	  ((procedure? obj)
-	   (guard (E (else (void)))
-	     (obj struct-instance)))
-	  (obj
-	   (%print (current-error-port))))))
-
-(define (%garbage-collector-debugging-log-validator obj)
-  (cond ((or (output-port? obj)
-	     (procedure? obj))
-	 obj)
-	(obj	#t)
-	(else	#f)))
 
 ;;; --------------------------------------------------------------------
 
@@ -773,15 +749,10 @@
   (%display "]"))
 
 (define (%unsafe.curl-formfree post)
-  (%guardian-destructor-debugging-log post curl-form-data-garbage-collection-log)
   (struct-destructor-application post
 				 $curl-form-data-destructor
 				 $set-curl-form-data-destructor!)
   (capi.curl-formfree post))
-
-(define curl-form-data-garbage-collection-log
-  (make-parameter #f
-    %garbage-collector-debugging-log-validator))
 
 ;;; --------------------------------------------------------------------
 
@@ -1024,13 +995,8 @@
   (%display "]"))
 
 (define (%unsafe.curl-share-cleanup share)
-  (%guardian-destructor-debugging-log share curl-share-garbage-collection-log)
   (struct-destructor-application share $curl-share-destructor $set-curl-share-destructor!)
   (capi.curl-share-cleanup share))
-
-(define curl-share-garbage-collection-log
-  (make-parameter #f
-    %garbage-collector-debugging-log-validator))
 
 ;;; --------------------------------------------------------------------
 
@@ -1154,7 +1120,6 @@
        (not (pointer-null? (curl-easy-pointer obj)))))
 
 (define (%unsafe.curl-easy-cleanup easy)
-  (%guardian-destructor-debugging-log easy curl-easy-garbage-collection-log)
   (struct-destructor-application easy $curl-easy-destructor $set-curl-easy-destructor!)
   (capi.curl-easy-cleanup easy))
 
@@ -1164,10 +1129,6 @@
       ((curl-easy	struct)
        (procedure/false	destructor-func))
     ($set-curl-easy-destructor! struct destructor-func)))
-
-(define curl-easy-garbage-collection-log
-  (make-parameter #f
-    %garbage-collector-debugging-log-validator))
 
 ;;; --------------------------------------------------------------------
 
@@ -1402,7 +1363,6 @@
        (not (pointer-null? (curl-multi-pointer obj)))))
 
 (define (%unsafe.curl-multi-cleanup multi)
-  (%guardian-destructor-debugging-log multi curl-multi-garbage-collection-log)
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
   #;(capi.curl-multi-cleanup multi))
 
@@ -1412,10 +1372,6 @@
       ((curl-multi	struct)
        (procedure/false	destructor-func))
     ($set-curl-multi-destructor! struct destructor-func)))
-
-(define curl-multi-garbage-collection-log
-  (make-parameter #f
-    %garbage-collector-debugging-log-validator))
 
 ;;; --------------------------------------------------------------------
 

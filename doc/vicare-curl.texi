@@ -242,7 +242,6 @@ to the @curl{}'s documentation for details.
 * plain shares::                Shared configuration option sets.
 * plain cstructs::              Accessing C language data structures.
 * plain misc::                  Miscellaneous functions.
-* plain debug::                 Debugging facilities.
 @end menu
 
 @c page
@@ -3164,86 +3163,6 @@ string.
 @result{} 784080000
 @end example
 @end defun
-
-@c page
-@node plain debug
-@section Debugging facilities
-
-
-The following bindings are exported by the library @library{vicare net
-curl}.
-
-
-@deffn Parameter curl-easy-garbage-collection-log
-Whenever an instance of @code{curl-easy} is garbage collected, it is
-handed to a dedicated guardian.  When this parameter is set to @false{}:
-nothing happens.  When this parameter is set to true, one of the
-following operations are performed:
-
-@itemize
-@item
-If the parameter's value is an output port: a line of text is displayed
-on such port describing the operation.
-
-@item
-If the parameter's value is a procedure: the procedure itself is applied
-to the @code{curl-easy} instance being finalised; the procedure should
-not mutate the structure in any way.
-
-@item
-If the parameter's value is any other true value: a line of text is
-displayed on the port returned by @func{current-error-port}, describing
-the operation.
-@end itemize
-@end deffn
-
-
-@deffn Parameter curl-form-data-garbage-collection-log
-Whenever an instance of @code{curl-form} is garbage collected, it is
-handed to a dedicated guardian.  When this parameter is set to @false{}:
-nothing happens.  When this parameter is set to true, one of the
-following operations are performed:
-
-@itemize
-@item
-If the parameter's value is an output port: a line of text is displayed
-on such port describing the operation.
-
-@item
-If the parameter's value is a procedure: the procedure itself is applied
-to the @code{curl-form} instance being finalised; the procedure should
-not mutate the structure in any way.
-
-@item
-If the parameter's value is any other true value: a line of text is
-displayed on the port returned by @func{current-error-port}, describing
-the operation.
-@end itemize
-@end deffn
-
-
-@deffn Parameter curl-share-garbage-collection-log
-Whenever an instance of @code{curl-share} is garbage collected, it is
-handed to a dedicated guardian.  When this parameter is set to @false{}:
-nothing happens.  When this parameter is set to true, one of the
-following operations are performed:
-
-@itemize
-@item
-If the parameter's value is an output port: a line of text is displayed
-on such port describing the operation.
-
-@item
-If the parameter's value is a procedure: the procedure itself is applied
-to the @code{curl-share} instance being finalised; the procedure should
-not mutate the structure in any way.
-
-@item
-If the parameter's value is any other true value: a line of text is
-displayed on the port returned by @func{current-error-port}, describing
-the operation.
-@end itemize
-@end deffn
 
 @c page
 @c ------------------------------------------------------------

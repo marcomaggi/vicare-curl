@@ -118,7 +118,7 @@
 
 
 (parametrise ((check-test-name				'formdata)
-	      (curl-form-data-garbage-collection-log	#f))
+	      (struct-guardian-logger			#f))
 
   (check
       (curl-formfree (make-curl-form-data))
@@ -272,8 +272,7 @@
 
 
 (parametrise ((check-test-name				'shares)
-	      (curl-share-garbage-collection-log	#f)
-	      (curl-easy-garbage-collection-log		#f))
+	      (struct-guardian-logger			#f))
 
   (check
       (let ((share (curl-share-init)))

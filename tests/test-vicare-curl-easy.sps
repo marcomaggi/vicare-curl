@@ -45,12 +45,12 @@
 
 
 (parametrise ((check-test-name			'init)
-	      (curl-easy-garbage-collection-log	#f))
+	      (struct-guardian-logger		#f))
 
-  (check	;create and collect with logging function
+  #;(check	;create and collect with logging function
       (with-result
        (collect)
-       (parametrise ((curl-easy-garbage-collection-log
+       (parametrise ((struct-guardian-logger
 		      (lambda (easy)
 			(add-result 1))))
 	 (curl-easy-init)
