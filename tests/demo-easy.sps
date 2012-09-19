@@ -345,7 +345,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;no redirection
+  (check	;into bytevector
       (let ((easy	(curl-easy-init)))
 	(unwind-protect
 	    (begin
@@ -364,6 +364,64 @@
 			(loop)
 		      (begin
 			#;(check-pretty-print (ascii->string (subbytevector-u8 buffer 0 recv)))
+			#;(check-pretty-print (curl-easy-strerror code))
+			code))))))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)))
+    => CURLE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check	;into malloc'ed buffer
+      (let ((easy	(curl-easy-init)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+	      (curl-easy-setopt easy CURLOPT_CONNECT_ONLY #t)
+	      (assert (= CURLE_OK (curl-easy-perform easy)))
+	      (let-values (((code sent)
+			    (curl-easy-send easy "GET index.html HTTP/1.1\r\n\r\n")))
+		#;(check-pretty-print (curl-easy-strerror code))
+		code)
+	      (let* ((buf.len 4096)
+		     (buf.ptr (guarded-malloc buf.len)))
+		(let loop ()
+		  (let-values (((code recv)
+				(curl-easy-recv easy buf.ptr buf.len)))
+		    (if (= code CURLE_AGAIN)
+			(loop)
+		      (begin
+			#;(check-pretty-print (cstring->string buf.ptr recv))
+			#;(check-pretty-print (curl-easy-strerror code))
+			code))))))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)))
+    => CURLE_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check	;into malloc'ed memory-block
+      (let ((easy	(curl-easy-init)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+	      (curl-easy-setopt easy CURLOPT_CONNECT_ONLY #t)
+	      (assert (= CURLE_OK (curl-easy-perform easy)))
+	      (let-values (((code sent)
+			    (curl-easy-send easy "GET index.html HTTP/1.1\r\n\r\n")))
+		#;(check-pretty-print (curl-easy-strerror code))
+		code)
+	      (let* ((buf.len 4096)
+		     (buf.ptr (guarded-malloc buf.len))
+		     (buf     (make-memory-block buf.ptr buf.len)))
+		(let loop ()
+		  (let-values (((code recv)
+				(curl-easy-recv easy buf)))
+		    (if (= code CURLE_AGAIN)
+			(loop)
+		      (begin
+			#;(check-pretty-print
+			 (cstring->string (memory-block-pointer buf) recv))
 			#;(check-pretty-print (curl-easy-strerror code))
 			code))))))
 	  ;;Close the connection before releasing the callbacks!!!
