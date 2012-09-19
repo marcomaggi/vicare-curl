@@ -1,4 +1,4 @@
-Subject: [announce] Vicare/cURL revision 0.1d1
+Subject: [announce] Vicare/cURL revision 0.1d2
 
 			      Vicare/cURL
 			      ===========
@@ -33,7 +33,13 @@ tested Libcurl version 7.27.0; the Libcurl library is available at:
 		     <http://curl.haxx.se/libcurl/>
 
 
-Notes for revision 0.1d0
+Notes for revision 0.1d2
+------------------------
+
+*
+
+
+Notes for revision 0.1d1
 ------------------------
 
 * All the functions are interfaced with the exception of the multi API.
