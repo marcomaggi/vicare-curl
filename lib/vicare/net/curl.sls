@@ -251,6 +251,15 @@
   (assertion-violation who
     "expected bytevector or pointer or memory-block as argument" obj))
 
+(define-argument-validation (general-buffer/false who obj)
+  (or (not obj)
+      (bytevector? obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected false or bytevector or pointer or memory-block as general buffer argument"
+    obj))
+
 ;;; --------------------------------------------------------------------
 
 (define-argument-validation (general-data who obj)
@@ -1499,29 +1508,49 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-fdset . args)
+(define (curl-multi-fdset multi read-fds write-fds exc-fds)
   (define who 'curl-multi-fdset)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi)
+       (general-buffer/false	read-fds)
+       (general-buffer/false	write-fds)
+       (general-buffer/false	exc-fds))
+    (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
+      (values (unsafe.car rv)
+	      (unsafe.cdr rv)))))
 
-(define (curl-multi-socket . args)
+(define curl-multi-socket-action
+  (case-lambda
+   ((multi sock-fd)
+    (curl-multi-socket-action multi sock-fd 0))
+   ((multi sock-fd ev-bitmask)
+    (define who 'curl-multi-socket-action)
+    (with-arguments-validation (who)
+	((curl-multi/alive	multi)
+	 (file-descriptor	sock-fd)
+	 (signed-int		ev-bitmask))
+      (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
+	(values (unsafe.car rv)
+		(unsafe.cdr rv)))))))
+
+(define (curl-multi-socket multi sock-fd)
+  ;;This is deprecated.
+  ;;
   (define who 'curl-multi-socket)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi)
+       (file-descriptor		sock-fd))
+    (let ((rv (capi.curl-multi-socket multi sock-fd)))
+      (values (unsafe.car rv)
+	      (unsafe.cdr rv)))))
 
-(define (curl-multi-socket-action . args)
-  (define who 'curl-multi-socket-action)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-socket-all . args)
+(define (curl-multi-socket-all multi)
+  ;;This is deprecated.
+  ;;
   (define who 'curl-multi-socket-all)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi))
+    (capi.curl-multi-socket-all multi)))
 
 ;;; --------------------------------------------------------------------
 

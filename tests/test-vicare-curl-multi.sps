@@ -214,6 +214,15 @@
 	(curl-multi-assign multi 0 #f))
     => CURLM_BAD_SOCKET)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(let-values (((code fd-max)
+		      (curl-multi-fdset multi #f #f #f)))
+	  (cons code fd-max)))
+    => `(,CURLM_OK . -1))
+
   #t)
 
 

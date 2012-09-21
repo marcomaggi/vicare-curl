@@ -428,20 +428,22 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-fdset)
-  (foreign-call "ikrt_curl_multi_fdset"))
+(define-inline (curl-multi-fdset multi read-fds write-fds exc-fds)
+  (foreign-call "ikrt_curl_multi_fdset" multi read-fds write-fds exc-fds))
 
-(define-inline (curl-multi-socket)
-  (foreign-call "ikrt_curl_multi_socket"))
-
-(define-inline (curl-multi-socket-action)
-  (foreign-call "ikrt_curl_multi_socket_action"))
-
-(define-inline (curl-multi-socket-all)
-  (foreign-call "ikrt_curl_multi_socket_all"))
+(define-inline (curl-multi-socket-action multi sock-fd ev-bitmask)
+  (foreign-call "ikrt_curl_multi_socket_action" multi sock-fd ev-bitmask))
 
 (define-inline (curl-multi-timeout multi)
   (foreign-call "ikrt_curl_multi_timeout" multi))
+
+;;;This is deprecated.
+(define-inline (curl-multi-socket multi sock-fd)
+  (foreign-call "ikrt_curl_multi_socket" multi sock-fd))
+
+;;;This is deprecated.
+(define-inline (curl-multi-socket-all multi)
+  (foreign-call "ikrt_curl_multi_socket_all" multi))
 
 ;;; --------------------------------------------------------------------
 

@@ -1414,6 +1414,56 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
+@defun curl-multi-fdset @var{multi} @var{read-fds} @var{write-fds} @var{exc-fds}
+Extract file descriptor informations from a multi handle; return
+@math{2} values:
+
+@enumerate
+@item
+If successful @code{CURLM_OK}, else a @code{CURLM_} error code.
+
+@item
+An exact integer representing the maximum socket descriptor set in the
+@code{fd_set} structures; this value is @code{-1} if no socket
+descriptors are set.
+@end enumerate
+
+@curlman{curl_multi_fdset}.
+
+@var{read-fds}, @var{write-fds}, @var{exc-fds} must be @false{} or
+bytevectors, pointer objects or @code{memory-block} holding or
+referencing C language structures of type @code{fd_set}, ready to
+receive socket descriptors registration; when @false{} an empty
+@code{fd_set} is internally allocated and used.
+@end defun
+
+
+@defun curl-multi-socket-action @var{multi} @var{sock-fd}
+@defunx curl-multi-socket-action @var{multi} @var{sock-fd} @var{ev-bitmask}
+Perform the pending actions for the socket descriptor @var{sock-fd};
+return @math{2} values:
+
+@enumerate
+@item
+If successful @code{CURLM_OK}, else a @code{CURLM_} error code.
+
+@item
+An exact integer representing the number of running handles.
+@end enumerate
+
+@curlman{curl_multi_socket_action}.
+
+@var{sock-fd} must be a non--negative fixnum representing a socket
+descriptor in the context of @var{multi}.
+
+The optional @var{ev-bitmask} must be the fixnum zero or a bitwise
+inclusive OR combination of the following constants:
+@code{CURL_CSELECT_IN}, @code{CURL_CSELECT_OUT},
+@code{CURL_CSELECT_ERR}; when not given: @var{ev-bitmask} defaults to
+zero.
+@end defun
+
+
 @defun curl-multi-timeout @var{multi}
 Query the multi handle for how many milliseconds to wait for socket
 actions; if successful return @math{2} values:
@@ -1443,6 +1493,16 @@ descriptor.
 
 @var{custom-data} must be @false{} or a pointer object; @false{} is
 internally converted to a @cnull{} pointer.
+@end defun
+
+
+@defun curl-multi-socket @var{multi} @var{sock-fd}
+This function is deprecated.  @curlman{curl_multi_socket}.
+@end defun
+
+
+@defun curl-multi-socket-all @var{multi}
+This function is deprecated.  @curlman{curl_multi_socket_all}.
 @end defun
 
 @c page

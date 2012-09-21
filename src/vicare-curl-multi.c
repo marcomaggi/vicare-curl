@@ -54,7 +54,14 @@ ikrt_curl_multi_cleanup (ikptr s_multi, ikpcb * pcb)
   CURLM *	multi		= IK_POINTER_DATA_VOIDP(s_pointer);
   CURLMcode	rv;
   if (multi) {
-    rv = curl_multi_cleanup(multi);
+    {
+      ikptr	sk;
+      sk = ik_enter_c_function(pcb);
+      {
+	rv = curl_multi_cleanup(multi);
+      }
+      ik_leave_c_function(pcb, sk);
+    }
     IK_POINTER_SET_NULL(s_pointer);
     return ika_integer_from_curlcode(pcb, rv);
   } else
@@ -76,7 +83,14 @@ ikrt_curl_multi_add_handle (ikptr s_multi, ikptr s_easy, ikpcb * pcb)
   CURLM *	multi	= IK_CURL_MULTI(s_multi);
   CURL *	easy	= IK_CURL_MULTI(s_easy);
   CURLMcode	rv;
-  rv = curl_multi_add_handle(multi, easy);
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_add_handle(multi, easy);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -89,7 +103,14 @@ ikrt_curl_multi_remove_handle (ikptr s_multi, ikptr s_easy, ikpcb * pcb)
   CURLM *	multi	= IK_CURL_MULTI(s_multi);
   CURL *	easy	= IK_CURL_MULTI(s_easy);
   CURLMcode	rv;
-  rv = curl_multi_remove_handle(multi, easy);
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_remove_handle(multi, easy);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -135,7 +156,7 @@ ikrt_curl_multi_perform (ikptr s_multi, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_PERFORM
   CURLM *	multi	= IK_CURL_MULTI(s_multi);
-  int		running_handles;
+  int		running_handles = 0;
   CURLMcode	rv;
   {
     ikptr	sk;
@@ -166,6 +187,92 @@ ikrt_curl_multi_perform (ikptr s_multi, ikpcb * pcb)
  ** ----------------------------------------------------------------- */
 
 ikptr
+ikrt_curl_multi_fdset (ikptr s_multi,
+		       ikptr s_read_fds, ikptr s_write_fds, ikptr s_exc_fds,
+		       ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_FDSET
+  CURLM *	multi		= IK_CURL_MULTI(s_multi);
+  fd_set *	read_fds	= \
+    IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK_OR_FALSE(s_read_fds);
+  fd_set *	write_fds	= \
+    IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK_OR_FALSE(s_write_fds);
+  fd_set *	exc_fds		= \
+    IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK_OR_FALSE(s_exc_fds);
+  fd_set	empty_read_fds;
+  fd_set	empty_write_fds;
+  fd_set	empty_exc_fds;
+  int		max_fd = -1;
+  CURLMcode	rv;
+  if (NULL == read_fds) {
+    read_fds = &empty_read_fds;
+    FD_ZERO(read_fds);
+  }
+  if (NULL == write_fds) {
+    write_fds = &empty_write_fds;
+    FD_ZERO(write_fds);
+  }
+  if (NULL == exc_fds) {
+    exc_fds = &empty_exc_fds;
+    FD_ZERO(exc_fds);
+  }
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_fdset(multi, read_fds, write_fds, exc_fds, &max_fd);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
+  {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, max_fd));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  }
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_socket_action (ikptr s_multi, ikptr s_sock_fd, ikptr s_ev_bitmask, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SOCKET_ACTION
+  CURLM *	multi		= IK_CURL_MULTI(s_multi);
+  int		sock_fd		= IK_UNFIX(s_sock_fd);
+  int		ev_bitmask	= ik_integer_to_int(s_ev_bitmask);
+  int		running_handles = 0;
+  CURLMcode	rv;
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_socket_action(multi, sock_fd, ev_bitmask, &running_handles);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
+  {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, running_handles));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  }
+#else
+  feature_failure(__func__);
+#endif
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
 ikrt_curl_multi_timeout (ikptr s_multi, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_TIMEOUT
@@ -184,6 +291,23 @@ ikrt_curl_multi_timeout (ikptr s_multi, ikpcb * pcb)
     return s_pair;
   } else
     return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_multi_assign (ikptr s_multi, ikptr s_fd, ikptr s_custom_data, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_ASSIGN
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		fd	= IK_UNFIX(s_fd);
+  void *	data	= IK_VOIDP_FROM_POINTER_OR_FALSE(s_custom_data);
+  CURLMcode	rv;
+  rv = curl_multi_assign(multi, fd, data);
+  return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
 #endif
@@ -217,20 +341,6 @@ ikrt_curl_multi_info_read (ikptr s_multi, ikpcb * pcb)
 #endif
 }
 ikptr
-ikrt_curl_multi_assign (ikptr s_multi, ikptr s_fd, ikptr s_custom_data, ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_ASSIGN
-  CURLM *	multi	= IK_CURL_MULTI(s_multi);
-  int		fd	= IK_UNFIX(s_fd);
-  void *	data	= IK_VOIDP_FROM_POINTER_OR_FALSE(s_custom_data);
-  CURLMcode	rv;
-  rv = curl_multi_assign(multi, fd, data);
-  return ika_integer_from_curlcode(pcb, rv);
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
 ikrt_curl_multi_strerror (ikptr s_code, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_STRERROR
@@ -245,46 +355,68 @@ ikrt_curl_multi_strerror (ikptr s_code, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
- ** Still to be interfaced.
+ ** Multi API: deprecated functions.
  ** ----------------------------------------------------------------- */
 
-#if 0
 ikptr
-ikrt_curl_multi_fdset (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_FDSET
-  curl_multi_fdset();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_socket (ikpcb * pcb)
+ikrt_curl_multi_socket (ikptr s_multi, ikptr s_sock_fd, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_SOCKET
-  curl_multi_socket();
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		sock	= IK_UNFIX(s_sock_fd);
+  int		running_handles = 0;
+  CURLMcode	rv;
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_socket(multi, sock, &running_handles);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
+  {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, running_handles));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  }
 #else
   feature_failure(__func__);
 #endif
 }
 ikptr
-ikrt_curl_multi_socket_action (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_SOCKET_ACTION
-  curl_multi_socket_action();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_socket_all (ikpcb * pcb)
+ikrt_curl_multi_socket_all (ikptr s_multi, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_SOCKET_ALL
-  curl_multi_socket_all();
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		running_handles = 0;
+  CURLMcode	rv;
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_socket_all(multi, &running_handles);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
+  {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, running_handles));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  }
 #else
   feature_failure(__func__);
 #endif
 }
-#endif
+
 
 /* end of file */
