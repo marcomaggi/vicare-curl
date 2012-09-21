@@ -1067,6 +1067,10 @@ error code; if @var{code} is invalid, return @false{}.
 @menu
 * plain multi struct::          Multi operations handle.
 * plain multi init::            Multi initialisation and finalisation.
+* plain multi easy::            Adding and removing easy handles.
+* plain multi config::          Selecting options for multi operations.
+* plain multi misc::            Miscellaneous functions for multi
+                                handles.
 @end menu
 
 @c page
@@ -1090,7 +1094,8 @@ documentation identifies them as @var{multi}.
 Instances of this type must be finalised with @func{curl-multi-cleanup};
 whenever an instance of this type is garbage collected:
 @func{curl-multi-cleanup} is automatically applied to it and any error
-ignored.
+ignored.  Before the finalisation takes palce: all the easy handles are
+removed from the context of @var{multi}.
 
 In certain contexts, instances of this type own the referenced
 @code{CURLM} value, in other contexts they do not:
@@ -1176,6 +1181,186 @@ subsequent times nothing happens.
 If this function is applied to a @var{multi} value not owning the
 underlying @code{CURLM} value: @var{multi} is finalised, but the
 @code{CURLM} value is left alone.
+
+Before the finalisation takes palce: this function removes all the easy
+handles from the context of @var{multi}.
+@end defun
+
+@c page
+@node plain multi easy
+@subsection Adding and removing easy handles
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-add-handle @var{multi} @var{easy}
+Add @var{easy} to the context of @var{multi}; if successful return
+@code{CURLM_OK}, else return a @code{CURLM_} error code.
+@curlman{curl_multi_add_handle}.
+@end defun
+
+
+@defun curl-multi-remove-handle @var{multi} @var{easy}
+Remove @var{easy} from the context of @var{multi}; if successful return
+@code{CURLM_OK}, else return a @code{CURLM_} error code.
+@curlman{curl_multi_remove_handle}.
+
+Notice that easy handles are automatically removed from a multi handle
+whenever the multi handle is finalised, either explicitly with a call to
+@func{curl-multi-cleanup} or implicitly by the garbage collector.
+@end defun
+
+
+@defun curl-multi-easies @var{multi}
+Return a vector holding the easy handles registered in @var{multi}.
+@end defun
+
+
+Here is a meaningless example of adding and removing:
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(let* ((multi (curl-multi-init))
+       (easy1 (curl-easy-init))
+       (easy2 (curl-easy-init))
+       (easy3 (curl-easy-init)))
+
+  (curl-multi-add-handle multi easy1)   @result{} CURLM_OK
+  (curl-multi-add-handle multi easy2)   @result{} CURLM_OK
+  (curl-multi-add-handle multi easy3)   @result{} CURLM_OK
+
+  (curl-multi-remove-handle multi easy1)   @result{} CURLM_OK
+  (curl-multi-remove-handle multi easy2)   @result{} CURLM_OK
+  (curl-multi-remove-handle multi easy3)   @result{} CURLM_OK
+
+  (curl-easy-cleanup easy1)
+  (curl-easy-cleanup easy2)
+  (curl-easy-cleanup easy3)
+
+  (curl-multi-cleanup multi))   @result{} CURLM_OK
+@end example
+
+@c page
+@node plain multi config
+@subsection Selecting options for multi operations
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-setopt @var{multi} @var{option} @var{parameter}
+Set an option for the @var{multi} handle; if successful return
+@code{CURLM_OK}, if @var{option} is invalid return @false{}, else return
+a @code{CURLM_} error code.  @curlman{curl_multi_setopt}.
+
+@var{option} must be an exact integer representing one of the
+@code{CURLMOPT_} constants.
+
+The type of @var{parameter} depends upon the selected @var{option}
+value; it can be one among:
+
+@itemize
+@item
+An exact integer representing a C language type @code{long} or
+@code{off_t}.  Whenever a @code{long} is expected: @true{} and @false{}
+are also accepted and converted to @code{1} and @code{0}.
+
+@item
+A pointer object referencing a callback function.  When a callback
+pointer is expected: @false{} is also accepted and converted to a
+@cnull{} pointer.
+
+@item
+A string, @ascii{} bytevector, pointer object or @code{memory-block}
+referencing some data.
+@end itemize
+@end defun
+
+
+Here are meaningless examples of setting options:
+
+@example
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(define multi
+  (curl-multi-init)
+
+(define socket-cb
+  (make-curl-socket-callback
+    (lambda (handle sock what callback-custom-data
+             socket-custom-data)
+      0)))
+
+(define timer-cb
+  (make-curl-multi-timer-callback
+    (lambda (multi timeout-ms custom-data)
+      0)))
+
+(curl-multi-setopt multi CURLMOPT_SOCKETFUNCTION cb)
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_SOCKETDATA #f)
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_PIPELINING #t)
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_PIPELINING #f)
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_TIMERFUNCTION cb))
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_TIMERDATA #f)
+@result{} CURLM_OK
+
+(curl-multi-setopt multi CURLMOPT_MAXCONNECTS 123)
+@result{} CURLM_OK
+@end example
+
+@c page
+@node plain multi misc
+@subsection Miscellaneous functions for multi handles
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-info-read @var{multi}
+Retrieve the next informative message if any; return @math{2} values:
+
+@enumerate
+@item
+@false{} or a pointer object referencing the next message from the queue
+of messages as an instance of @code{CURLMsg}.  If this value is @false{}
+it means that no messages are present.
+
+@item
+An exact integer representing the number of messages from the queue.
+@end enumerate
+
+@curlman{curl_multi_info_read}.
+
+We can access the fields of a @code{CURLMsg} structure with the
+@code{curl-msg} functions; @ref{plain cstructs msg} for details.
+@end defun
+
+
+@defun curl-multi-strerror @var{code}
+Return @false{} or a string describing the @var{code} @code{CURLM_}
+constant, which must be of type @code{CURLMcode}; @false{} is returned
+if no message is available.  @curlman{curl_multi_strerror}.
 @end defun
 
 @c page

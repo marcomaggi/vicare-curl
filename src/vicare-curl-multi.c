@@ -66,28 +66,111 @@ ikrt_curl_multi_cleanup (ikptr s_multi, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Multi API: adding and removing easy handles.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_multi_add_handle (ikptr s_multi, ikptr s_easy, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_ADD_HANDLE
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  CURL *	easy	= IK_CURL_MULTI(s_easy);
+  CURLMcode	rv;
+  rv = curl_multi_add_handle(multi, easy);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_remove_handle (ikptr s_multi, ikptr s_easy, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_REMOVE_HANDLE
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  CURL *	easy	= IK_CURL_MULTI(s_easy);
+  CURLMcode	rv;
+  rv = curl_multi_remove_handle(multi, easy);
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
+ ** Multi API: setting options.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_multi_setopt (ikptr s_multi, ikptr s_option, ikptr s_parameter, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_SETOPT
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  CURLMoption	option	= ik_integer_to_int(s_option);
+  CURLMcode	rv;
+  if (CURLOPTTYPE_OFF_T <= option)		/* off_t value */
+    rv = curl_multi_setopt(multi, option, ik_integer_to_off_t(s_parameter));
+  else if (CURLOPTTYPE_FUNCTIONPOINT <= option)	/* callback function */
+    rv = curl_multi_setopt(multi, option, IK_VOIDP_FROM_POINTER_OR_FALSE(s_parameter));
+  else if (CURLOPTTYPE_OBJECTPOINT <= option) {	/* data pointer */
+    void *	parm = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK_OR_FALSE(s_parameter);
+    rv = curl_multi_setopt(multi, option, parm);
+  } else if (CURLOPTTYPE_LONG <= option) 	/* long value */
+    rv = curl_multi_setopt(multi, option, ik_integer_to_long(s_parameter));
+  else
+    return IK_FALSE;
+  return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
+ ** Multi API: miscellaneous functions.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_multi_info_read (ikptr s_multi, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_INFO_READ
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		number_of_messages_in_queue;
+  CURLMsg *	next_msg;
+  ikptr		s_pair;
+  next_msg = curl_multi_info_read(multi, &number_of_messages_in_queue);
+  s_pair = ika_pair_alloc(pcb);
+  pcb->root0 = &s_pair;
+  {
+    IK_ASS(IK_CAR(s_pair),
+	   ((next_msg)? ika_pointer_alloc(pcb, (ik_ulong)next_msg) : IK_FALSE));
+    IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, number_of_messages_in_queue));
+  }
+  pcb->root0 = NULL;
+  return s_pair;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_strerror (ikptr s_code, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_STRERROR
+  CURLMcode	code = ik_integer_to_int(s_code);
+  const char *	rv;
+  rv = curl_multi_strerror(code);
+  return (rv)? ika_bytevector_from_cstring(pcb, rv) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Still to be interfaced.
  ** ----------------------------------------------------------------- */
 
 #if 0
-ikptr
-ikrt_curl_multi_add_handle (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_ADD_HANDLE
-  curl_multi_add_handle();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_remove_handle (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_REMOVE_HANDLE
-  curl_multi_remove_handle();
-#else
-  feature_failure(__func__);
-#endif
-}
 ikptr
 ikrt_curl_multi_fdset (ikpcb * pcb)
 {
@@ -102,24 +185,6 @@ ikrt_curl_multi_perform (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_PERFORM
   curl_multi_perform();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_info_read (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_INFO_READ
-  curl_multi_info_read();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_strerror (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_STRERROR
-  curl_multi_strerror();
 #else
   feature_failure(__func__);
 #endif
@@ -156,15 +221,6 @@ ikrt_curl_multi_timeout (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_TIMEOUT
   curl_multi_timeout();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_setopt (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_SETOPT
-  curl_multi_setopt();
 #else
   feature_failure(__func__);
 #endif

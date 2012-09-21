@@ -415,19 +415,16 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-add-handle)
-  (foreign-call "ikrt_curl_multi_add_handle"))
+(define-inline (curl-multi-add-handle multi easy)
+  (foreign-call "ikrt_curl_multi_add_handle" multi easy))
 
-(define-inline (curl-multi-remove-handle)
-  (foreign-call "ikrt_curl_multi_remove_handle"))
+(define-inline (curl-multi-remove-handle multi easy)
+  (foreign-call "ikrt_curl_multi_remove_handle" multi easy))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-setopt)
-  (foreign-call "ikrt_curl_multi_setopt"))
-
-(define-inline (curl-multi-info-read)
-  (foreign-call "ikrt_curl_multi_info_read"))
+(define-inline (curl-multi-setopt multi option parameter)
+  (foreign-call "ikrt_curl_multi_setopt" multi option parameter))
 
 ;;; --------------------------------------------------------------------
 
@@ -458,8 +455,11 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-strerror)
-  (foreign-call "ikrt_curl_multi_strerror"))
+(define-inline (curl-multi-info-read multi)
+  (foreign-call "ikrt_curl_multi_info_read" multi))
+
+(define-inline (curl-multi-strerror code)
+  (foreign-call "ikrt_curl_multi_strerror" code))
 
 
 ;;;; done

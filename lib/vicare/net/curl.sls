@@ -104,6 +104,7 @@
     ;; multi API
     curl-multi-init				curl-multi-cleanup
     curl-multi-add-handle			curl-multi-remove-handle
+    (rename (%curl-multi-easies curl-multi-easies))
     curl-multi-setopt				curl-multi-fdset
     curl-multi-perform				curl-multi-info-read
     curl-multi-socket				curl-multi-socket-action
@@ -1361,6 +1362,8 @@
 		;False or a user-supplied function to be called whenever
 		;this instance  is finalised.  The function  must accept
 		;at least one argument being the data structure itself.
+   easies
+		;Hash table of "curl-easy" instances.
    ))
 
 (define (%struct-curl-multi-printer S port sub-printer)
@@ -1378,16 +1381,21 @@
 (define-syntax %make-curl-multi
   (syntax-rules (pointer owner?)
     ((_ (pointer ?pointer) (owner? ?owner?))
-     (make-curl-multi ?pointer ?owner? #f))
+     (make-curl-multi ?pointer ?owner? #f (make-eq-hashtable)))
     ((_ ?pointer ?owner?)
-     (make-curl-multi ?pointer ?owner? #f))))
+     (make-curl-multi ?pointer ?owner? #f (make-eq-hashtable)))))
 
 (define (curl-multi?/alive obj)
   (and (curl-multi? obj)
-       (not (pointer-null? (curl-multi-pointer obj)))))
+       (not (pointer-null? ($curl-multi-pointer obj)))))
 
 (define (%unsafe.curl-multi-cleanup multi)
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
+  (let ((easies ($curl-multi-easies multi)))
+    (vector-for-each (lambda (easy)
+		       (capi.curl-multi-remove-handle multi easy)
+		       (hashtable-delete! easies easy))
+      (hashtable-keys easies)))
   (capi.curl-multi-cleanup multi))
 
 (define (%set-curl-multi-destructor! struct destructor-func)
@@ -1413,17 +1421,72 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-add-handle . args)
+(define (curl-multi-add-handle multi easy)
   (define who 'curl-multi-add-handle)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi)
+       (curl-easy		easy))
+    (let ((easies ($curl-multi-easies multi)))
+      (if (hashtable-contains? easies easy)
+	  CURLM_OK
+	(let ((rv (capi.curl-multi-add-handle multi easy)))
+	  (when (= rv CURLM_OK)
+	    (hashtable-set! easies easy easy))
+	  rv)))))
 
-(define (curl-multi-remove-handle . args)
+(define (curl-multi-remove-handle multi easy)
   (define who 'curl-multi-remove-handle)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi)
+       (curl-easy		easy))
+    (let ((easies ($curl-multi-easies multi)))
+      (if (hashtable-contains? easies easy)
+	  (let ((rv (capi.curl-multi-remove-handle multi easy)))
+	    (when (= rv CURLM_OK)
+	      (hashtable-delete! easies easy)
+	      rv))
+	CURLM_OK))))
+
+(define (%curl-multi-easies multi)
+  ;;This function  name is prefixed  with %  to avoid conflict  with the
+  ;;accessor for the "easies" field of the CURL-MULTI data structure.
+  ;;
+  (define who 'curl-multi-easies)
+  (with-arguments-validation (who)
+      ((curl-multi/alive	multi))
+    (hashtable-keys ($curl-multi-easies multi))))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-multi-setopt multi option parameter)
+  (define who 'curl-multi-setopt)
+  (with-arguments-validation (who)
+      ((curl-multi/alive	multi)
+       (signed-int		option))
+    (cond ((<= CURLOPTTYPE_OFF_T option)
+	   (with-arguments-validation (who)
+	       ((off_t	parameter))
+	     (capi.curl-multi-setopt multi option parameter)))
+	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
+	   (with-arguments-validation (who)
+	       ((callback	parameter))
+	     (capi.curl-multi-setopt multi option parameter)))
+	  ((<= CURLOPTTYPE_OBJECTPOINT option)
+	   (with-arguments-validation (who)
+	       ((general-string/false	parameter))
+	     (with-general-strings/false ((parameter^ parameter))
+		 string->utf8
+	       (capi.curl-multi-setopt multi option parameter^))))
+	  ((<= CURLOPTTYPE_LONG option)
+	   (if (boolean? parameter)
+	       (capi.curl-multi-setopt multi option (if parameter 1 0))
+	     (with-arguments-validation (who)
+		 ((signed-long	parameter))
+	       (capi.curl-multi-setopt multi option parameter))))
+	  (else
+	   (assertion-violation who
+	     "invalid parameter type for selected option"
+	     multi option parameter)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1432,22 +1495,6 @@
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
-
-;;; --------------------------------------------------------------------
-
-(define (curl-multi-setopt . args)
-  (define who 'curl-multi-setopt)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-(define (curl-multi-info-read . args)
-  (define who 'curl-multi-info-read)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
-
-;;; --------------------------------------------------------------------
 
 (define (curl-multi-socket . args)
   (define who 'curl-multi-socket)
@@ -1491,11 +1538,19 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-strerror . args)
+(define (curl-multi-info-read multi)
+  (define who 'curl-multi-info-read)
+  (with-arguments-validation (who)
+      ((curl-multi/alive	multi))
+    (let ((rv (capi.curl-multi-info-read multi)))
+      (values (unsafe.car rv) (unsafe.cdr rv)))))
+
+(define (curl-multi-strerror code)
   (define who 'curl-multi-strerror)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((signed-int	code))
+    (let ((rv (capi.curl-multi-strerror code)))
+      (and rv (ascii->string rv)))))
 
 
 ;;;; miscellaneous functions

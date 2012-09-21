@@ -38,6 +38,7 @@
 (check-display "*** testing Vicare Libcurl bindings, multi API\n")
 
 (assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+#;(struct-guardian-logger #t)
 
 
 ;;;; helpers
@@ -86,6 +87,133 @@
     => `(,CURLM_OK (123)))
 
   (collect))
+
+
+(parametrise ((check-test-name	'add-remove))
+
+  (check
+      (let* ((multi (curl-multi-init))
+	     (easy  (curl-easy-init)))
+	(let* ((rv1 (curl-multi-add-handle multi easy))
+	       (rv2 (curl-multi-remove-handle multi easy))
+	       (rv3 (curl-multi-cleanup multi)))
+	  (list rv1 rv2 rv3)))
+    => `(,CURLM_OK ,CURLM_OK ,CURLM_OK))
+
+  (check
+      (let* ((multi (curl-multi-init))
+	     (easy1 (curl-easy-init))
+	     (easy2 (curl-easy-init))
+	     (easy3 (curl-easy-init)))
+	(let* ((rv1 (curl-multi-add-handle multi easy1))
+	       (rv2 (curl-multi-add-handle multi easy2))
+	       (rv3 (curl-multi-add-handle multi easy3))
+	       (rv4 (curl-multi-remove-handle multi easy1))
+	       (rv5 (curl-multi-remove-handle multi easy2))
+	       (rv6 (curl-multi-remove-handle multi easy3))
+	       (rv7 (curl-multi-cleanup multi)))
+	  (curl-easy-cleanup easy1)
+	  (curl-easy-cleanup easy2)
+	  (curl-easy-cleanup easy3)
+	  (list rv1 rv2 rv3 rv4 rv5 rv6 rv7)))
+    => `(,CURLM_OK ,CURLM_OK ,CURLM_OK  ,CURLM_OK ,CURLM_OK ,CURLM_OK  ,CURLM_OK))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((multi (curl-multi-init))
+	     (easy  (curl-easy-init)))
+	(curl-multi-add-handle multi easy))
+    => CURLM_OK)
+
+  (check
+      (let* ((multi (curl-multi-init))
+	     (easy1 (curl-easy-init))
+	     (easy2 (curl-easy-init))
+	     (easy3 (curl-easy-init)))
+	(curl-multi-add-handle multi easy1)
+	(curl-multi-add-handle multi easy2)
+	(curl-multi-add-handle multi easy3))
+    => CURLM_OK)
+
+  (check
+      (let* ((multi (curl-multi-init))
+	     (easy1 (curl-easy-init))
+	     (easy2 (curl-easy-init))
+	     (easy3 (curl-easy-init)))
+	(curl-multi-add-handle multi easy1)
+	(curl-multi-add-handle multi easy2)
+	(curl-multi-add-handle multi easy3)
+	(vector-length (curl-multi-easies multi)))
+    => 3)
+
+;;; --------------------------------------------------------------------
+
+  (collect))
+
+
+(parametrise ((check-test-name	'setopt))
+
+  (check
+      (let ((multi (curl-multi-init))
+	    (cb    (make-curl-socket-callback
+		    (lambda (handle sock what callback-custom-data socket-custom-data)
+		      0))))
+	(let* ((rv1 (curl-multi-setopt multi CURLMOPT_SOCKETFUNCTION cb))
+	       (rv2 (curl-multi-setopt multi CURLMOPT_SOCKETDATA #f)))
+	  (list rv1 rv2)))
+    => `(,CURLM_OK ,CURLM_OK))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(curl-multi-setopt multi CURLMOPT_PIPELINING #t))
+    => CURLM_OK)
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(curl-multi-setopt multi CURLMOPT_PIPELINING #f))
+    => CURLM_OK)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((multi (curl-multi-init))
+	    (cb    (make-curl-multi-timer-callback
+		    (lambda (multi timeout-ms custom-data)
+		      0))))
+	(let* ((rv1 (curl-multi-setopt multi CURLMOPT_TIMERFUNCTION cb))
+	       (rv2 (curl-multi-setopt multi CURLMOPT_TIMERDATA #f)))
+	  (list rv1 rv2)))
+    => `(,CURLM_OK ,CURLM_OK))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(curl-multi-setopt multi CURLMOPT_MAXCONNECTS 123))
+    => CURLM_OK)
+
+  (collect))
+
+
+(parametrise ((check-test-name	'misc))
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(let-values (((next num)
+		      (curl-multi-info-read multi)))
+	  (cons next num)))
+    => '(#f . 0))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (curl-multi-strerror CURLM_OK)
+    => "No error")
+
+  #t)
 
 
 ;;;; done
