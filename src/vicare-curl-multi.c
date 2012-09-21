@@ -127,6 +127,41 @@ ikrt_curl_multi_setopt (ikptr s_multi, ikptr s_option, ikptr s_parameter, ikpcb 
 
 
 /** --------------------------------------------------------------------
+ ** Multi API: performing.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_multi_perform (ikptr s_multi, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_PERFORM
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		running_handles;
+  CURLMcode	rv;
+  {
+    ikptr	sk;
+    sk = ik_enter_c_function(pcb);
+    {
+      rv = curl_multi_perform(multi, &running_handles);
+    }
+    ik_leave_c_function(pcb, sk);
+  }
+  {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, running_handles));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  }
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Multi API: miscellaneous functions.
  ** ----------------------------------------------------------------- */
 
@@ -176,15 +211,6 @@ ikrt_curl_multi_fdset (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_FDSET
   curl_multi_fdset();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_perform (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_PERFORM
-  curl_multi_perform();
 #else
   feature_failure(__func__);
 #endif

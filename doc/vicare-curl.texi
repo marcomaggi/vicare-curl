@@ -242,6 +242,7 @@ to the @curl{}'s documentation for details.
 * plain shares::                Shared configuration option sets.
 * plain cstructs::              Accessing C language data structures.
 * plain misc::                  Miscellaneous functions.
+* plain symbols::               Constant to symbol conversions.
 @end menu
 
 @c page
@@ -1069,6 +1070,7 @@ error code; if @var{code} is invalid, return @false{}.
 * plain multi init::            Multi initialisation and finalisation.
 * plain multi easy::            Adding and removing easy handles.
 * plain multi config::          Selecting options for multi operations.
+* plain multi perform::         Performing multi operations.
 * plain multi misc::            Miscellaneous functions for multi
                                 handles.
 @end menu
@@ -1327,6 +1329,79 @@ Here are meaningless examples of setting options:
 (curl-multi-setopt multi CURLMOPT_MAXCONNECTS 123)
 @result{} CURLM_OK
 @end example
+
+@c page
+@node plain multi perform
+@subsection Performing multi operations
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-perform @var{multi}
+Perform multi operations; return @math{2} values:
+
+@enumerate
+@item
+An exact integer representing a @code{CURLM_} constant.
+
+@item
+An exact integer representing the number of running handles.
+@end enumerate
+
+@curlman{curl_multi_perform}.
+@end defun
+
+
+Here is an example of performance:
+
+@smallexample
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(define (write-func buffer size nitems outstream)
+  (let ((nbytes (* size nitems)))
+    (guard (E (else (check-pretty-print E) nbytes))
+      (fprintf (current-error-port) "Google's Home page:\n~a\n"
+               (utf8->string (cstring->bytevector buffer nbytes))))
+    nbytes))
+
+(let ((multi      (curl-multi-init))
+      (easy       (curl-easy-init))
+      (write-cb   (make-curl-write-callback write-func)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+        (curl-multi-add-handle multi easy)
+        (let loop ((running 0))
+          (let-values (((code running) (curl-multi-perform multi)))
+            (when (or (= code CURLM_CALL_MULTI_PERFORM)
+                      (not (zero? running)))
+              (loop running))))
+        (let-values (((msg nmsgs)
+                      (curl-multi-info-read multi)))
+          (when msg
+            (%pretty-print (curlmsg->symbol (curl-msg.msg msg))))))
+    (curl-multi-cleanup multi)
+    ;;Close the connection before releasing the callbacks!!!
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)))
+@print{} Google's Home page:
+@print{} <HTML><HEAD><meta http-equiv="content-type"
+ content="text/html;charset=utf-8">
+@print{} <TITLE>301 Moved</TITLE></HEAD><BODY>
+@print{} <H1>301 Moved</H1>
+@print{} The document has moved
+@print{} <A HREF="http://www.google.com/">here</A>.
+@print{} </BODY></HTML>
+@print{}
+@print{} CURLMSG_DONE
+@end smallexample
 
 @c page
 @node plain multi misc
@@ -3460,6 +3535,20 @@ string.
 (curl-getdate "Sun Nov 6 94")
 @result{} 784080000
 @end example
+@end defun
+
+@c page
+@node plain symbols
+@section Constant to symbol conversions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curlmsg->symbol @var{code}
+Given one among the @code{CURLMSG} constants return a symbol
+representing its name.
 @end defun
 
 @c page

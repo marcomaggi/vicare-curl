@@ -442,8 +442,8 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-perform)
-  (foreign-call "ikrt_curl_multi_perform"))
+(define-inline (curl-multi-perform multi)
+  (foreign-call "ikrt_curl_multi_perform" multi))
 
 ;;; --------------------------------------------------------------------
 

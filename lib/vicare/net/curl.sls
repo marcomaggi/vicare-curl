@@ -169,7 +169,11 @@
 
     ;; accessors for "struct CURLMsg"
     curl-msg.msg				curl-msg.easy_handle
-    curl-msg.data.whatever			curl-msg.data.result)
+    curl-msg.data.whatever			curl-msg.data.result
+
+    ;; constants to symbols
+    curlmsg->symbol
+    )
   (import (vicare)
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi)
@@ -1516,11 +1520,13 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-perform . args)
+(define (curl-multi-perform multi)
   (define who 'curl-multi-perform)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi))
+    (let ((rv (capi.curl-multi-perform multi)))
+      (values (unsafe.car rv)
+	      (unsafe.cdr rv)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1965,6 +1971,14 @@
 					   (pointer handle)
 					 (owner? #f))
 				       timeout-ms (%cdata custom-data))))))))
+
+
+;;;; constants to symbols
+
+(define-exact-integer->symbol-function curlmsg->symbol
+  (CURLMSG_NONE
+   CURLMSG_DONE
+   CURLMSG_LAST))
 
 
 ;;;; done
