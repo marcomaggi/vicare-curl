@@ -317,6 +317,14 @@
        (unsafe.fx<= 0 obj))
   (assertion-violation who "expected non-negative fixnum as file descriptor argument" obj))
 
+(define-argument-validation (action-socket-descriptor who obj)
+  (and (fixnum? obj)
+       (unsafe.fx= obj CURL_SOCKET_TIMEOUT)
+       (unsafe.fx<= 0 obj))
+  (assertion-violation who
+    "expected CURL_SOCKET_TIMEOUT or non-negative fixnum as socket descriptor argument"
+    obj))
+
 ;;; --------------------------------------------------------------------
 
 (define-argument-validation (curl-version-info-data who obj)
@@ -1526,9 +1534,9 @@
    ((multi sock-fd ev-bitmask)
     (define who 'curl-multi-socket-action)
     (with-arguments-validation (who)
-	((curl-multi/alive	multi)
-	 (file-descriptor	sock-fd)
-	 (signed-int		ev-bitmask))
+	((curl-multi/alive		multi)
+	 (action-socket-descriptor	sock-fd)
+	 (signed-int			ev-bitmask))
       (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
 	(values (unsafe.car rv)
 		(unsafe.cdr rv)))))))

@@ -1453,8 +1453,9 @@ An exact integer representing the number of running handles.
 
 @curlman{curl_multi_socket_action}.
 
-@var{sock-fd} must be a non--negative fixnum representing a socket
-descriptor in the context of @var{multi}.
+@var{sock-fd} must be the constant @code{CURL_SOCKET_TIMEOUT} or a
+non--negative fixnum representing a socket descriptor in the context of
+@var{multi}.
 
 The optional @var{ev-bitmask} must be the fixnum zero or a bitwise
 inclusive OR combination of the following constants:
