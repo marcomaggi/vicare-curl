@@ -102,7 +102,7 @@
 	      (let-values (((msg nmsgs)
 			    (curl-multi-info-read multi)))
 		(when msg
-		  (%pretty-print (curlmsg->symbol (curl-msg.msg msg)))))
+		  (%pretty-print (curl-constant-msg->symbol (curl-msg.msg msg)))))
 	      #t)
 	  (curl-multi-cleanup multi)
 	  ;;Close the connection before releasing the callbacks!!!

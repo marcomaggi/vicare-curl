@@ -3649,8 +3649,338 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curlmsg->symbol @var{code}
-Given one among the @code{CURLMSG} constants return a symbol
+@defun curl-constant-httppost->symbol @var{code}
+Given one among the @code{HTTPPOST_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-filetype->symbol @var{code}
+Given one among the @code{CURLFILETYPE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-infoflag->symbol @var{code}
+Given one among the @code{CURLFINFOFLAG_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-chunk-bgn->symbol @var{code}
+Given one among the @code{CURL_CHUNK_BGN_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-chunk-end->symbol @var{code}
+Given one among the @code{CURL_CHUNK_END_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-fnmatch->symbol @var{code}
+Given one among the @code{CURL_FNMATCHFUNC_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-seekfunc->symbol @var{code}
+Given one among the @code{CURL_SEEKFUNC_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-readfunc->symbol @var{code}
+Given one among the @code{CURL_READFUNC_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-socktype->symbol @var{code}
+Given one among the @code{CURLSOCKTYPE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-sockopt->symbol @var{code}
+Given one among the @code{CURL_SOCKOPT_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ioe->symbol @var{code}
+Given one among the @code{CURLIOE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-iocmd->symbol @var{code}
+Given one among the @code{CURLIOCMD_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-info-debug->symbol @var{code}
+Given one among the @code{CURLINFO_TEXT}, @code{CURLINFO_HEADER_IN},
+@code{CURLINFO_HEADER_OUT}, @code{CURLINFO_DATA_IN},
+@code{CURLINFO_DATA_OUT}, @code{CURLINFO_SSL_DATA_IN},
+@code{CURLINFO_SSL_DATA_OUT}, @code{CURLINFO_END} constants return a
+symbol representing its name.
+@end defun
+
+
+@defun curl-constant-e->symbol @var{code}
+Given one among the @code{CURLE_} constants return a symbol representing
+its name.
+@end defun
+
+
+@defun curl-constant-proxy->symbol @var{code}
+Given one among the @code{CURLPROXY_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-auth->symbol @var{code}
+Given one among the @code{CURLAUTH_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ssh->symbol @var{code}
+Given one among the @code{CURLSSH_AUTH_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-gssapi-delegation->symbol @var{code}
+Given one among the @code{CURLGSSAPI_DELEGATION_} constants return a
+symbol representing its name.
+@end defun
+
+
+@defun curl-constant-khtype->symbol @var{code}
+Given one among the @code{CURLKHTYPE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-khstat->symbol @var{code}
+Given one among the @code{CURLKHSTAT_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-khmatch->symbol @var{code}
+Given one among the @code{CURLKHMATCH_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-use-ssl->symbol @var{code}
+Given one among the @code{CURLUSESSL_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ftp-ssl-ccc->symbol @var{code}
+Given one among the @code{CURLFTPSSL_CCC_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ftp-auth->symbol @var{code}
+Given one among the @code{CURLFTPAUTH_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ftp-create-dir->symbol @var{code}
+Given one among the @code{CURLFTP_CREATE_DIR_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ftp-method->symbol @var{code}
+Given one among the @code{CURLFTPMETHOD_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-proto->symbol @var{code}
+Given one among the @code{CURLPROTO_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-opt-type->symbol @var{code}
+Given one among the @code{CURLOPTTYPE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-opt->symbol @var{code}
+Given one among the @code{CURLOPT_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ip-resolve->symbol @var{code}
+Given one among the @code{CURL_IPRESOLVE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-http-version->symbol @var{code}
+Given one among the @code{CURL_HTTP_VERSION_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-rts-preq->symbol @var{code}
+Given one among the @code{CURL_RTSPREQ_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-netrc->symbol @var{code}
+Given one among the @code{CURL_NETRC_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-ssl-version->symbol @var{code}
+Given one among the @code{CURL_SSLVERSION_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-tls-auth->symbol @var{code}
+Given one among the @code{CURL_TLSAUTH_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-redir->symbol @var{code}
+Given one among the @code{CURL_REDIR_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-time-cond->symbol @var{code}
+Given one among the @code{CURL_TIMECOND_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-form->symbol @var{code}
+Given one among the @code{CURLFORM_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-form-add->symbol @var{code}
+Given one among the @code{CURL_FORMADD_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-info-type->symbol @var{code}
+Given one among the @code{CURLINFO_STRING}, @code{CURLINFO_LONG},
+@code{CURLINFO_DOUBLE}, @code{CURLINFO_SLIST}, @code{CURLINFO_MASK},
+@code{CURLINFO_TYPEMASK} constants return a symbol representing its
+name.
+@end defun
+
+
+@defun curl-constant-info->symbol @var{code}
+Given one among the @code{CURLINFO_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-close-policy->symbol @var{code}
+Given one among the @code{CURLCLOSEPOLICY_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-global->symbol @var{code}
+Given one among the @code{CURL_GLOBAL_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-lock-data->symbol @var{code}
+Given one among the @code{CURL_LOCK_DATA_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-lock-access->symbol @var{code}
+Given one among the @code{CURL_LOCK_ACCESS_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-she->symbol @var{code}
+Given one among the @code{CURLSHE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-shopt->symbol @var{code}
+Given one among the @code{CURLSHOPT_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-version-num->symbol @var{code}
+Given one among the @code{CURLVERSION_FIRST}, @code{CURLVERSION_SECOND},
+@code{CURLVERSION_THIRD}, @code{CURLVERSION_FOURTH},
+@code{CURLVERSION_LAST}, @code{CURLVERSION_NOW} constants return a
+symbol representing its name.
+@end defun
+
+
+@defun curl-constant-version->symbol @var{code}
+Given one among the @code{CURL_VERSION_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-pause->symbol @var{code}
+Given one among the @code{CURLPAUSE_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-m->symbol @var{code}
+Given one among the @code{CURLM_} constants return a symbol representing
+its name.
+@end defun
+
+
+@defun curl-constant-msg->symbol @var{code}
+Given one among the @code{CURLMSG_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-poll->symbol @var{code}
+Given one among the @code{CURL_POLL_} constants return a symbol
+representing its name.
+@end defun
+
+@defun curl-constant-cselect->symbol @var{code}
+Given one among the @code{CURL_CSELECT_} constants return a symbol
+representing its name.
+@end defun
+
+
+@defun curl-constant-mopt->symbol @var{code}
+Given one among the @code{CURLMOPT_} constants return a symbol
 representing its name.
 @end defun
 
