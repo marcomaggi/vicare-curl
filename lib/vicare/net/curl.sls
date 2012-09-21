@@ -218,6 +218,8 @@
   (or (not obj) (pointer? obj))
   (assertion-violation who "expected false or pointer as argument" obj))
 
+;;; --------------------------------------------------------------------
+
 (define-argument-validation (general-string who obj)
   (or (string? obj)
       (bytevector? obj)
@@ -235,12 +237,16 @@
   (assertion-violation who
     "expected false or string or bytevector or pointer or memory-block as argument" obj))
 
-(define-argument-validation (general-output-buffer who obj)
+;;; --------------------------------------------------------------------
+
+(define-argument-validation (general-buffer who obj)
   (or (bytevector? obj)
       (pointer? obj)
       (memory-block? obj))
   (assertion-violation who
     "expected bytevector or pointer or memory-block as argument" obj))
+
+;;; --------------------------------------------------------------------
 
 (define-argument-validation (general-data who obj)
   (or (bytevector? obj)
@@ -300,6 +306,8 @@
     "expected instance of \"curl-version-info-data\" as argument"
     obj))
 
+;;; --------------------------------------------------------------------
+
 (define-argument-validation (curl-form-data who obj)
   (curl-form-data? obj)
   (assertion-violation who
@@ -311,6 +319,8 @@
   (assertion-violation who
     "expected instance of \"curl-form-data\" as argument holding contents"
     obj))
+
+;;; --------------------------------------------------------------------
 
 (define-argument-validation (curl-share who obj)
   (curl-share? obj)
@@ -330,6 +340,8 @@
     "invalid matching between \"curl-share\" option and parameter"
     parameter option))
 
+;;; --------------------------------------------------------------------
+
 (define-argument-validation (curl-easy who obj)
   (curl-easy? obj)
   (assertion-violation who "expected instance of \"curl-easy\" as argument" obj))
@@ -337,6 +349,8 @@
 (define-argument-validation (curl-easy/alive who obj)
   (curl-easy?/alive obj)
   (assertion-violation who "expected alive instance of \"curl-easy\" as argument" obj))
+
+;;; --------------------------------------------------------------------
 
 (define-argument-validation (curl-multi who obj)
   (curl-multi? obj)
@@ -352,9 +366,8 @@
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
 
-(define-auxiliary-syntaxes
-  pointer
-  owner?)
+(define-auxiliary-syntaxes pointer)
+(define-auxiliary-syntaxes owner?)
 
 (define-syntax struct-destructor-application
   ;;Data structures are might have  a field called DESTRUCTOR holding #f
@@ -413,52 +426,56 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax with-general-strings/utf8
-  (syntax-rules ()
-    ((_ ((?var ?arg) ...) ?body0 . ?body)
-     (let ((?var (let ((arg ?arg))
-		   (cond ((string? arg)
-			  (string->utf8 arg))
-			 ((or (bytevector? arg)
-			      (pointer?    arg)
-			      (memory-block? arg))
-			  arg)
-			 (else
-			  (assertion-violation #f "unexpected object" arg)))))
-	   ...)
-       ?body0 . ?body))))
+(define-auxiliary-syntaxes string-to-bytevector)
 
-(define-syntax with-general-strings/false/utf8
-  (syntax-rules ()
-    ((_ ((?var ?arg) ...) ?body0 . ?body)
-     (let ((?var (let ((arg ?arg))
-		   (cond ((not arg)
-			  arg)
-			 ((string? arg)
-			  (string->utf8 arg))
-			 ((or (bytevector? arg)
-			      (pointer?    arg)
-			      (memory-block? arg))
-			  arg)
-			 (else
-			  (assertion-violation #f "unexpected object" arg)))))
-	   ...)
-       ?body0 . ?body))))
+(define-syntax* (with-general-strings stx)
+  (syntax-case stx (string-to-bytevector)
+    ((_ ((?str^ ?str) ...) ?string->bytevector ?body0 . ?body)
+     (identifier? #'?string->bytevector)
+     #'(with-general-strings ((?str^ ?str) ...)
+	   (string-to-bytevector ?string->bytevector)
+	 ?body0 . ?body))
+    ((_ ((?str^ ?str) ...)
+	(string-to-bytevector ?string->bytevector)
+	?body0 . ?body)
+     (identifier? #'?string->bytevector)
+     #'(let ((?str^ (let ((str ?str))
+		      (cond ((string? str)
+			     (?string->bytevector str))
+			    ((or (bytevector?   str)
+				 (pointer?      str)
+				 (memory-block? str))
+			     str)
+			    (else
+			     (assertion-violation #f "invalid general string" str)))))
+	     ...)
+	 ?body0 . ?body))))
 
-(define-syntax with-general-strings/ascii
-  (syntax-rules ()
-    ((_ ((?var ?arg) ...) ?body0 . ?body)
-     (let ((?var (let ((arg ?arg))
-		   (cond ((string? arg)
-			  (string->ascii arg))
-			 ((or (bytevector? arg)
-			      (pointer?    arg)
-			      (memory-block? arg))
-			  arg)
-			 (else
-			  (assertion-violation #f "unexpected object" arg)))))
-	   ...)
-       ?body0 . ?body))))
+(define-syntax with-general-strings/false
+  (lambda (stx)
+    (syntax-case stx (string-to-bytevector)
+      ((?key ((?str^ ?str) ...) ?string->bytevector ?body0 . ?body)
+       (identifier? #'?string->bytevector)
+       #'(with-general-strings/false ((?str^ ?str) ...)
+	     (string-to-bytevector ?string->bytevector)
+	   ?body0 . ?body))
+      ((_ ((?str^ ?str) ...)
+	  (string-to-bytevector ?string->bytevector)
+	  ?body0 . ?body)
+       (identifier? #'?string->bytevector)
+       #'(let ((?str^ (let ((str ?str))
+			(cond ((string? str)
+			       (?string->bytevector str))
+			      ((or (bytevector?   str)
+				   (pointer?      str)
+				   (memory-block? str))
+			       str)
+			      ((not str)
+			       str)
+			      (else
+			       (assertion-violation #f "invalid general string" str)))))
+	       ...)
+	   ?body0 . ?body)))))
 
 
 ;;;; version functions
@@ -702,7 +719,8 @@
     (with-arguments-validation (who)
 	((pointer/false		slist)
 	 (general-string	string))
-      (with-general-strings/utf8 ((string^ string))
+      (with-general-strings ((string^ string))
+	  (string-to-bytevector string->utf8)
 	(capi.curl-slist-append slist string^))))))
 
 (define (curl-slist-free-all slist)
@@ -940,7 +958,8 @@
     (with-arguments-validation (who)
 	((general-string	str.data)
 	 (signed-int/false	str.len))
-      (with-general-strings/ascii ((str.data^ str.data))
+      (with-general-strings ((str.data^ str.data))
+	  string->ascii
 	(capi.curl-escape str.data^ str.len))))))
 
 (define curl-unescape
@@ -952,7 +971,8 @@
     (with-arguments-validation (who)
 	((general-string	str.data)
 	 (signed-int/false	str.len))
-      (with-general-strings/ascii ((str.data^ str.data))
+      (with-general-strings ((str.data^ str.data))
+	  string->ascii
 	(capi.curl-unescape str.data^ str.len))))))
 
 ;;; --------------------------------------------------------------------
@@ -1168,7 +1188,8 @@
 	  ((<= CURLOPTTYPE_OBJECTPOINT option)
 	   (with-arguments-validation (who)
 	       ((general-string/false	parameter))
-	     (with-general-strings/false/utf8 ((parameter^ parameter))
+	     (with-general-strings/false ((parameter^ parameter))
+		 string->utf8
 	       (capi.curl-easy-setopt easy option parameter^))))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
@@ -1245,7 +1266,7 @@
     (define who 'curl-easy-recv)
     (with-arguments-validation (who)
 	((curl-easy/alive		easy)
-	 (general-output-buffer		buffer.data)
+	 (general-buffer		buffer.data)
 	 (optional-buffer-length	buffer.len buffer.data))
       (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
 	(if (pair? rv)
@@ -1262,7 +1283,8 @@
 	((curl-easy/alive		easy)
 	 (general-string		buffer.data)
 	 (optional-buffer-length	buffer.len buffer.data))
-      (with-general-strings/utf8 ((buffer.data^ buffer.data))
+      (with-general-strings ((buffer.data^ buffer.data))
+	  string->utf8
 	(let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
 	  (if (pair? rv)
 	      (values (unsafe.car rv) (unsafe.cdr rv))
@@ -1280,7 +1302,8 @@
 	((curl-easy/alive		easy)
 	 (general-string		chars.data)
 	 (optional-buffer-length	chars.len chars.data))
-      (with-general-strings/utf8 ((chars.data^ chars.data))
+      (with-general-strings ((chars.data^ chars.data))
+	  string->utf8
 	(capi.curl-easy-escape easy chars.data^ chars.len))))))
 
 (define curl-easy-unescape
@@ -1293,7 +1316,8 @@
 	((curl-easy/alive		easy)
 	 (general-string		chars.data)
 	 (optional-buffer-length	chars.len chars.data))
-      (with-general-strings/utf8 ((chars.data^ chars.data))
+      (with-general-strings ((chars.data^ chars.data))
+	  string->utf8
 	(capi.curl-easy-unescape easy chars.data^ chars.len))))))
 
 (define curl-easy-escape/string
@@ -1364,7 +1388,7 @@
 
 (define (%unsafe.curl-multi-cleanup multi)
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
-  #;(capi.curl-multi-cleanup multi))
+  (capi.curl-multi-cleanup multi))
 
 (define (%set-curl-multi-destructor! struct destructor-func)
   (define who 'set-curl-multi-destructor!)
@@ -1381,6 +1405,14 @@
 		(pointer rv)
 	      (owner? #t)))))
 
+(define (curl-multi-cleanup multi)
+  (define who 'curl-multi-cleanup)
+  (with-arguments-validation (who)
+      ((curl-multi	multi))
+    (%unsafe.curl-multi-cleanup multi)))
+
+;;; --------------------------------------------------------------------
+
 (define (curl-multi-add-handle . args)
   (define who 'curl-multi-add-handle)
   (with-arguments-validation (who)
@@ -1393,20 +1425,18 @@
       ()
     (unimplemented who)))
 
+;;; --------------------------------------------------------------------
+
 (define (curl-multi-fdset . args)
   (define who 'curl-multi-fdset)
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
 
-(define (curl-multi-perform . args)
-  (define who 'curl-multi-perform)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+;;; --------------------------------------------------------------------
 
-(define (curl-multi-cleanup . args)
-  (define who 'curl-multi-cleanup)
+(define (curl-multi-setopt . args)
+  (define who 'curl-multi-setopt)
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
@@ -1417,11 +1447,7 @@
       ()
     (unimplemented who)))
 
-(define (curl-multi-strerror . args)
-  (define who 'curl-multi-strerror)
-  (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+;;; --------------------------------------------------------------------
 
 (define (curl-multi-socket . args)
   (define who 'curl-multi-socket)
@@ -1441,20 +1467,32 @@
       ()
     (unimplemented who)))
 
+;;; --------------------------------------------------------------------
+
+(define (curl-multi-perform . args)
+  (define who 'curl-multi-perform)
+  (with-arguments-validation (who)
+      ()
+    (unimplemented who)))
+
+;;; --------------------------------------------------------------------
+
 (define (curl-multi-timeout . args)
   (define who 'curl-multi-timeout)
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
 
-(define (curl-multi-setopt . args)
-  (define who 'curl-multi-setopt)
+(define (curl-multi-assign . args)
+  (define who 'curl-multi-assign)
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
 
-(define (curl-multi-assign . args)
-  (define who 'curl-multi-assign)
+;;; --------------------------------------------------------------------
+
+(define (curl-multi-strerror . args)
+  (define who 'curl-multi-strerror)
   (with-arguments-validation (who)
       ()
     (unimplemented who)))
@@ -1472,7 +1510,8 @@
   (define who 'curl-getdate)
   (with-arguments-validation (who)
       ((general-string	date))
-    (with-general-strings/ascii ((date^ date))
+    (with-general-strings ((date^ date))
+	string->ascii
       (capi.curl-getdate date^))))
 
 ;;; --------------------------------------------------------------------
@@ -1616,7 +1655,7 @@
       (owner? #f))))
 
 
-;;;; easy API callback makers
+;;;; callback makers: easy API
 
 (define-syntax %cdata
   (syntax-rules ()
@@ -1839,7 +1878,7 @@
 				       (%cdata custom-data))))))))
 
 
-;;;; multi API callback makers
+;;;; callback makers: multi API
 
 (define make-curl-socket-callback
   ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
@@ -1893,8 +1932,7 @@
 ;;Local Variables:
 ;;eval: (put '%make-curl-easy 'scheme-indent-function 1)
 ;;eval: (put '%make-curl-multi 'scheme-indent-function 1)
-;;eval: (put 'with-general-strings/utf8 'scheme-indent-function 1)
-;;eval: (put 'with-general-strings/false/utf8 'scheme-indent-function 1)
-;;eval: (put 'with-general-strings/ascii 'scheme-indent-function 1)
+;;eval: (put 'with-general-strings 'scheme-indent-function 2)
+;;eval: (put 'with-general-strings/false 'scheme-indent-function 2)
 ;;eval: (put '%define-raw-struct-accessor 'scheme-indent-function 1)
 ;;End:

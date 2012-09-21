@@ -410,26 +410,29 @@
 (define-inline (curl-multi-init)
   (foreign-call "ikrt_curl_multi_init"))
 
+(define-inline (curl-multi-cleanup multi)
+  (foreign-call "ikrt_curl_multi_cleanup" multi))
+
+;;; --------------------------------------------------------------------
+
 (define-inline (curl-multi-add-handle)
   (foreign-call "ikrt_curl_multi_add_handle"))
 
 (define-inline (curl-multi-remove-handle)
   (foreign-call "ikrt_curl_multi_remove_handle"))
 
-(define-inline (curl-multi-fdset)
-  (foreign-call "ikrt_curl_multi_fdset"))
+;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-perform)
-  (foreign-call "ikrt_curl_multi_perform"))
-
-(define-inline (curl-multi-cleanup multi)
-  (foreign-call "ikrt_curl_multi_cleanup" multi))
+(define-inline (curl-multi-setopt)
+  (foreign-call "ikrt_curl_multi_setopt"))
 
 (define-inline (curl-multi-info-read)
   (foreign-call "ikrt_curl_multi_info_read"))
 
-(define-inline (curl-multi-strerror)
-  (foreign-call "ikrt_curl_multi_strerror"))
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-multi-fdset)
+  (foreign-call "ikrt_curl_multi_fdset"))
 
 (define-inline (curl-multi-socket)
   (foreign-call "ikrt_curl_multi_socket"))
@@ -440,14 +443,23 @@
 (define-inline (curl-multi-socket-all)
   (foreign-call "ikrt_curl_multi_socket_all"))
 
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-multi-perform)
+  (foreign-call "ikrt_curl_multi_perform"))
+
+;;; --------------------------------------------------------------------
+
 (define-inline (curl-multi-timeout)
   (foreign-call "ikrt_curl_multi_timeout"))
 
-(define-inline (curl-multi-setopt)
-  (foreign-call "ikrt_curl_multi_setopt"))
-
 (define-inline (curl-multi-assign)
   (foreign-call "ikrt_curl_multi_assign"))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-multi-strerror)
+  (foreign-call "ikrt_curl_multi_strerror"))
 
 
 ;;;; done

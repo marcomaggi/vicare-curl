@@ -32,7 +32,7 @@
 
 
 /** --------------------------------------------------------------------
- ** Multi API.
+ ** Multi API: initialisation and finalisation.
  ** ----------------------------------------------------------------- */
 
 ikptr
@@ -42,6 +42,23 @@ ikrt_curl_multi_init (ikpcb * pcb)
   CURLM *	 multi;
   multi = curl_multi_init();
   return (multi)? ika_pointer_alloc(pcb, (ik_ulong)multi) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_cleanup (ikptr s_multi, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_CLEANUP
+  ikptr		s_pointer	= IK_CURL_MULTI_POINTER(s_multi);
+  CURLM *	multi		= IK_POINTER_DATA_VOIDP(s_pointer);
+  CURLMcode	rv;
+  if (multi) {
+    rv = curl_multi_cleanup(multi);
+    IK_POINTER_SET_NULL(s_pointer);
+    return ika_integer_from_curlcode(pcb, rv);
+  } else
+    return ika_integer_from_curlcode(pcb, CURLM_OK);
 #else
   feature_failure(__func__);
 #endif
@@ -85,15 +102,6 @@ ikrt_curl_multi_perform (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_PERFORM
   curl_multi_perform();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_cleanup (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_CLEANUP
-  curl_multi_cleanup();
 #else
   feature_failure(__func__);
 #endif

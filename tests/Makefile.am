@@ -46,6 +46,7 @@ TESTS			= \
 	test-vicare-curl-init.sps		\
 	test-vicare-curl-core.sps		\
 	test-vicare-curl-easy.sps		\
+	test-vicare-curl-multi.sps		\
 	test-vicare-curl-callbacks.sps
 
 EXTRA_DIST = \
@@ -53,10 +54,12 @@ EXTRA_DIST = \
 	test-vicare-curl-init.sps		\
 	test-vicare-curl-core.sps		\
 	test-vicare-curl-easy.sps		\
+	test-vicare-curl-multi.sps		\
 	test-vicare-curl-callbacks.sps		\
 	\
 	demo-for-documentation.sps		\
-	demo-easy.sps
+	demo-easy.sps				\
+	demo-multi.sps
 
 ## --------------------------------------------------------------------
 ## interface to "make installcheck"

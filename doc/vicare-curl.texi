@@ -598,12 +598,12 @@ this should happen transparently.
 @end deftp
 
 
-@defun curl? @var{obj}
+@defun curl-easy? @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-easy}.
 @end defun
 
 
-@defun curl?/alive @var{obj}
+@defun curl-easy?/alive @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-easy} and it
 has not been finalised.
 @end defun
@@ -1063,6 +1063,120 @@ error code; if @var{code} is invalid, return @false{}.
 @node plain multi
 @section Multi operations
 
+
+@menu
+* plain multi struct::          Multi operations handle.
+* plain multi init::            Multi initialisation and finalisation.
+@end menu
+
+@c page
+@node plain multi struct
+@subsection Multi operations handle
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@deftp {Struct Type} curl-multi
+@cindex Argument @var{multi}
+@cindex @var{multi} argument
+Opaque structure type referencing an instance of the C language type
+@code{CURLM}.
+
+When instances of this type are used as arguments to functions: this
+documentation identifies them as @var{multi}.
+
+Instances of this type must be finalised with @func{curl-multi-cleanup};
+whenever an instance of this type is garbage collected:
+@func{curl-multi-cleanup} is automatically applied to it and any error
+ignored.
+
+In certain contexts, instances of this type own the referenced
+@code{CURLM} value, in other contexts they do not:
+
+@itemize
+@item
+Finalising a @code{curl-multi} instance owning the @code{CURLM} value,
+causes finalisation of the @code{CURLM} value too.
+
+@item
+Finalising a @code{curl-multi} instance @strong{not} owning the
+@code{CURLM} value, leaves the @code{CURLM} untouched.
+@end itemize
+
+@noindent
+this should happen transparently.
+@end deftp
+
+
+@defun curl-multi? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-multi}.
+@end defun
+
+
+@defun curl-multi?/alive @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-multi} and it
+has not been finalised.
+@end defun
+
+
+@defun curl-multi-destructor @var{multi}
+@defunx set-curl-multi-destructor! @var{multi} @var{func}
+Retrieve or set a destructor function associated to @var{multi}.
+
+Whenever @var{multi} is finalised, either explicitly with
+@func{curl-multi-cleanup} or implicitly by the garbage collector,
+@var{func} is applied to @var{multi} before the internal state of
+@var{multi} is destroyed.
+
+Notice that @var{func} can be used to associate some state to
+@var{multi}, for example, by doing:
+
+@example
+(define multi ...)
+
+(set-curl-multi-destructor! multi
+  (let ((state (make-some-data-struct)))
+    (case-lambda
+      ((multi)
+       (destroy state))
+      (()
+       state))))
+
+(let ((state ((curl-multi-destructor multi))))
+  (do-something-with multi state))
+@end example
+@end defun
+
+@c page
+@node plain multi init
+@subsection Multi initialisation and finalisation
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-init
+Build and return a new instance of @code{curl-multi}.
+@curlman{curl_multi_init}.
+@end defun
+
+
+@defun curl-multi-cleanup @var{multi}
+Finalise an instance of @code{curl-multi}; if successful return
+@code{CURLM_OK}, else return a @code{CURLM_} error code.
+@curlman{curl_multi_cleanup}.
+
+It is fine to apply this function multiple times to the same @var{multi}
+value: the first time the underlying session data is finalised, the
+subsequent times nothing happens.
+
+If this function is applied to a @var{multi} value not owning the
+underlying @code{CURLM} value: @var{multi} is finalised, but the
+@code{CURLM} value is left alone.
+@end defun
 
 @c page
 @node plain callbacks
