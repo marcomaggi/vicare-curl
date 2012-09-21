@@ -198,6 +198,25 @@
   (collect))
 
 
+(parametrise ((check-test-name	'sockets))
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(let-values (((code milliseconds)
+		      (curl-multi-timeout multi)))
+	  (cons code milliseconds)))
+    => `(,CURLM_OK . -1))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((multi (curl-multi-init)))
+	(curl-multi-assign multi 0 #f))
+    => CURLM_BAD_SOCKET)
+
+  #t)
+
+
 (parametrise ((check-test-name	'misc))
 
   (check

@@ -303,6 +303,11 @@
   (assertion-violation who
     "expected exact integer representing \"size_t\" as argument" obj))
 
+(define-argument-validation (file-descriptor who obj)
+  (and (fixnum? obj)
+       (unsafe.fx<= 0 obj))
+  (assertion-violation who "expected non-negative fixnum as file descriptor argument" obj))
+
 ;;; --------------------------------------------------------------------
 
 (define-argument-validation (curl-version-info-data who obj)
@@ -1530,17 +1535,23 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-timeout . args)
+(define (curl-multi-timeout multi)
   (define who 'curl-multi-timeout)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi))
+    (let ((rv (capi.curl-multi-timeout multi)))
+      (if (pair? rv)
+	  (values (unsafe.car rv)
+		  (unsafe.cdr rv))
+	(values rv #f)))))
 
-(define (curl-multi-assign . args)
+(define (curl-multi-assign multi sock custom-data)
   (define who 'curl-multi-assign)
   (with-arguments-validation (who)
-      ()
-    (unimplemented who)))
+      ((curl-multi/alive	multi)
+       (file-descriptor		sock)
+       (pointer/false		custom-data))
+    (capi.curl-multi-assign multi sock custom-data)))
 
 ;;; --------------------------------------------------------------------
 

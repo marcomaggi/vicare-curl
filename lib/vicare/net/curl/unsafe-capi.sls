@@ -440,6 +440,9 @@
 (define-inline (curl-multi-socket-all)
   (foreign-call "ikrt_curl_multi_socket_all"))
 
+(define-inline (curl-multi-timeout multi)
+  (foreign-call "ikrt_curl_multi_timeout" multi))
+
 ;;; --------------------------------------------------------------------
 
 (define-inline (curl-multi-perform multi)
@@ -447,11 +450,8 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-timeout)
-  (foreign-call "ikrt_curl_multi_timeout"))
-
-(define-inline (curl-multi-assign)
-  (foreign-call "ikrt_curl_multi_assign"))
+(define-inline (curl-multi-assign multi sock custom-data)
+  (foreign-call "ikrt_curl_multi_assign" multi sock custom-data))
 
 ;;; --------------------------------------------------------------------
 

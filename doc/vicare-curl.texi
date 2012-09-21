@@ -1071,6 +1071,8 @@ error code; if @var{code} is invalid, return @false{}.
 * plain multi easy::            Adding and removing easy handles.
 * plain multi config::          Selecting options for multi operations.
 * plain multi perform::         Performing multi operations.
+* plain multi sockets::         Performing multi operations with
+                                socket descriptors.
 * plain multi misc::            Miscellaneous functions for multi
                                 handles.
 @end menu
@@ -1402,6 +1404,46 @@ Here is an example of performance:
 @print{}
 @print{} CURLMSG_DONE
 @end smallexample
+
+@c page
+@node plain multi sockets
+@subsection Performing multi operations with socket descriptors
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-multi-timeout @var{multi}
+Query the multi handle for how many milliseconds to wait for socket
+actions; if successful return @math{2} values:
+
+@enumerate
+@item
+The constant @code{CURLM_OK}.
+
+@item
+An exact integer representing the number of milliseconds to wait; this
+value can also be zero or @math{-1}.
+@end enumerate
+
+@noindent
+else return @math{1} values: a @code{CURLM_} error code and @false{}.
+@curlman{curl_multi_timeout}.
+@end defun
+
+
+@defun curl-multi-assign @var{multi} @var{sock-fd} @var{custom-data}
+Associate @var{custom-data} to @var{sock-fd} in the context of the
+@var{multi} handle; if successful return @code{CURLM_OK}, else return a
+@code{CURLM_} error code.  @curlman{curl_multi_assign}.
+
+@var{sock-fd} must be a non--negative fixnum representing a socket
+descriptor.
+
+@var{custom-data} must be @false{} or a pointer object; @false{} is
+internally converted to a @cnull{} pointer.
+@end defun
 
 @c page
 @node plain multi misc

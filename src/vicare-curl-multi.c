@@ -162,6 +162,35 @@ ikrt_curl_multi_perform (ikptr s_multi, ikpcb * pcb)
 
 
 /** --------------------------------------------------------------------
+ ** Multi API: socket functions.
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_multi_timeout (ikptr s_multi, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_TIMEOUT
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  long		timeout_milliseconds;
+  CURLMcode	rv;
+  rv = curl_multi_timeout(multi, &timeout_milliseconds);
+  if (CURLM_OK == rv) {
+    ikptr	s_pair = ika_pair_alloc(pcb);
+    pcb->root0 = &s_pair;
+    {
+      IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, CURLM_OK));
+      IK_ASS(IK_CDR(s_pair), ika_integer_from_long(pcb, timeout_milliseconds));
+    }
+    pcb->root0 = NULL;
+    return s_pair;
+  } else
+    return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+
+/** --------------------------------------------------------------------
  ** Multi API: miscellaneous functions.
  ** ----------------------------------------------------------------- */
 
@@ -183,6 +212,20 @@ ikrt_curl_multi_info_read (ikptr s_multi, ikpcb * pcb)
   }
   pcb->root0 = NULL;
   return s_pair;
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_multi_assign (ikptr s_multi, ikptr s_fd, ikptr s_custom_data, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_ASSIGN
+  CURLM *	multi	= IK_CURL_MULTI(s_multi);
+  int		fd	= IK_UNFIX(s_fd);
+  void *	data	= IK_VOIDP_FROM_POINTER_OR_FALSE(s_custom_data);
+  CURLMcode	rv;
+  rv = curl_multi_assign(multi, fd, data);
+  return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
 #endif
@@ -238,24 +281,6 @@ ikrt_curl_multi_socket_all (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_SOCKET_ALL
   curl_multi_socket_all();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_timeout (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_TIMEOUT
-  curl_multi_timeout();
-#else
-  feature_failure(__func__);
-#endif
-}
-ikptr
-ikrt_curl_multi_assign (ikpcb * pcb)
-{
-#ifdef HAVE_CURL_MULTI_ASSIGN
-  curl_multi_assign();
 #else
   feature_failure(__func__);
 #endif
