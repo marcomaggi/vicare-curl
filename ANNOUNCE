@@ -36,7 +36,9 @@ tested Libcurl version 7.27.0; the Libcurl library is available at:
 Notes for revision 0.1d2
 ------------------------
 
-*
+* Implemented multi API.
+
+* Added functions to convert from cURL constants to Scheme symbols.
 
 
 Notes for revision 0.1d1
