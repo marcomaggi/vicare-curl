@@ -1237,6 +1237,221 @@ timer callback:
     (free wfdset)))
 @end smallexample
 
+The following example downloads the page at @url{http://google.com/}
+using @func{curl-multi-socket-action}, the multi socket callback and the
+multi timer callback:
+
+@smallexample
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (prefix (vicare posix) px.)
+  (vicare syntactic-extensions))
+
+(define-struct pending-socks
+  (rd-requests
+              ;Null or a list of socket descriptors
+              ;for which reading is requested.
+   wr-requests
+              ;Null or a list of socket descriptors
+              ;for which writing is requested.
+   rw-requests
+              ;Null or a list of socket descriptors
+              ;for which reading or writing is requested.
+   ))
+
+(define (%make-pending-socks)
+  (make-pending-socks '() '() '()))
+
+(define (pending-socks-remove! ps sock-fd)
+  (pending-socks-remove-from-rd-requests! ps sock-fd)
+  (pending-socks-remove-from-wr-requests! ps sock-fd)
+  (pending-socks-remove-from-rw-requests! ps sock-fd))
+
+(define (pending-socks-remove-from-rd-requests! ps sock-fd)
+  (set-pending-socks-rd-requests! ps
+    (remq sock-fd (pending-socks-rd-requests ps))))
+
+(define (pending-socks-remove-from-wr-requests! ps sock-fd)
+  (set-pending-socks-wr-requests! ps
+    (remq sock-fd (pending-socks-wr-requests ps))))
+
+(define (pending-socks-remove-from-rw-requests! ps sock-fd)
+  (set-pending-socks-rw-requests! ps
+    (remq sock-fd (pending-socks-rw-requests ps))))
+
+(define (pending-socks-rd-request! ps sock-fd)
+  (set-pending-socks-rd-requests! ps
+    (cons sock-fd (pending-socks-rd-requests ps))))
+
+(define (pending-socks-wr-request! ps sock-fd)
+  (set-pending-socks-wr-requests! ps
+    (cons sock-fd (pending-socks-wr-requests ps))))
+
+(define (pending-socks-rw-request! ps sock-fd)
+  (set-pending-socks-rw-requests!
+   ps (cons sock-fd (pending-socks-rw-requests ps))))
+
+(define (%curl-multi-socket-action multi sock-fd events)
+  (let loop ()
+    (let-values
+        (((code still-running)
+          (curl-multi-socket-action multi sock-fd events)))
+      (if (= code CURLM_CALL_MULTI_PERFORM)
+          (loop)
+        (values code still-running)))))
+
+(define (write-func buffer size nitems outstream)
+  (let ((nbytes (* size nitems)))
+    (guard (E (else (check-pretty-print E) nbytes))
+      (fprintf (current-error-port) "Google's Home page:\n~a\n"
+               (cstring->string buffer nbytes)))
+    nbytes))
+
+(define (socket-func easy sock-fd poll-type
+                     callback-data sock-fd-data)
+  (define ps
+    (retrieve-to-avoid-collecting callback-data))
+  (case-integers poll-type
+    ((CURL_POLL_NONE)
+     (void))
+    ((CURL_POLL_IN)
+     (pending-socks-rd-request! ps sock-fd))
+    ((CURL_POLL_OUT)
+     (pending-socks-wr-request! ps sock-fd))
+    ((CURL_POLL_INOUT)
+     (pending-socks-rw-request! ps sock-fd))
+    ((CURL_POLL_REMOVE)
+     (pending-socks-remove! ps sock-fd))))
+
+(define (timer-func multi milliseconds timeout-pointer)
+  (replace-to-avoid-collecting timeout-pointer milliseconds)
+  0)
+
+(module (%select)
+  (define (%select rd-requests wr-requests rw-requests
+                   milliseconds)
+    ;;Perform a SELECT call for the requested sockets;
+    ;;use the given milliseconds as timeout.  Return
+    ;;two values: null or a list of socket descriptors
+    ;;ready for reading; null or a list of socket
+    ;;descriptors ready for writing.
+    ;;
+    (let ((fdsets (px.make-fd-set-bytevector 3)))
+      (%set-requests rd-requests fdsets 0)
+      (%set-requests wr-requests fdsets 1)
+      (%set-requests rw-requests fdsets 0)
+      (%set-requests rw-requests fdsets 1)
+      (cond ((let-values (((secs nsecs)
+                           (div-and-mod milliseconds 1000)))
+               (px.select-from-sets-array FD_SETSIZE
+                  fdsets secs nsecs))
+             => (lambda (fdsets)
+                  (values (%filter-ready
+                            (append rd-requests rw-requests)
+                            fdsets 0)
+                          (%filter-ready
+                            (append wr-requests rw-requests)
+                            fdsets 1))))
+            (else ;expired timeout
+             (values '() '())))))
+
+  (define (%filter-ready requests fdsets idx)
+    ;;Filter from REQUESTS the socket descriptors
+    ;;which are ready in FDSETS at fd_set index IDX;
+    ;;return the list of ready sockets.
+    ;;
+    (let loop ((ready    '())
+               (requests requests))
+      (if (null? requests)
+          ready
+        (let ((sock-fd (car requests)))
+          (if (px.FD_ISSET sock-fd fdsets idx)
+              (loop (cons sock-fd ready) (cdr requests))
+            (loop ready (cdr requests)))))))
+
+  (define (%set-requests requests fdsets idx)
+    ;;Set the socket descriptors from REQUESTS in
+    ;;FDSETS and fd_set index IDX; return unspecified
+    ;;values.
+    ;;
+    (for-each (lambda (sock-fd)
+                (px.FD_SET sock-fd fdsets idx))
+      requests))
+
+  #| end of module |# )
+
+(define-inline (%pretty-print ?thing)
+  (pretty-print ?thing (current-error-port)))
+
+(let* ((multi     (curl-multi-init))
+       (easy      (curl-easy-init))
+       (write-cb  (make-curl-write-callback write-func))
+       (socket-cb (make-curl-socket-callback socket-func))
+       (timer-cb  (make-curl-multi-timer-callback timer-func))
+       (timeout-pointer
+        (register-to-avoid-collecting -1))
+       (pending-socks
+        (%make-pending-socks))
+       (pending-socks-pointer
+        (register-to-avoid-collecting pending-socks)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy
+          CURLOPT_URL "http://google.com/")
+        (curl-easy-setopt easy
+          CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy
+          CURLOPT_WRITEDATA #f)
+        (curl-multi-setopt multi
+          CURLMOPT_TIMERFUNCTION timer-cb)
+        (curl-multi-setopt multi
+          CURLMOPT_TIMERDATA timeout-pointer)
+        (curl-multi-setopt multi
+          CURLMOPT_SOCKETFUNCTION socket-cb)
+        (curl-multi-setopt multi
+          CURLMOPT_SOCKETDATA pending-socks-pointer)
+        (curl-multi-add-handle multi easy)
+        (let loop ()
+          (let-values
+              (((code still-running)
+                (%curl-multi-socket-action multi
+                  CURL_SOCKET_TIMEOUT 0)))
+            (when (and (= code CURLM_OK)
+                       (not (zero? still-running)))
+              (let-values
+                  (((read-ready write-ready)
+                    (%select
+                      (pending-socks-rd-requests pending-socks)
+                      (pending-socks-wr-requests pending-socks)
+                      (pending-socks-rw-requests pending-socks)
+                      (retrieve-to-avoid-collecting timeout-pointer))))
+                (for-each
+                    (lambda (sock-fd)
+                      (%curl-multi-socket-action multi
+                        sock-fd CURL_CSELECT_IN))
+                  read-ready)
+                (for-each
+                    (lambda (sock-fd)
+                      (%curl-multi-socket-action multi
+                        sock-fd CURL_CSELECT_OUT))
+                  write-ready)
+                (loop)))))
+        (let-values (((msg nmsgs)
+                      (curl-multi-info-read multi)))
+          (when msg
+            (%pretty-print
+             (curl-constant-msg->symbol (curl-msg.msg msg))))))
+    ;;Close handles before releasing the callbacks!!!
+    (curl-multi-cleanup multi)
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)
+    (ffi.free-c-callback timer-cb)
+    (forget-to-avoid-collecting pending-socks-pointer)))
+@end smallexample
+
 @c page
 @node plain multi struct
 @subsection Multi operations handle
