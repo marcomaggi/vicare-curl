@@ -193,6 +193,8 @@ ikrt_curl_multi_fdset (ikptr s_multi,
 {
 #ifdef HAVE_CURL_MULTI_FDSET
   CURLM *	multi		= IK_CURL_MULTI(s_multi);
+  /* These   fd_sets   must   be    pointers   or   memory-blocks,   not
+     bytevectors. */
   fd_set *	read_fds	= \
     IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK_OR_FALSE(s_read_fds);
   fd_set *	write_fds	= \

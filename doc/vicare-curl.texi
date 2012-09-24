@@ -1066,6 +1066,7 @@ error code; if @var{code} is invalid, return @false{}.
 
 
 @menu
+* plain multi examples::        Some simple usage examples.
 * plain multi struct::          Multi operations handle.
 * plain multi init::            Multi initialisation and finalisation.
 * plain multi easy::            Adding and removing easy handles.
@@ -1076,6 +1077,165 @@ error code; if @var{code} is invalid, return @false{}.
 * plain multi misc::            Miscellaneous functions for multi
                                 handles.
 @end menu
+
+@c page
+@node plain multi examples
+@subsection Some simple usage examples
+
+
+The following example downloads the page at @url{http://google.com/}
+using @func{curl-multi-perform}, @func{curl-multi-fdset} and
+@func{curl-multi-timeout}:
+
+@smallexample
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (prefix (vicare posix) px.)
+  (vicare syntactic-extensions))
+
+(define-inline (%pretty-print ?thing)
+  (pretty-print ?thing (current-error-port)))
+
+(define (write-func buffer size nitems outstream)
+  (let ((nbytes (* size nitems)))
+    (guard (E (else (check-pretty-print E) nbytes))
+      (fprintf (current-error-port) "Google's Home page:\n~a\n"
+               (utf8->string (cstring->bytevector buffer nbytes))))
+    nbytes))
+
+(define (%curl-multi-perform multi)
+  (let loop ()
+    (let-values (((code still-running)
+                  (curl-multi-perform multi)))
+      (if (= code CURLM_CALL_MULTI_PERFORM)
+          (loop)
+        (values code still-running)))))
+
+(let ((multi    (curl-multi-init))
+      (easy     (curl-easy-init))
+      (rfdset   (px.make-fd-set-pointer))
+      (wfdset   (px.make-fd-set-pointer))
+      (write-cb (make-curl-write-callback write-func)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+        (curl-multi-add-handle multi easy)
+        (let loop ()
+          (let-values (((code still-running)
+                        (%curl-multi-perform multi)))
+            (unless (zero? still-running)
+              (let-values (((code milliseconds)
+                            (curl-multi-timeout multi)))
+                (when (and (= code CURLM_OK)
+                           (<= 0 milliseconds))
+                  (px.FD_ZERO rfdset)
+                  (px.FD_ZERO wfdset)
+                  (let-values (((code max-fd)
+                                (curl-multi-fdset multi
+                                  rfdset wfdset #f))
+                               ((secs nsecs)
+                                (div-and-mod milliseconds 1000)))
+                    (when (= code CURLM_OK)
+                      (px.select-from-sets (+ 1 max-fd)
+                        rfdset wfdset #f secs nsecs)
+                      (loop))))))))
+        (let-values (((msg nmsgs)
+                      (curl-multi-info-read multi)))
+          (when msg
+            (%pretty-print
+              (curl-constant-msg->symbol (curl-msg.msg msg))))))
+    ;;Close handles before releasing the callbacks!!!
+    (curl-multi-cleanup multi)
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)
+    (free rfdset)
+    (free wfdset)))
+@end smallexample
+
+The following example downloads the page at @url{http://google.com/}
+using @func{curl-multi-perform}, @func{curl-multi-fdset} and the multi
+timer callback:
+
+@smallexample
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (prefix (vicare posix) px.)
+  (vicare syntactic-extensions))
+
+(define-inline (%pretty-print ?thing)
+  (pretty-print ?thing (current-error-port)))
+
+(define (write-func buffer size nitems outstream)
+  (let ((nbytes (* size nitems)))
+    (guard (E (else (check-pretty-print E) nbytes))
+      (fprintf (current-error-port) "Google's Home page:\n~a\n"
+               (utf8->string (cstring->bytevector buffer nbytes))))
+    nbytes))
+
+(define (%curl-multi-perform multi)
+  (let loop ()
+    (let-values (((code still-running)
+                  (curl-multi-perform multi)))
+      (if (= code CURLM_CALL_MULTI_PERFORM)
+          (loop)
+        (values code still-running)))))
+
+(let* ((multi           (curl-multi-init))
+       (easy            (curl-easy-init))
+       (milliseconds    -1)
+       (rfdset          (px.make-fd-set-pointer))
+       (wfdset          (px.make-fd-set-pointer))
+       (write-cb        (make-curl-write-callback write-func))
+       (timer-cb        (make-curl-multi-timer-callback
+                         (lambda (multi ms custom-data)
+                           (set! milliseconds ms)
+                           0))))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA     #f)
+        (curl-multi-setopt multi CURLMOPT_TIMERFUNCTION timer-cb)
+        (curl-multi-setopt multi CURLMOPT_TIMERDATA     #f)
+        (curl-multi-add-handle multi easy)
+        (let loop ()
+          (let-values (((code still-running)
+                        (%curl-multi-perform multi)))
+            (when (and (not (zero? still-running))
+                       (<= 0 milliseconds))
+              (px.FD_ZERO rfdset)
+              (px.FD_ZERO wfdset)
+              (let-values (((code max-fd)
+                            (curl-multi-fdset multi
+                              rfdset wfdset #f))
+                           ((secs nsecs)
+                            (div-and-mod milliseconds 1000)))
+                (when (= code CURLM_OK)
+                  (px.select-from-sets (+ 1 max-fd)
+                    rfdset wfdset #f secs nsecs)
+                  (loop))))))
+        (let-values (((msg nmsgs)
+                      (curl-multi-info-read multi)))
+          (when msg
+            (%pretty-print
+              (curl-constant-msg->symbol (curl-msg.msg msg)))))
+        #t)
+    ;;Close handles before releasing the callbacks!!!
+    (curl-multi-cleanup multi)
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)
+    (ffi.free-c-callback timer-cb)
+    (free rfdset)
+    (free wfdset)))
+@end smallexample
 
 @c page
 @node plain multi struct
@@ -1431,10 +1591,10 @@ descriptors are set.
 @curlman{curl_multi_fdset}.
 
 @var{read-fds}, @var{write-fds}, @var{exc-fds} must be @false{} or
-bytevectors, pointer objects or @code{memory-block} holding or
-referencing C language structures of type @code{fd_set}, ready to
-receive socket descriptors registration; when @false{} an empty
-@code{fd_set} is internally allocated and used.
+pointer objects or @code{memory-block} holding or referencing C language
+structures of type @code{fd_set}, ready to receive socket descriptors
+registration; when @false{} an empty @code{fd_set} is internally
+allocated and used.
 @end defun
 
 

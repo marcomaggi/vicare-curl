@@ -315,6 +315,25 @@
 
 ;;; --------------------------------------------------------------------
 
+(define-argument-validation (general-sticky-buffer who obj)
+  ;;A general  "sticky" buffer is  a block of  memory that is  NOT moved
+  ;;around by the garbage collector.
+  ;;
+  (or (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected pointer or memory-block as general sticky buffer argument" obj))
+
+(define-argument-validation (general-sticky-buffer/false who obj)
+  (or (not obj)
+      (pointer? obj)
+      (memory-block? obj))
+  (assertion-violation who
+    "expected false or pointer or memory-block as general sticky buffer argument"
+    obj))
+
+;;; --------------------------------------------------------------------
+
 (define-argument-validation (general-data who obj)
   (or (bytevector? obj)
       (pointer? obj)
@@ -372,8 +391,8 @@
 
 (define-argument-validation (action-socket-descriptor who obj)
   (and (fixnum? obj)
-       (unsafe.fx= obj CURL_SOCKET_TIMEOUT)
-       (unsafe.fx<= 0 obj))
+       (or (unsafe.fx= obj CURL_SOCKET_TIMEOUT)
+	   (unsafe.fx<= 0 obj)))
   (assertion-violation who
     "expected CURL_SOCKET_TIMEOUT or non-negative fixnum as socket descriptor argument"
     obj))
@@ -1573,9 +1592,9 @@
   (define who 'curl-multi-fdset)
   (with-arguments-validation (who)
       ((curl-multi/alive	multi)
-       (general-buffer/false	read-fds)
-       (general-buffer/false	write-fds)
-       (general-buffer/false	exc-fds))
+       (general-sticky-buffer/false	read-fds)
+       (general-sticky-buffer/false	write-fds)
+       (general-sticky-buffer/false	exc-fds))
     (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
       (values (unsafe.car rv)
 	      (unsafe.cdr rv)))))
