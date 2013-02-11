@@ -167,7 +167,7 @@ supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
 @acronym{FILE}).
 
 The last time the author bothered to update this paragraph, he had
-tested @curl{} version 7.27.0; the @curl{} library is available at:
+tested @curl{} version 7.29.0; the @curl{} library is available at:
 
 @center @url{http://curl.haxx.se/libcurl/}
 

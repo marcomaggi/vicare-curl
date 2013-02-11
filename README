@@ -26,7 +26,7 @@ one  of the  supported  protocols (HTTP,  HTTPS, FTP,  FTPS,
 TFTP, DICT, TELNET, LDAP or FILE).
 
   The  last   time  the  author  bothered   to  update  this
-paragraph, he had tested Libcurl version 7.27.0.
+paragraph, he had tested Libcurl version 7.29.0.
 
   This package makes use of the GNU Autotools.
 
@@ -34,7 +34,7 @@ paragraph, he had tested Libcurl version 7.27.0.
 2. License
 ----------
 
-Copyright (c) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
