@@ -39,9 +39,11 @@ ikptr
 ikrt_curl_multi_init (ikpcb * pcb)
 {
 #ifdef HAVE_CURL_MULTI_INIT
-  CURLM *	 multi;
+  CURLM *	multi;
+  ikptr		rv;
   multi = curl_multi_init();
-  return (multi)? ika_pointer_alloc(pcb, (ik_ulong)multi) : IK_FALSE;
+  rv = (multi)? ika_pointer_alloc(pcb, (ik_ulong)multi) : IK_FALSE;
+  return rv;
 #else
   feature_failure(__func__);
 #endif
@@ -53,16 +55,20 @@ ikrt_curl_multi_cleanup (ikptr s_multi, ikpcb * pcb)
   ikptr		s_pointer	= IK_CURL_MULTI_POINTER(s_multi);
   CURLM *	multi		= IK_POINTER_DATA_VOIDP(s_pointer);
   CURLMcode	rv;
+  /* fprintf(stderr, "cleaning %p\n", (void *)multi); */
   if (multi) {
     {
       ikptr	sk;
       sk = ik_enter_c_function(pcb);
       {
+	/* fprintf(stderr, "finalising %p\n", (void *)multi); */
 	rv = curl_multi_cleanup(multi);
+	/* fprintf(stderr, "done finalising %p\n", (void *)multi); */
       }
       ik_leave_c_function(pcb, sk);
     }
     IK_POINTER_SET_NULL(s_pointer);
+    /* fprintf(stderr, "done cleaning %p\n", (void *)multi); */
     return ika_integer_from_curlcode(pcb, rv);
   } else
     return ika_integer_from_curlcode(pcb, CURLM_OK);

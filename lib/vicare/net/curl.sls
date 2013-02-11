@@ -1503,11 +1503,20 @@
 
 (define (%unsafe.curl-multi-cleanup multi)
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
-  (let ((easies ($curl-multi-easies multi)))
+  (let* ((easies-table	($curl-multi-easies multi))
+	 (easies	(hashtable-keys easies-table)))
+    ;;NOTE   As  crazy   as   it  seems   with   cURL  7.29.0   applying
+    ;;"curl_multi_cleanup()" to a  multi handle than never  had any easy
+    ;;handles  registered will  cause  a segmentation  fault.  For  this
+    ;;reason we  register an easy handle  here when we detect  a "clean"
+    ;;multi handle.  (Marco Maggi; Mon Feb 11, 2013)
+    (when (and (curl-multi?/alive multi)
+	       (unsafe.fxzero? (unsafe.vector-length easies)))
+      (curl-multi-add-handle multi (curl-easy-init)))
     (vector-for-each (lambda (easy)
 		       (capi.curl-multi-remove-handle multi easy)
-		       (hashtable-delete! easies easy))
-      (hashtable-keys easies)))
+		       (hashtable-delete! easies-table easy))
+      easies))
   (capi.curl-multi-cleanup multi))
 
 (define (%set-curl-multi-destructor! struct destructor-func)
