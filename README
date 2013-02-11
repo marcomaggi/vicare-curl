@@ -57,11 +57,14 @@ License   along   with    this   program.    If   not,   see
 ----------
 
 Before installing Vicare/cURL make  sure to have a correctly
-installed Libcurl library.  To install Vicare/cURL do this:
+installed Libcurl library.
+
+  To install  Vicare/cURL from a proper  release tarball, we
+must unpack the archive then do:
 
    $ cd vicare-curl-0.1.0
-   $ mkdir "=build"
-   $ cd "=build"
+   $ mkdir build
+   $ cd build
    $ ../configure
    $ make
    $ make check
@@ -94,7 +97,21 @@ and expect a lot of output.
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/vicare-curl
+    $ make install DESTDIR=/tmp/vicare-curl
+
+  If,  instead, we  have  checked out  a  revision from  the
+repository, we  will have to first  build the infrastructure
+running a script from the top source directory:
+
+   $ cd vicare-curl
+   $ sh autogen.sh
+
+after this the procedure is the same as the one for building
+from a proper release tarball.
+
+  Libraries are installed under the directory:
+
+		  $(libdir)/vicare-scheme
 
   After  installation, the  makefile rule  "vfasl-installed"
 will  precompile the  libraries installed  in the  hierarchy
@@ -137,7 +154,7 @@ The documentation of Vicare/cURL is available online:
 
 the latest version of this package can be downloaded from:
 
-    <http://github.com/marcomaggi/vicare-curl/downloads>
+  <http://code.google.com/p/vicare-scheme/downloads/list>
 
 development takes place at:
 
