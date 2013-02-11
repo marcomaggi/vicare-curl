@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -103,7 +103,7 @@
     curl-multi-setopt			curl-multi-fdset
     curl-multi-perform			curl-multi-info-read
     curl-multi-socket			curl-multi-socket-action
-    curl-multi-socket-all
+    curl-multi-socket-all		curl-multi-wait
     curl-multi-timeout			curl-multi-assign
     curl-multi-strerror)
   (import (vicare))
@@ -454,6 +454,11 @@
 
 (define-inline (curl-multi-assign multi sock custom-data)
   (foreign-call "ikrt_curl_multi_assign" multi sock custom-data))
+
+;;; --------------------------------------------------------------------
+
+(define-inline (curl-multi-wait multi extra-fds timeout)
+  (foreign-call "ikrt_curl_multi_wait" multi extra-fds timeout))
 
 ;;; --------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -310,6 +310,49 @@ ikrt_curl_multi_assign (ikptr s_multi, ikptr s_fd, ikptr s_custom_data, ikpcb * 
   CURLMcode	rv;
   rv = curl_multi_assign(multi, fd, data);
   return ika_integer_from_curlcode(pcb, rv);
+#else
+  feature_failure(__func__);
+#endif
+}
+
+/* ------------------------------------------------------------------ */
+
+ikptr
+ikrt_curl_multi_wait (ikptr s_multi, ikptr s_extra_fds, ikptr s_timeout, ikpcb * pcb)
+{
+#ifdef HAVE_CURL_MULTI_WAIT
+  CURLM *	multi		= IK_CURL_MULTI(s_multi);
+  int		extra_nfds	= IK_VECTOR_LENGTH(s_extra_fds);
+  int		timeout		= ik_integer_to_int(s_timeout);
+  int		numfds;
+  CURLMcode	rv;
+  {
+    struct curl_waitfd  extra_fds[extra_nfds];
+    int			i;
+    for (i=0; i<numfds; ++i) {
+      ikptr	s_struct = IK_ITEM(s_extra_fds, i);
+      extra_fds[i].fd		= IK_UNFIX(IK_FIELD(s_struct, 0));
+      extra_fds[i].events	= IK_UNFIX(IK_FIELD(s_struct, 1));
+      extra_fds[i].revents	= IK_UNFIX(IK_FIELD(s_struct, 2));
+    }
+    rv = curl_multi_wait(multi, extra_fds, extra_nfds, timeout, &numfds);
+    for (i=0; i<numfds; ++i) {
+      ikptr	s_struct = IK_ITEM(s_extra_fds, i);
+      IK_FIELD(s_struct, 0) = IK_FIX(extra_fds[i].fd);
+      IK_FIELD(s_struct, 1) = IK_FIX(extra_fds[i].events);
+      IK_FIELD(s_struct, 2) = IK_FIX(extra_fds[i].revents);
+    }
+    {
+      ikptr	s_pair = ika_pair_alloc(pcb);
+      pcb->root0 = &s_pair;
+      {
+	IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
+	IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, numfds));
+      }
+      pcb->root0 = NULL;
+      return s_pair;
+    }
+  }
 #else
   feature_failure(__func__);
 #endif

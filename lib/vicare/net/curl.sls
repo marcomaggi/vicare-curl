@@ -108,7 +108,7 @@
     curl-multi-setopt				curl-multi-fdset
     curl-multi-perform				curl-multi-info-read
     curl-multi-socket				curl-multi-socket-action
-    curl-multi-socket-all
+    curl-multi-socket-all			curl-multi-wait
     curl-multi-timeout				curl-multi-assign
     curl-multi-strerror
 
@@ -116,6 +116,12 @@
     curl-multi?					curl-multi?/alive
     curl-multi-destructor
     (rename (%set-curl-multi-destructor!	set-curl-multi-destructor!))
+
+    curl-waitfd
+    make-curl-waitfd				curl-waitfd?
+    curl-waitfd-fd
+    curl-waitfd-events
+    curl-waitfd-revents
 
     ;; callback makers
     make-curl-write-callback			make-curl-read-callback
@@ -225,6 +231,7 @@
     curl-constant-m->symbol
     curl-constant-msg->symbol
     curl-constant-poll->symbol
+    curl-constant-wait-poll->symbol
     curl-constant-cselect->symbol
     curl-constant-mopt->symbol)
   (import (vicare)
@@ -458,6 +465,13 @@
 (define-argument-validation (curl-multi/alive who obj)
   (curl-multi?/alive obj)
   (assertion-violation who "expected alive instance of \"curl-multi\" as argument" obj))
+
+;;; --------------------------------------------------------------------
+
+(define-argument-validation (vector-of-curl-waitfd who obj)
+  (and (vector? obj)
+       (vector-for-all curl-waitfd? obj))
+  (assertion-violation who "expected vector of structs of type curl-waitfd" obj))
 
 
 ;;;; helpers
@@ -1664,6 +1678,26 @@
 
 ;;; --------------------------------------------------------------------
 
+(define-struct curl-waitfd
+  (fd
+		;Fixnum representing a socket descriptor.
+   events
+		;A fixnum representing a "short int" bitmask of events.
+   revents
+		;A fixnum representing a "short int" bitmask of events.
+   ))
+
+(define (curl-multi-wait multi extra-fds timeout)
+  (define who 'curl-multi-wait)
+  (with-arguments-validation (who)
+      ((curl-multi/alive	multi)
+       (vector-of-curl-waitfd	extra-fds)
+       (signed-int		timeout))
+    (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
+      (values (unsafe.car rv) (unsafe.cdr rv)))))
+
+;;; --------------------------------------------------------------------
+
 (define (curl-multi-info-read multi)
   (define who 'curl-multi-info-read)
   (with-arguments-validation (who)
@@ -2150,7 +2184,7 @@
 
 (define-exact-integer->symbol-function curl-constant-socktype->symbol
   (CURLSOCKTYPE_IPCXN
-   CURLSOCKTYPE_AGENT
+   CURLSOCKTYPE_ACCEPT
    CURLSOCKTYPE_LAST))
 
 (define-exact-integer->symbol-function curl-constant-sockopt->symbol
@@ -2853,6 +2887,11 @@
    CURL_POLL_OUT
    CURL_POLL_INOUT
    CURL_POLL_REMOVE))
+
+(define-exact-integer->symbol-function curl-constant-wait-poll->symbol
+  (CURL_WAIT_POLLIN
+   CURL_WAIT_POLLPRI
+   CURL_WAIT_POLLOUT))
 
 (define-exact-integer->symbol-function curl-constant-cselect->symbol
   (CURL_CSELECT_IN

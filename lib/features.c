@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -433,6 +433,13 @@ printf("(define-inline-constant HAVE_CURL_MULTI_SETOPT %s)\n",
   );
 printf("(define-inline-constant HAVE_CURL_MULTI_ASSIGN %s)\n",
 #ifdef HAVE_CURL_MULTI_ASSIGN
+  "#t"
+#else
+  "#f"
+#endif
+  );
+printf("(define-inline-constant HAVE_CURL_MULTI_WAIT %s)\n",
+#ifdef HAVE_CURL_MULTI_WAIT
   "#t"
 #else
   "#f"

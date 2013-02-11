@@ -4355,6 +4355,13 @@ Given one among the @code{CURL_POLL_} constants return a symbol
 representing its name.
 @end defun
 
+
+@defun curl-constant-wait-poll->symbol @var{code}
+Given one among the @code{CURL_WAIT_POLL} constants return a symbol
+representing its name.
+@end defun
+
+
 @defun curl-constant-cselect->symbol @var{code}
 Given one among the @code{CURL_CSELECT_} constants return a symbol
 representing its name.
