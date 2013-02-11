@@ -45,7 +45,7 @@ cURL
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2012
+@set COPYRIGHT_YEARS            2012, 2013
 
 
 @c page
@@ -2226,7 +2226,8 @@ An exact integer representing the socket descriptor.
 
 @item
 An exact integer representing the purpose of the socket, a constant of
-type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN}.
+type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN},
+@code{CURLSOCKTYPE_ACCEPT}.
 @end enumerate
 
 @var{user-scheme-callback} must return a single value being an exact
@@ -2280,7 +2281,8 @@ this value is associated to the callback with the
 
 @item
 An exact integer representing the purpose of the socket, a constant of
-type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN}.
+type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN},
+@code{CURLSOCKTYPE_ACCEPT}.
 
 @item
 A pointer object referencing an instance of @code{struct curl_sockaddr};
