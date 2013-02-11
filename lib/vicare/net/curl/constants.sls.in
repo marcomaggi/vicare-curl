@@ -7,7 +7,7 @@
 ;;;
 ;;;	Export an identifier syntax for each Libcurl constant.
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -82,6 +82,7 @@
 
     ;; typedef enum curlsocktype
     CURLSOCKTYPE_IPCXN
+    CURLSOCKTYPE_ACCEPT
     CURLSOCKTYPE_LAST
 
     ;;The return code from the  sockopt_callback can signal information back
@@ -889,6 +890,7 @@
 
 ;; typedef enum curlsocktype
 (defc CURLSOCKTYPE_IPCXN		@VALUEOF_CURLSOCKTYPE_IPCXN@)
+(defc CURLSOCKTYPE_ACCEPT		@VALUEOF_CURLSOCKTYPE_ACCEPT@)
 (defc CURLSOCKTYPE_LAST			@VALUEOF_CURLSOCKTYPE_LAST@)
 
 ;;The return code from the  sockopt_callback can signal information back
