@@ -476,6 +476,11 @@ or the bitwise inclusive OR combination of: @code{CURL_GLOBAL_SSL},
 @defun curl-global-init-mem @var{flags} @var{malloc} @var{free} @var{realloc} @var{strdup} @var{calloc}
 Like @func{curl-global-init}, but allows the application to replace the
 functions used by @curl{} to manage raw memory with supplied callbacks.
+@curlman{curl_global_init_mem}.
+
+@var{flags} has the same meaning of the argument to
+@func{curl-global-init-mem}.  The other arguments must be pointer
+objects referencing C language functions.
 @end defun
 
 
@@ -489,8 +494,8 @@ referencing a callback function suitable to be used as argument in calls
 to @func{curl-global-init-mem}; the returned pointer must be released
 with a call to @func{free-c-callback} from @library{vicare ffi}.
 
-Each supplid Scheme function must adhere to appropriate prototype among
-the following:
+Each supplied Scheme function must adhere to the appropriate prototype
+among the following:
 
 @example
 void * curl_malloc_callback  (size_t size);
@@ -500,13 +505,13 @@ char * curl_strdup_callback  (const char *str);
 void * curl_calloc_callback  (size_t nmemb, size_t size);
 @end example
 
-@var{user-scheme-callback} is wrapped in an internally generated Scheme
-function which does the following:
+The supplied Scheme function is wrapped in an internally generated
+Scheme function which does the following:
 
 @itemize
 @item
 Block and discard all the raised exceptions using @func{guard} from
-@library{vicare}; @var{user-scheme-callback} should take care of
+@library{vicare}; the supplied Scheme function should take care of
 handling its own exceptions.
 
 @item
@@ -522,9 +527,9 @@ the callback returns the return value of @func{void}.
 
 
 @defun curl-global-cleanup
-Releases the resources allocated by @func{curl-global-init} or
+Release the resources allocated by @func{curl-global-init} or
 @func{curl-global-init-mem}; return unspecified values.
-@curlman{curl-global-cleanup}.
+@curlman{curl_global_cleanup}.
 @end defun
 
 
@@ -539,11 +544,11 @@ handle raw memory allocation:
   (prefix (vicare ffi) ffi.))
 
 (curl-global-init-mem CURL_GLOBAL_ALL
-   (make-curl-malloc-callback  malloc)
-   (make-curl-free-callback    free)
-   (make-curl-realloc-callback realloc)
-   (make-curl-strdup-callback  strdup)
-   (make-curl-calloc-callback  calloc))
+   (make-curl-malloc-callback  ffi.malloc)
+   (make-curl-free-callback    ffi.free)
+   (make-curl-realloc-callback ffi.realloc)
+   (make-curl-strdup-callback  ffi.strdup)
+   (make-curl-calloc-callback  ffi.calloc))
 @result{} CURLE_OK
 @end example
 
@@ -605,13 +610,14 @@ this should happen transparently.
 
 
 @defun curl-easy? @var{obj}
-Return @true{} if @var{obj} is an instance of @code{curl-easy}.
+Return @true{} if @var{obj} is an instance of @code{curl-easy};
+otherwise return @false{}.
 @end defun
 
 
 @defun curl-easy?/alive @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-easy} and it
-has not been finalised.
+has not been finalised; return @false{} otherwise.
 @end defun
 
 
@@ -766,7 +772,7 @@ information.
 If @var{info} is not recognised: @false{} and @false{}.
 
 @item
-Else return: a @code{CURLE_} constant and @false{}.
+Else return: a @code{CURLE_} error constant and @false{}.
 @end itemize
 
 @curlman{curl_easy_getinfo}.
@@ -794,7 +800,7 @@ is empty.
 As special cases when @var{info} is:
 
 @table @code
-@item CURLINFO_CERNTINFO
+@item CURLINFO_CERTINFO
 The returned value is @false{} or a vector holding one item for each
 @ssl{}/@tls{} certificate; each item is a list of strings representing
 informations about the certificate; each string has the format
@@ -824,6 +830,8 @@ the value of some options:
 
 (define (dummy-write-cb buffer size nitems outstream)
   (* size nitems))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (let ((easy     (curl-easy-init))
       (write-cb (make-curl-write-callback dummy-write-cb)))
@@ -882,6 +890,8 @@ short):
 
 (define (dummy-write-cb buffer size nitems outstream)
   (* size nitems))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (let ((easy     (curl-easy-init))
       (write-cb (make-curl-write-callback dummy-write-cb)))
@@ -1017,7 +1027,7 @@ return an @ascii{} bytevector, else return @false{}.
 @var{chars.data} must be a string or bytevector or pointer object or
 @code{memory-block}; it must hold the input data.
 
-The optional @var{chars.len} is used only when @code{chars.data} is a
+The optional @var{chars.len} is used only when @var{chars.data} is a
 pointer object, in the other cases it is ignored; when used, it must be
 an exact integer, in the range of the C language type @code{int},
 representing the number of bytes available in the input buffer.
@@ -1038,7 +1048,7 @@ successful return an @ascii{} bytevector, else return @false{}.
 @var{chars.data} must be a string or bytevector or pointer object or
 @code{memory-block}; it must hold the input data.
 
-The optional @var{chars.len} is used only when @code{chars.data} is a
+The optional @var{chars.len} is used only when @var{chars.data} is a
 pointer object, in the other cases it is ignored; when used, it must be
 an exact integer, in the range of the C language type @code{int},
 representing the number of bytes available in the input buffer.
