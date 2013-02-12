@@ -1129,6 +1129,8 @@ using @func{curl-multi-perform}, @func{curl-multi-fdset} and
           (loop)
         (values code still-running)))))
 
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
 (let ((multi    (curl-multi-init))
       (easy     (curl-easy-init))
       (rfdset   (px.make-fd-set-pointer))
@@ -1202,6 +1204,8 @@ timer callback:
       (if (= code CURLM_CALL_MULTI_PERFORM)
           (loop)
         (values code still-running)))))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (let* ((multi           (curl-multi-init))
        (easy            (curl-easy-init))
@@ -1401,6 +1405,8 @@ multi timer callback:
 (define-inline (%pretty-print ?thing)
   (pretty-print ?thing (current-error-port)))
 
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
 (let* ((multi     (curl-multi-init))
        (easy      (curl-easy-init))
        (write-cb  (make-curl-write-callback write-func))
@@ -1488,7 +1494,7 @@ documentation identifies them as @var{multi}.
 Instances of this type must be finalised with @func{curl-multi-cleanup};
 whenever an instance of this type is garbage collected:
 @func{curl-multi-cleanup} is automatically applied to it and any error
-ignored.  Before the finalisation takes palce: all the easy handles are
+ignored.  Before the finalisation takes place: all the easy handles are
 removed from the context of @var{multi}.
 
 In certain contexts, instances of this type own the referenced
@@ -1510,13 +1516,14 @@ this should happen transparently.
 
 
 @defun curl-multi? @var{obj}
-Return @true{} if @var{obj} is an instance of @code{curl-multi}.
+Return @true{} if @var{obj} is an instance of @code{curl-multi};
+otherwise return @false{}.
 @end defun
 
 
 @defun curl-multi?/alive @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-multi} and it
-has not been finalised.
+has not been finalised; otherwise return @false{}.
 @end defun
 
 
@@ -1576,7 +1583,7 @@ If this function is applied to a @var{multi} value not owning the
 underlying @code{CURLM} value: @var{multi} is finalised, but the
 @code{CURLM} value is left alone.
 
-Before the finalisation takes palce: this function removes all the easy
+Before the finalisation takes place: this function removes all the easy
 handles from the context of @var{multi}.
 @end defun
 
@@ -1619,6 +1626,8 @@ Here is a meaningless example of adding and removing:
 (import (vicare)
   (vicare net curl)
   (vicare net curl constants))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (let* ((multi (curl-multi-init))
        (easy1 (curl-easy-init))
@@ -1685,6 +1694,8 @@ Here are meaningless examples of setting options:
 (import (vicare)
   (vicare net curl)
   (vicare net curl constants))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (define multi
   (curl-multi-init)
@@ -1760,6 +1771,8 @@ Here is an example of performance:
       (fprintf (current-error-port) "Google's Home page:\n~a\n"
                (utf8->string (cstring->bytevector buffer nbytes))))
     nbytes))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
 (let ((multi      (curl-multi-init))
       (easy       (curl-easy-init))
