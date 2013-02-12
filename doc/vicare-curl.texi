@@ -1116,7 +1116,7 @@ using @func{curl-multi-perform}, @func{curl-multi-fdset} and
 
 (define (write-func buffer size nitems outstream)
   (let ((nbytes (* size nitems)))
-    (guard (E (else (check-pretty-print E) nbytes))
+    (guard (E (else (pretty-print E) nbytes))
       (fprintf (current-error-port) "Google's Home page:\n~a\n"
                (utf8->string (cstring->bytevector buffer nbytes))))
     nbytes))
@@ -1192,7 +1192,7 @@ timer callback:
 
 (define (write-func buffer size nitems outstream)
   (let ((nbytes (* size nitems)))
-    (guard (E (else (check-pretty-print E) nbytes))
+    (guard (E (else (pretty-print E) nbytes))
       (fprintf (current-error-port) "Google's Home page:\n~a\n"
                (utf8->string (cstring->bytevector buffer nbytes))))
     nbytes))
@@ -1324,7 +1324,7 @@ multi timer callback:
 
 (define (write-func buffer size nitems outstream)
   (let ((nbytes (* size nitems)))
-    (guard (E (else (check-pretty-print E) nbytes))
+    (guard (E (else (pretty-print E) nbytes))
       (fprintf (current-error-port) "Google's Home page:\n~a\n"
                (cstring->string buffer nbytes)))
     nbytes))
@@ -1767,7 +1767,7 @@ Here is an example of performance:
 
 (define (write-func buffer size nitems outstream)
   (let ((nbytes (* size nitems)))
-    (guard (E (else (check-pretty-print E) nbytes))
+    (guard (E (else (pretty-print E) nbytes))
       (fprintf (current-error-port) "Google's Home page:\n~a\n"
                (utf8->string (cstring->bytevector buffer nbytes))))
     nbytes))
