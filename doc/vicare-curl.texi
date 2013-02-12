@@ -1912,10 +1912,10 @@ events occurred.
 
 @curlman{curl_multi_wait}.
 
-@var{extra-fds} must be a Scheme vector holding zero or more instances
-of @code{curl-waitfd} (which are internally converted to @code{struct
-curl_waitfd}); such structures are mutated by this function to reflect
-the manipulations performed by @curl{}.
+@var{extra-fds} must be @false{} or a Scheme vector holding zero or more
+instances of @code{curl-waitfd} (which are internally converted to
+@code{struct curl_waitfd}); such structures are mutated by this function
+to reflect the manipulations performed by @curl{}.
 
 @var{timeout} must be an exact integer in the range of the C language
 type @code{int} representing the number of milliseconds to wait for an
