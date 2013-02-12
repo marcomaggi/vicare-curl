@@ -1505,12 +1505,13 @@
   (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
   (let* ((easies-table	($curl-multi-easies multi))
 	 (easies	(hashtable-keys easies-table)))
-    ;;NOTE   As  crazy   as   it  seems   with   cURL  7.29.0   applying
-    ;;"curl_multi_cleanup()" to a  multi handle than never  had any easy
-    ;;handles  registered will  cause  a segmentation  fault.  For  this
-    ;;reason we  register an easy handle  here when we detect  a "clean"
-    ;;multi handle.  (Marco Maggi; Mon Feb 11, 2013)
-    (when (and (curl-multi?/alive multi)
+    ;;NOTE With  cURL 7.28.0 and 7.29.0  applying "curl_multi_cleanup()"
+    ;;to a multi handle than never  had any easy handles registered will
+    ;;cause a segmentation  fault.  For this reason we  register an easy
+    ;;handle here when we detect  a "clean" multi handle.  (Marco Maggi;
+    ;;Mon Feb 11, 2013)
+    (when (and %empty-multi-handle-cleanup-crash-bug?
+	       (curl-multi?/alive multi)
 	       (unsafe.fxzero? (unsafe.vector-length easies)))
       (curl-multi-add-handle multi (curl-easy-init)))
     (vector-for-each (lambda (easy)
@@ -2918,6 +2919,16 @@
 
 
 ;;;; done
+
+(define %empty-multi-handle-cleanup-crash-bug?
+  ;;NOTE With cURL 7.28.0  and 7.29.0 applying "curl_multi_cleanup()" to
+  ;;a multi handle than never had any easy handles registered will cause
+  ;;a segmentation  fault.  For this  reason we register an  easy handle
+  ;;here when we  detect a "clean" multi handle.  (Marco  Maggi; Mon Feb
+  ;;11, 2013)
+  (let ((V (curl-version-info-data-version (curl-version-info CURLVERSION_NOW))))
+    (or (string=? V "7.28.0")
+	(string=? V "7.29.0"))))
 
 (set-rtd-printer! (type-descriptor curl-version-info-data)
 		  %struct-curl-version-info-data-printer)
