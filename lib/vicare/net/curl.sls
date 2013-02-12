@@ -468,9 +468,10 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-argument-validation (vector-of-curl-waitfd who obj)
-  (and (vector? obj)
-       (vector-for-all curl-waitfd? obj))
+(define-argument-validation (vector-of-curl-waitfd/false who obj)
+  (or (not obj)
+      (and (vector? obj)
+	   (vector-for-all curl-waitfd? obj)))
   (assertion-violation who "expected vector of structs of type curl-waitfd" obj))
 
 
@@ -1700,9 +1701,9 @@
 (define (curl-multi-wait multi extra-fds timeout)
   (define who 'curl-multi-wait)
   (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (vector-of-curl-waitfd	extra-fds)
-       (signed-int		timeout))
+      ((curl-multi/alive		multi)
+       (vector-of-curl-waitfd/false	extra-fds)
+       (signed-int			timeout))
     (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
       (values (unsafe.car rv) (unsafe.cdr rv)))))
 

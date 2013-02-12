@@ -328,32 +328,35 @@ ikrt_curl_multi_wait (ikptr s_multi, ikptr s_extra_fds, ikptr s_timeout, ikpcb *
 {
 #ifdef HAVE_CURL_MULTI_WAIT
   CURLM *	multi		= IK_CURL_MULTI(s_multi);
-  int		extra_nfds	= IK_VECTOR_LENGTH(s_extra_fds);
+  int		extra_nfds	= (IK_FALSE == s_extra_fds)? 0 : IK_VECTOR_LENGTH(s_extra_fds);
   int		timeout		= ik_integer_to_int(s_timeout);
-  int		numfds;
+  int		eventful_nfds;
   CURLMcode	rv;
+  /* fprintf(stderr, "%s enter\n", __func__); */
   {
     struct curl_waitfd  extra_fds[extra_nfds];
     int			i;
-    for (i=0; i<numfds; ++i) {
+    for (i=0; i<extra_nfds; ++i) {
       ikptr	s_struct = IK_ITEM(s_extra_fds, i);
-      extra_fds[i].fd		= IK_UNFIX(IK_FIELD(s_struct, 0));
-      extra_fds[i].events	= IK_UNFIX(IK_FIELD(s_struct, 1));
-      extra_fds[i].revents	= IK_UNFIX(IK_FIELD(s_struct, 2));
+      extra_fds[i].fd      = IK_UNFIX(IK_FIELD(s_struct, 0));
+      extra_fds[i].events  = IK_UNFIX(IK_FIELD(s_struct, 1));
+      extra_fds[i].revents = IK_UNFIX(IK_FIELD(s_struct, 2));
     }
-    rv = curl_multi_wait(multi, extra_fds, extra_nfds, timeout, &numfds);
-    for (i=0; i<numfds; ++i) {
+    /* fprintf(stderr, "%s nfds=%d, timeout=%d\n", __func__, extra_nfds, timeout); */
+    rv = curl_multi_wait(multi, extra_fds, extra_nfds, timeout, &eventful_nfds);
+    for (i=0; i<extra_nfds; ++i) {
       ikptr	s_struct = IK_ITEM(s_extra_fds, i);
       IK_FIELD(s_struct, 0) = IK_FIX(extra_fds[i].fd);
       IK_FIELD(s_struct, 1) = IK_FIX(extra_fds[i].events);
       IK_FIELD(s_struct, 2) = IK_FIX(extra_fds[i].revents);
     }
+    /* fprintf(stderr, "%s about to leave\n", __func__); */
     {
       ikptr	s_pair = ika_pair_alloc(pcb);
       pcb->root0 = &s_pair;
       {
 	IK_ASS(IK_CAR(s_pair), ika_integer_from_curlcode(pcb, rv));
-	IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, numfds));
+	IK_ASS(IK_CDR(s_pair), ika_integer_from_int(pcb, eventful_nfds));
       }
       pcb->root0 = NULL;
       return s_pair;

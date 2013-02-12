@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -238,7 +238,7 @@
   (collect))
 
 
-(parametrise ((check-test-name	'sockets))
+(parametrise ((check-test-name	'select))
 
   (define-struct pending-socks
     (rd-requests
@@ -423,10 +423,153 @@
 	  (curl-easy-cleanup easy)
 	  (ffi.free-c-callback write-cb)
 	  (ffi.free-c-callback timer-cb)
+	  (ffi.free-c-callback socket-cb)
 	  (forget-to-avoid-collecting pending-socks-pointer)))
     => #t)
 
   (collect))
+
+
+(parametrise ((check-test-name	'wait))
+
+  (define-struct pending-socks
+    (rd-requests
+		;Null or a list of  socket descriptors for which reading
+		;is requested.
+     wr-requests
+		;Null or a list of  socket descriptors for which writing
+		;is requested.
+     rw-requests
+		;Null or a list of  socket descriptors for which reading
+		;or writing is requested.
+     ))
+
+  (define (%make-pending-socks)
+    (make-pending-socks '() '() '()))
+
+  (define (pending-socks-remove! ps sock-fd)
+    (pending-socks-remove-from-rd-requests! ps sock-fd)
+    (pending-socks-remove-from-wr-requests! ps sock-fd)
+    (pending-socks-remove-from-rw-requests! ps sock-fd))
+
+  (define (pending-socks-remove-from-rd-requests! ps sock-fd)
+    (set-pending-socks-rd-requests! ps (remq sock-fd (pending-socks-rd-requests ps))))
+
+  (define (pending-socks-remove-from-wr-requests! ps sock-fd)
+    (set-pending-socks-wr-requests! ps (remq sock-fd (pending-socks-wr-requests ps))))
+
+  (define (pending-socks-remove-from-rw-requests! ps sock-fd)
+    (set-pending-socks-rw-requests! ps (remq sock-fd (pending-socks-rw-requests ps))))
+
+  (define (pending-socks-rd-request! ps sock-fd)
+    (set-pending-socks-rd-requests! ps (cons sock-fd (pending-socks-rd-requests ps))))
+
+  (define (pending-socks-wr-request! ps sock-fd)
+    (set-pending-socks-wr-requests! ps (cons sock-fd (pending-socks-wr-requests ps))))
+
+  (define (pending-socks-rw-request! ps sock-fd)
+    (set-pending-socks-rw-requests!
+     ps (cons sock-fd (pending-socks-rw-requests ps))))
+
+;;; --------------------------------------------------------------------
+
+  (define (%curl-multi-socket-action multi sock-fd events)
+    (let loop ()
+      (let-values (((code still-running)
+		    (curl-multi-socket-action multi sock-fd events)))
+	(if (= code CURLM_CALL_MULTI_PERFORM)
+	    (loop)
+	  (values code still-running)))))
+
+  (define (socket-func easy sock-fd poll-type callback-data sock-fd-data)
+    (define ps
+      (retrieve-to-avoid-collecting callback-data))
+    (case-integers poll-type
+      ((CURL_POLL_NONE)
+       (void))
+      ((CURL_POLL_IN)
+;;;	     (check-pretty-print (list 'poll-in sock-fd))
+       (pending-socks-rd-request! ps sock-fd))
+      ((CURL_POLL_OUT)
+;;;	     (check-pretty-print (list 'poll-out sock-fd))
+       (pending-socks-wr-request! ps sock-fd))
+      ((CURL_POLL_INOUT)
+;;;	     (check-pretty-print (list 'poll-inout sock-fd))
+       (pending-socks-rw-request! ps sock-fd))
+      ((CURL_POLL_REMOVE)
+;;;	     (check-pretty-print (list 'poll-remove sock-fd))
+       (pending-socks-remove! ps sock-fd))))
+
+  (define (write-func buffer size nitems outstream)
+    (check-pretty-print (list 'enter-write size nitems))
+    (let ((nbytes (* size nitems)))
+      (guard (E (else (check-pretty-print E) nbytes))
+	(fprintf (current-error-port) "Google's Home page:\n~a\n"
+		 (utf8->string (cstring->bytevector buffer nbytes))))
+      nbytes))
+
+  (define (timer-func multi milliseconds timeout-pointer)
+    (replace-to-avoid-collecting timeout-pointer milliseconds)
+    0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((multi		(curl-multi-init))
+	     (easy		(curl-easy-init))
+	     (write-cb		(make-curl-write-callback write-func))
+	     (socket-cb		(make-curl-socket-callback socket-func))
+	     (timer-cb		(make-curl-multi-timer-callback timer-func))
+	     (timeout-pointer	(register-to-avoid-collecting -1))
+	     (pending-socks		(%make-pending-socks))
+	     (pending-socks-pointer	(register-to-avoid-collecting pending-socks)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      #;(curl-easy-setopt easy CURLOPT_VERBOSE #t)
+	      (curl-multi-setopt multi CURLMOPT_TIMERFUNCTION timer-cb)
+	      (curl-multi-setopt multi CURLMOPT_TIMERDATA timeout-pointer)
+	      (curl-multi-setopt multi CURLMOPT_SOCKETFUNCTION socket-cb)
+	      (curl-multi-setopt multi CURLMOPT_SOCKETDATA pending-socks-pointer)
+	      (curl-multi-add-handle multi easy)
+	      (let loop ()
+		(let-values (((code still-running)
+			      (%curl-multi-socket-action multi CURL_SOCKET_TIMEOUT 0)))
+		  (when (and (= code CURLM_OK)
+			     (not (zero? still-running)))
+;;;(check-pretty-print (list 'after-action code still-running))
+		    (let-values (((code number-of-eventful-fds)
+				  (curl-multi-wait
+				   multi #f
+				   (retrieve-to-avoid-collecting timeout-pointer))))
+;;;(check-pretty-print (list 'after-wait code number-of-eventful-fds))
+		      (when (= code CURLM_OK)
+			(for-each
+			    (lambda (sock-fd)
+			      (%curl-multi-socket-action multi sock-fd CURL_CSELECT_IN))
+			  (pending-socks-rd-requests pending-socks))
+			(for-each
+			    (lambda (sock-fd)
+			      (%curl-multi-socket-action multi sock-fd CURL_CSELECT_OUT))
+			  (pending-socks-wr-requests pending-socks))
+			(loop))))))
+	      (let-values (((msg nmsgs)
+			    (curl-multi-info-read multi)))
+		(when msg
+		  (%pretty-print (curl-constant-msg->symbol (curl-msg.msg msg)))))
+	      #t)
+	  ;;Close handles before releasing the callbacks!!!
+	  (curl-multi-cleanup multi)
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback timer-cb)
+	  (ffi.free-c-callback socket-cb)
+	  (forget-to-avoid-collecting pending-socks-pointer)))
+    => #t)
+
+  #t)
 
 
 ;;;; done

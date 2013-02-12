@@ -1813,6 +1813,20 @@ Here is an example of performance:
 @subsection Performing multi operations with socket descriptors
 
 
+@menu
+* plain multi sockets fdsets::  Using file descriptor sets and @func{select}.
+* plain multi sockets polls::   Using file descriptors and @func{poll}.
+* plain multi sockets action::  Performing actions.
+* plain multi sockets data::    Associating custom data to file
+                                descriptors.
+* plain multi sockets depre::   Deprecated functions.
+@end menu
+
+@c page
+@node plain multi sockets fdsets
+@subsubsection Using file descriptor sets and @func{select}
+
+
 The following bindings are exported by the library @library{vicare net
 curl}.
 
@@ -1839,6 +1853,245 @@ structures of type @code{fd_set}, ready to receive socket descriptors
 registration; when @false{} an empty @code{fd_set} is internally
 allocated and used.
 @end defun
+
+@c page
+@node plain multi sockets polls
+@subsubsection Using file descriptors and @func{poll}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@deftp {Struct Type} curl-waitfd
+Data structure type representing at the Scheme level a @code{struct
+curl_waitfd} C language structure.  It has the following fields:
+
+@table @code
+@item fd
+Fixnum representing a socket descriptor.
+
+@item events
+A fixnum representing a @code{short int} bitmask of events.
+
+@item revents
+A fixnum representing a @code{short int} bitmask of events.
+@end table
+@end deftp
+
+
+@defun make-curl-waitfd @var{fd} @var{events} @var{revent}
+Build and return a new instance of @code{curl-waitfd}.
+@end defun
+
+
+@defun curl-waitfd? @var{obj}
+Return @true{} if @var{obj} is an instance of @code{curl-waitfd};
+otherwise return @false{}.
+@end defun
+
+
+@defun curl-waitfd-fd @var{waitfd}
+@defunx curl-waitfd-events @var{waitfd}
+@defunx curl-waitfd-revents @var{waitfd}
+Accessors for the fields of @code{curl-waitfd} structures.
+@end defun
+
+
+@defun curl-multi-wait @var{multi} @var{extra-fds} @var{timeout}
+Polls on all easy handles in a @var{multi} handle.  Return two values:
+
+@enumerate
+@item
+If successful @code{CURLM_OK}, else a @code{CURLM_} error code.
+
+@item
+An exact integer representing the number of file descriptors on which
+events occurred.
+@end enumerate
+
+@curlman{curl_multi_wait}.
+
+@var{extra-fds} must be a Scheme vector holding zero or more instances
+of @code{curl-waitfd} (which are internally converted to @code{struct
+curl_waitfd}); such structures are mutated by this function to reflect
+the manipulations performed by @curl{}.
+
+@var{timeout} must be an exact integer in the range of the C language
+type @code{int} representing the number of milliseconds to wait for an
+event to happen.
+@end defun
+
+
+The following is a usage example for @func{curl-multi-wait} and
+@func{curl-multi-socket-action}:
+
+@smallexample
+#!r6rs
+(import (vicare)
+  (vicare net curl)
+  (vicare net curl constants)
+  (prefix (vicare ffi) ffi.)
+  (prefix (vicare posix) px.)
+  (vicare syntactic-extensions))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
+(define-inline (%pretty-print ?thing)
+  (pretty-print ?thing (current-error-port)))
+
+(define-struct pending-socks
+  (rd-requests
+       ;Null or a list of  socket descriptors for which reading
+       ;is requested.
+   wr-requests
+       ;Null or a list of  socket descriptors for which writing
+       ;is requested.
+   rw-requests
+       ;Null or a list of  socket descriptors for which reading
+       ;or writing is requested.
+   ))
+
+(define (%make-pending-socks)
+  (make-pending-socks '() '() '()))
+
+(define (pending-socks-remove! ps sock-fd)
+  (pending-socks-remove-from-rd-requests! ps sock-fd)
+  (pending-socks-remove-from-wr-requests! ps sock-fd)
+  (pending-socks-remove-from-rw-requests! ps sock-fd))
+
+(define (pending-socks-remove-from-rd-requests! ps sock-fd)
+  (set-pending-socks-rd-requests! ps
+    (remq sock-fd (pending-socks-rd-requests ps))))
+
+(define (pending-socks-remove-from-wr-requests! ps sock-fd)
+  (set-pending-socks-wr-requests! ps
+    (remq sock-fd (pending-socks-wr-requests ps))))
+
+(define (pending-socks-remove-from-rw-requests! ps sock-fd)
+  (set-pending-socks-rw-requests! ps
+    (remq sock-fd (pending-socks-rw-requests ps))))
+
+(define (pending-socks-rd-request! ps sock-fd)
+  (set-pending-socks-rd-requests! ps
+    (cons sock-fd (pending-socks-rd-requests ps))))
+
+(define (pending-socks-wr-request! ps sock-fd)
+  (set-pending-socks-wr-requests! ps
+    (cons sock-fd (pending-socks-wr-requests ps))))
+
+(define (pending-socks-rw-request! ps sock-fd)
+  (set-pending-socks-rw-requests! ps
+    (cons sock-fd (pending-socks-rw-requests ps))))
+
+;;;
+
+(define (%curl-multi-socket-action multi sock-fd events)
+  (let loop ()
+    (let-values (((code still-running)
+                  (curl-multi-socket-action multi sock-fd events)))
+      (if (= code CURLM_CALL_MULTI_PERFORM)
+          (loop)
+        (values code still-running)))))
+
+(define (socket-func easy sock-fd poll-type
+                     callback-data sock-fd-data)
+  (define ps
+    (retrieve-to-avoid-collecting callback-data))
+  (case-integers poll-type
+    ((CURL_POLL_NONE)
+     (void))
+    ((CURL_POLL_IN)
+     (pending-socks-rd-request! ps sock-fd))
+    ((CURL_POLL_OUT)
+     (pending-socks-wr-request! ps sock-fd))
+    ((CURL_POLL_INOUT)
+     (pending-socks-rw-request! ps sock-fd))
+    ((CURL_POLL_REMOVE)
+     (pending-socks-remove! ps sock-fd))))
+
+(define (write-func buffer size nitems outstream)
+  (let ((nbytes (* size nitems)))
+    (guard (E (else (pretty-print E) nbytes))
+      (fprintf (current-error-port) "Google's Home page:\n~a\n"
+               (utf8->string (cstring->bytevector buffer nbytes))))
+    nbytes))
+
+(define (timer-func multi milliseconds timeout-pointer)
+  (replace-to-avoid-collecting timeout-pointer milliseconds)
+  0)
+
+;;;
+
+(let*
+    ((multi     (curl-multi-init))
+     (easy      (curl-easy-init))
+     (write-cb  (make-curl-write-callback write-func))
+     (socket-cb (make-curl-socket-callback socket-func))
+     (timer-cb  (make-curl-multi-timer-callback timer-func))
+     (timeout-pointer
+                (register-to-avoid-collecting -1))
+     (pending-socks
+                (%make-pending-socks))
+     (pending-socks-pointer
+                (register-to-avoid-collecting pending-socks)))
+  (unwind-protect
+      (begin
+        (curl-easy-setopt easy CURLOPT_URL "http://google.com/")
+        (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+        (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+        (curl-multi-setopt multi
+                           CURLMOPT_TIMERFUNCTION timer-cb)
+        (curl-multi-setopt multi
+                           CURLMOPT_TIMERDATA timeout-pointer)
+        (curl-multi-setopt multi
+                           CURLMOPT_SOCKETFUNCTION socket-cb)
+        (curl-multi-setopt multi
+                           CURLMOPT_SOCKETDATA pending-socks-pointer)
+        (curl-multi-add-handle multi easy)
+        (let loop ()
+          (let-values
+              (((code still-running)
+               (%curl-multi-socket-action multi CURL_SOCKET_TIMEOUT 0)))
+            (when (and (= code CURLM_OK)
+                       (not (zero? still-running)))
+              (let-values
+                  (((code number-of-eventful-fds)
+                   (curl-multi-wait multi #f
+                     (retrieve-to-avoid-collecting timeout-pointer))))
+                (when (= code CURLM_OK)
+                  (for-each
+                      (lambda (sock-fd)
+                        (%curl-multi-socket-action multi sock-fd
+                           CURL_CSELECT_IN))
+                    (pending-socks-rd-requests pending-socks))
+                  (for-each
+                      (lambda (sock-fd)
+                        (%curl-multi-socket-action multi sock-fd
+                           CURL_CSELECT_OUT))
+                    (pending-socks-wr-requests pending-socks))
+                  (loop))))))
+        (let-values (((msg nmsgs)
+                      (curl-multi-info-read multi)))
+          (when msg
+            (%pretty-print
+              (curl-constant-msg->symbol (curl-msg.msg msg))))))
+    ;;Close handles before releasing the callbacks!!!
+    (curl-multi-cleanup multi)
+    (curl-easy-cleanup easy)
+    (ffi.free-c-callback write-cb)
+    (ffi.free-c-callback timer-cb)
+    (ffi.free-c-callback socket-cb)
+    (forget-to-avoid-collecting pending-socks-pointer)))
+@end smallexample
+
+@c page
+@node plain multi sockets action
+@subsubsection Performing actions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun curl-multi-socket-action @var{multi} @var{sock-fd}
@@ -1886,6 +2139,14 @@ else return @math{1} values: a @code{CURLM_} error code and @false{}.
 @curlman{curl_multi_timeout}.
 @end defun
 
+@c page
+@node plain multi sockets data
+@subsubsection Associating custom data to file descriptors
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
 
 @defun curl-multi-assign @var{multi} @var{sock-fd} @var{custom-data}
 Associate @var{custom-data} to @var{sock-fd} in the context of the
@@ -1898,6 +2159,14 @@ descriptor.
 @var{custom-data} must be @false{} or a pointer object; @false{} is
 internally converted to a @cnull{} pointer.
 @end defun
+
+@c page
+@node plain multi sockets depre
+@subsubsection Deprecated functions
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
 
 
 @defun curl-multi-socket @var{multi} @var{sock-fd}
