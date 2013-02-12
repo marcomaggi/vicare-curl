@@ -88,4 +88,15 @@ VICARE_INSTCHECK_RUN	= $(VICARE_INSTCHECK_ENV) $(VICARE) $(VICARE_INSTCHECK_FLAG
 installcheck-local:
 	@for f in $(TESTS); do $(VICARE_INSTCHECK_RUN) $(srcdir)/$$f; done
 
+## --------------------------------------------------------------------
+## running vicare with the path for loading libraries
+
+.PHONY: test-vie test-run
+
+test-vie:
+	$(VICARE_TEST_ENV) vie $(user_flags)
+
+test-run:
+	$(VICARE_TEST_ENV) $(VICARE) $(user_flags)
+
 ### end of file
