@@ -203,7 +203,7 @@ called in normal usage of the package.
 @cindex @library{vicare net curl constants}, library
 @cindex Library @library{vicare net curl constants}
 It exports one binding for each constant value defined in the C language
-header @file{curl/curl.h}.
+headers @file{curl/curl.h}.
 
 @item vicare net curl features
 @cindex @library{vicare net curl features}, library
@@ -272,7 +272,7 @@ Return a fixnum representing a version number.
 
 
 @defun vicare-curl-version
-Return a Scheme string representing the versio number.
+Return a Scheme string representing the version number.
 @end defun
 
 
