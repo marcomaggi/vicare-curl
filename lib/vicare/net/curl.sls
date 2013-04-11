@@ -48,6 +48,8 @@
     curl-version-info-data-ares			curl-version-info-data-ares-num
     curl-version-info-data-libidn		curl-version-info-data-iconv-ver-num
     curl-version-info-data-libssh-version
+    curl-version-info-data.vicare-arguments-validation
+    false-or-curl-version-info-data.vicare-arguments-validation
 
     ;; initialisation and finalisation functions
     curl-global-init				curl-global-init-mem
@@ -175,6 +177,8 @@
     curl-fileinfo-strings.time			curl-fileinfo-strings.perm
     curl-fileinfo-strings.user			curl-fileinfo-strings.group
     curl-fileinfo-strings.target		curl-fileinfo-flags
+    curl-fileinfo.vicare-arguments-validation
+    false-or-curl-fileinfo.vicare-arguments-validation
 
     ;; accessors for "struct curl_khkey"
     curl-khkey.key
@@ -293,14 +297,6 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-argument-validation (curl-version-info-data who obj)
-  (curl-version-info-data? obj)
-  (assertion-violation who
-    "expected instance of \"curl-version-info-data\" as argument"
-    obj))
-
-;;; --------------------------------------------------------------------
-
 (define-argument-validation (curl-share-parameter who parameter option)
   (cond ((or (= option CURLSHOPT_SHARE)
 	     (= option CURLSHOPT_UNSHARE))
@@ -360,7 +356,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-struct curl-version-info-data
+(define-struct-extended curl-version-info-data
   (age
 		;Age of the returned struct.
    version
@@ -1360,7 +1356,7 @@
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_fileinfo"
 
-(define-struct curl-fileinfo
+(define-struct-extended curl-fileinfo
   (filename
    filetype
    time

@@ -473,6 +473,20 @@ is set.
 @end example
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-version-info-data @var{obj}
+@deffnx {Validation Clause} false-or-curl-version-info-data @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-version-info-data?}; the second
+clause also accepts @false{}.
+@end deffn
+
 @c page
 @node plain init
 @section Global initialisation and finalisation
@@ -669,6 +683,27 @@ Notice that @var{func} can be used to associate some state to
   (do-something-with easy state))
 @end example
 @end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-easy @var{obj}
+@deffnx {Validation Clause} false-or-curl-easy @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-easy?}; the
+second clause also accepts @false{}.
+@end deffn
+
+
+@deffn {Validation Clause} curl-easy/alive @var{obj}
+@deffnx {Validation Clause} false-or-curl-easy/alive @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-easy?/alive};
+the second clause also accepts @false{}.
+@end deffn
 
 @c page
 @node plain easy init
@@ -1561,6 +1596,27 @@ Notice that @var{func} can be used to associate some state to
 @end example
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-multi @var{obj}
+@deffnx {Validation Clause} false-or-curl-multi @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-multi?}; the
+second clause also accepts @false{}.
+@end deffn
+
+
+@deffn {Validation Clause} curl-multi/alive @var{obj}
+@deffnx {Validation Clause} false-or-curl-multi/alive @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-multi?/alive};
+the second clause also accepts @false{}.
+@end deffn
+
 @c page
 @node plain multi init
 @subsection Multi initialisation and finalisation
@@ -2093,6 +2149,20 @@ The following is a usage example for @func{curl-multi-wait} and
     (ffi.free-c-callback socket-cb)
     (forget-to-avoid-collecting pending-socks-pointer)))
 @end smallexample
+
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-waitfd @var{obj}
+@deffnx {Validation Clause} false-or-curl-waitfd @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-waitfd?}; the
+second clause also accepts @false{}.
+@end deffn
 
 @c page
 @node plain multi sockets action
@@ -3557,6 +3627,27 @@ associated to @var{httppost}; if we do:
 we can easily associate values to @var{httppost}.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-form-data @var{obj}
+@deffnx {Validation Clause} false-or-curl-form-data @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-form-data?}; the
+second clause also accepts @false{}.
+@end deffn
+
+
+@deffn {Validation Clause} curl-form-data/alive @var{obj}
+@deffnx {Validation Clause} false-or-curl-form-data/alive @var{obj}
+Succeed if @var{obj} satisfies the predicate
+@func{curl-form-data?/alive}; the second clause also accepts @false{}.
+@end deffn
+
 @c page
 @node plain forms init
 @subsection Initialisation and finalisation
@@ -3893,6 +3984,27 @@ associated to @var{share}; if we do:
 we can easily associate values to @var{share}.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-share @var{obj}
+@deffnx {Validation Clause} false-or-curl-share @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-share?}; the
+second clause also accepts @false{}.
+@end deffn
+
+
+@deffn {Validation Clause} curl-share/alive @var{obj}
+@deffnx {Validation Clause} false-or-curl-share/alive @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-share?/alive};
+the second clause also accepts @false{}.
+@end deffn
+
 @c page
 @node plain shares init
 @subsection Initialisation and finalisation of shares
@@ -4205,6 +4317,20 @@ Accessors for C language @code{struct curl_fileinfo} instances
 referenced by a pointer object.  When a struct field is of type
 @code{char *}: the corresponding accessor returns a pointer object.
 @end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Arguments validation
+
+The following bindings are meant to be used along the library
+@library{vicare arguments validation}.
+
+
+@deffn {Validation Clause} curl-fileinfo @var{obj}
+@deffnx {Validation Clause} false-or-curl-fileinfo @var{obj}
+Succeed if @var{obj} satisfies the predicate @func{curl-fileinfo?}; the
+second clause also accepts @false{}.
+@end deffn
 
 @c page
 @node plain cstructs khkey
