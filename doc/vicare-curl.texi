@@ -7,18 +7,6 @@
 @include version.texi
 @include macros.texi
 
-@macro curl{}
-cURL
-@end macro
-
-@macro curlman{FUNC}
-@xref{\FUNC\,\FUNC\,\FUNC\,*manpages*}
-@end macro
-
-@macro curlref{FUNC,REF}
-@xref{\FUNC\,\REF\,\FUNC\,*manpages*}
-@end macro
-
 @c page
 @c ------------------------------------------------------------
 @c Values.
@@ -47,6 +35,27 @@ cURL
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2012, 2013
 
+@c ------------------------------------------------------------
+
+@set FOREIGN_PACKAGE            Libcurl
+@set FOREIGN_VERSION            7.29.0
+@set FOREIGN_URL                @url{http:/@//@/curl.haxx.se/@/libcurl/@/}
+@set FOREIGN_SCHEME_LIB         @library{vicare net curl}
+@set GITHUB_URL                 @url{http://github.com/marcomaggi/vicare-curl}
+@set DOWNLOAD_URL               @url{http://code.google.com/p/vicare-scheme/downloads/list}
+@set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/vicare-curl.html}
+
+@macro curl{}
+cURL
+@end macro
+
+@macro curlman{FUNC}
+@xref{\FUNC\,\FUNC\,\FUNC\,*manpages*}
+@end macro
+
+@macro curlref{FUNC,REF}
+@xref{\FUNC\,\REF\,\FUNC\,*manpages*}
+@end macro
 
 @c page
 @c ------------------------------------------------------------
@@ -56,8 +65,8 @@ cURL
 @copying
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of C and Scheme libraries for Vicare Scheme, an @rnrs{6}
-compliant Scheme implementation; it provides bindings for the @curl{} C
-language library.
+compliant Scheme implementation; it provides bindings for the
+@value{FOREIGN_PACKAGE} C language library.
 
 @curl{} is a tool to transfer data from or to a server, using one of the
 supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
@@ -67,17 +76,17 @@ supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
 
-@center @url{http://code.google.com/p/vicare-scheme/downloads/list}
+@center @value{DOWNLOAD_URL}
 
 @noindent
 development takes place at:
 
-@center @url{http://github.com/marcomaggi/@value{PACKAGE_NICKNAME}}
+@center @value{GITHUB_URL}
 
 @noindent
-the @curl{} library is available at:
+@value{FOREIGN_PACKAGE} is available at:
 
-@center @url{http://curl.haxx.se/libcurl/}
+@center @value{FOREIGN_URL}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -159,7 +168,7 @@ Vicare Scheme is an @rnrs{6} compliant Scheme language implementation in
 the form of a native compiler for x86 architectures, officially
 supporting @gnu{}+Linux systems.  @value{PACKAGE} is a distribution of C
 language and Scheme language libraries for Vicare Scheme; it provides
-bindings for the @curl{} C language library.
+bindings for the @value{FOREIGN_PACKAGE} C language library.
 
 @curl{} is a tool to transfer data from or to a server, using one of the
 supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
@@ -167,16 +176,17 @@ supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
 @acronym{FILE}).
 
 The last time the author bothered to update this paragraph, he had
-tested @curl{} version 7.29.0; the @curl{} library is available at:
+tested @value{FOREIGN_PACKAGE} version @value{FOREIGN_VERSION}; the
+@value{FOREIGN_PACKAGE} library is available at:
 
-@center @url{http://curl.haxx.se/libcurl/}
+@center @value{FOREIGN_URL}
 
 The package installs a C language library implementing wrapper C
-functions for the C language @curl{} library; on top of this, the Scheme
-library @library{vicare net curl} exports one binding for each @curl{}
-public function; additionally the library @library{vicare net curl
-constants} exports one binding for each constant value defined in the C
-language header @file{curl/curl.h}.
+functions for the C language @value{FOREIGN_PACKAGE} library; on top of
+this, the Scheme library @library{vicare net curl} exports one binding
+for each @value{FOREIGN_PACKAGE} public function; additionally the
+library @library{vicare net curl constants} exports one binding for each
+constant value defined in the C language header @file{curl/curl.h}.
 
 The following Scheme libraries are installed:
 
@@ -193,7 +203,7 @@ so @cfunc{curl_global_init} becomes @func{curl-global-init}.
 It exports one syntax binding for each @curl{} public function.  All the
 Scheme syntax names are directly derived from the C function names by
 replacing underscore characters @samp{_} with dash characters @samp{-};
-so @cfunc{curl-global-init} becomes @func{curl-global-init}.
+so @cfunc{curl_global_init} becomes @func{curl-global-init}.
 
 These syntaxes expand to a direct call to the C language wrapper
 functions in the @value{PACKAGE} library; they are not meant to be
@@ -213,8 +223,16 @@ defined by the @command{configure} script, expanding to @true{} or
 @false{}.
 @end table
 
-After installation, under the directory @code{$libexecdir/$PACKAGE}, a
-script @file{compile-all.sps} can be executed to precompile the
+Scheme libraries are installed under the directory:
+
+@center @file{$(libdir)/vicare-scheme}
+
+After installation, under the directory:
+
+@center @file{$(libexecdir)/@value{PACKAGE_NICKNAME}}
+
+@noindent
+a script @file{compile-all.sps} can be executed to precompile the
 installed libraries; for example:
 
 @example
@@ -225,7 +243,8 @@ $ sudo vicare \
 @end example
 
 This document contains only a brief description of the functions: refer
-to the @curl{}'s documentation for details.
+to the @value{FOREIGN_PACKAGE}'s documentation for details.
+
 
 @c page
 @node plain
@@ -260,8 +279,8 @@ The installed C library follows version numbering as established by the
 @gnu{} Libtool @xref{Libtool versioning, interface, Libtool's versioning
 system, libtool, Shared library support for @gnu{}}.
 
-The following bindings are exported by the library @library{vicare net
-curl}.
+The following bindings are exported by the library
+@value{FOREIGN_SCHEME_LIB}.
 
 
 @defun vicare-curl-version-interface-current
@@ -305,7 +324,7 @@ An exact integer representing a @code{LIBCURL_VERSION} constant.
 An exact integer representing the @code{LIBCURL_VERSION_NUM} constant.
 
 @item host
-@false{} or a stirng representing OS/host/cpu/machine when the package
+@false{} or a string representing OS/host/cpu/machine when the package
 was configured.
 
 @item features
@@ -438,9 +457,10 @@ the @code{CURL_VERSION_} constants.
 
 @defun curl-version-feature? @var{info} @var{feature}
 Given an instance of @code{curl-version-info-data}, extract the
-@code{features} field and bitwise AND it @var{feature}, which must be an
-exact integer representing a @code{CURL_VERSION_} constant; return
-@true{} if the @var{feature} bit is set.
+@code{features} field and bitwise AND the value @var{feature} to it;
+@var{feature} must be an exact integer representing a
+@code{CURL_VERSION_} constant; return @true{} if the @var{feature} bit
+is set.
 
 @example
 (import (vicare)
@@ -4688,17 +4708,17 @@ representing its name.
 
 The documentation of @value{PACKAGE} is available online:
 
-@center @url{http://marcomaggi.github.com/docs/vicare-curl.html}
+@center @value{DOCUMENTATION_URL}
 
 @noindent
 the latest version of this package can be downloaded from:
 
-@center @url{http://code.google.com/p/vicare-scheme/downloads/list}
+@center @value{DOWNLOAD_URL}
 
 @noindent
 development takes place at:
 
-@center @url{http://github.com/marcomaggi/vicare-curl/}
+@center @value{GITHUB_URL}
 
 @noindent
 the home page of the Vicare project is at:
@@ -4711,9 +4731,9 @@ the home page of the Nausicaa project is at:
 @center @url{http://marcomaggi.github.com/nausicaa.html}
 
 @noindent
-Curl can be found here:
+@value{FOREIGN_PACKAGE} can be found here:
 
-@center @url{http://curl.sourceforge.net/}
+@center @value{FOREIGN_URL}
 
 @c page
 @node concept index

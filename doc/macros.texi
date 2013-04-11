@@ -318,6 +318,14 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa-scheme}
 @end macro
 
+@macro cbuffersref{}
+@ref{cbuffers buffers,buffers,Introduction to generalised C buffers,vicare-scheme}
+@end macro
+
+@macro cstringsref{}
+@ref{cbuffers strings,strings,Introduction to generalised C strings,vicare-scheme}
+@end macro
+
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
