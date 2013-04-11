@@ -65,10 +65,14 @@
     curl-formget				make-curl-formget-callback
 
     curl-form-data
-    curl-form-data?				curl-form-data?/filled
+    curl-form-data?				curl-form-data?/alive
     (rename (%make-curl-form-data		make-curl-form-data))
     curl-form-data-string
     curl-form-data-custom-destructor		set-curl-form-data-custom-destructor!
+    curl-form-data.vicare-arguments-validation
+    curl-form-data/alive.vicare-arguments-validation
+    false-or-curl-form-data.vicare-arguments-validation
+    false-or-curl-form-data/alive.vicare-arguments-validation
 
     ;; basic URL string escaping
     curl-escape					curl-escape/string
@@ -83,6 +87,10 @@
     curl-share
     curl-share?					curl-share?/alive
     curl-share-custom-destructor		set-curl-share-custom-destructor!
+    curl-share.vicare-arguments-validation
+    curl-share/alive.vicare-arguments-validation
+    false-or-curl-share.vicare-arguments-validation
+    false-or-curl-share/alive.vicare-arguments-validation
 
     ;; easy API
     curl-easy-init				curl-easy-cleanup
@@ -97,6 +105,10 @@
     curl-easy
     curl-easy?					curl-easy?/alive
     curl-easy-custom-destructor			set-curl-easy-custom-destructor!
+    curl-easy.vicare-arguments-validation
+    curl-easy/alive.vicare-arguments-validation
+    false-or-curl-easy.vicare-arguments-validation
+    false-or-curl-easy/alive.vicare-arguments-validation
 
     ;; multi API
     curl-multi-init				curl-multi-cleanup
@@ -112,12 +124,18 @@
     curl-multi
     curl-multi?					curl-multi?/alive
     curl-multi-custom-destructor		set-curl-multi-custom-destructor!
+    curl-multi.vicare-arguments-validation
+    curl-multi/alive.vicare-arguments-validation
+    false-or-curl-multi.vicare-arguments-validation
+    false-or-curl-multi/alive.vicare-arguments-validation
 
     curl-waitfd
     make-curl-waitfd				curl-waitfd?
     curl-waitfd-fd
     curl-waitfd-events
     curl-waitfd-revents
+    curl-waitfd.vicare-arguments-validation
+    false-or-curl-waitfd.vicare-arguments-validation
 
     ;; callback makers
     make-curl-write-callback			make-curl-read-callback
@@ -279,14 +297,6 @@
   (curl-version-info-data? obj)
   (assertion-violation who
     "expected instance of \"curl-version-info-data\" as argument"
-    obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (curl-form-data/filled who obj)
-  (curl-form-data?/filled obj)
-  (assertion-violation who
-    "expected instance of \"curl-form-data\" as argument holding contents"
     obj))
 
 ;;; --------------------------------------------------------------------
@@ -599,6 +609,7 @@
 ;;;; multipart/formdata composition
 
 (define-foreign-pointer-wrapper curl-form-data
+  (fields pointer-to-last)
   (foreign-destructor capi.curl-formfree)
   (collector-struct-type #f))
 
@@ -614,11 +625,8 @@
 
 ;;; --------------------------------------------------------------------
 
-(define curl-form-data?/filled
-  curl-form-data?/alive)
-
 (define (%make-curl-form-data)
-  (make-curl-form-data/owner (null-pointer)))
+  (make-curl-form-data/owner (null-pointer) (null-pointer)))
 
 ;;; --------------------------------------------------------------------
 
@@ -643,80 +651,76 @@
 
   (define curl-formadd
     (case-lambda
-     ((post last opt1 val1 optend)
+     ((post opt1 val1 optend)
       (arguments-validation-forms
        (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post last
+      (curl-formadd post
 		    opt1 val1))
 
-     ((post last opt1 val1)
+     ((post opt1 val1)
       (define who 'curl-formadd)
       (with-arguments-validation (who)
 	  ((curl-form-data	post)
-	   (pointer		last)
 	   (signed-int		opt1)
 	   (a-value		val1))
-	(capi.curl-formadd-1 post last
+	(capi.curl-formadd-1 post ($curl-form-data-pointer-to-last post)
 			     opt1 (%normalise-val val1))))
 
-     ((post last opt1 val1 opt2 val2 optend)
+     ((post opt1 val1 opt2 val2 optend)
       (arguments-validation-forms
        (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post last
+      (curl-formadd post
 		    opt1 val1
 		    opt2 val2))
 
-     ((post last opt1 val1 opt2 val2)
+     ((post opt1 val1 opt2 val2)
       (define who 'curl-formadd)
       (with-arguments-validation (who)
 	  ((curl-form-data	post)
-	   (pointer		last)
 	   (signed-int		opt1)
 	   (a-value		val1)
 	   (signed-int		opt2)
 	   (a-value		val2))
-	(capi.curl-formadd-2 post last
+	(capi.curl-formadd-2 post ($curl-form-data-pointer-to-last post)
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2))))
 
-     ((post last opt1 val1 opt2 val2 opt3 val3 optend)
+     ((post opt1 val1 opt2 val2 opt3 val3 optend)
       (arguments-validation-forms
        (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post last
+      (curl-formadd post
 		    opt1 val1
 		    opt2 val2
 		    opt3 val3))
 
-     ((post last opt1 val1 opt2 val2 opt3 val3)
+     ((post opt1 val1 opt2 val2 opt3 val3)
       (define who 'curl-formadd)
       (with-arguments-validation (who)
 	  ((curl-form-data	post)
-	   (pointer		last)
 	   (signed-int		opt1)
 	   (a-value		val1)
 	   (signed-int		opt2)
 	   (a-value		val2)
 	   (signed-int		opt3)
 	   (a-value		val3))
-	(capi.curl-formadd-3 post last
+	(capi.curl-formadd-3 post ($curl-form-data-pointer-to-last post)
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2)
 			     opt3 (%normalise-val val3))))
 
-     ((post last opt1 val1 opt2 val2 opt3 val3 opt4 val4 optend)
+     ((post opt1 val1 opt2 val2 opt3 val3 opt4 val4 optend)
       (arguments-validation-forms
        (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post last
+      (curl-formadd post
 		    opt1 val1
 		    opt2 val2
 		    opt3 val3
 		    opt4 val4))
 
-     ((post last opt1 val1 opt2 val2 opt3 val3 opt4 val4)
+     ((post opt1 val1 opt2 val2 opt3 val3 opt4 val4)
       (define who 'curl-formadd)
       (with-arguments-validation (who)
 	  ((curl-form-data	post)
-	   (pointer		last)
 	   (signed-int		opt1)
 	   (a-value		val1)
 	   (signed-int		opt2)
@@ -725,7 +729,7 @@
 	   (a-value		val3)
 	   (signed-int		opt4)
 	   (a-value		val4))
-	(capi.curl-formadd-4 post last
+	(capi.curl-formadd-4 post ($curl-form-data-pointer-to-last post)
 			     opt1 (%normalise-val val1)
 			     opt2 (%normalise-val val2)
 			     opt3 (%normalise-val val3)
@@ -945,7 +949,11 @@
   (with-arguments-validation (who)
       ((curl-easy/alive	easy)
        (signed-int	option))
-    (cond ((<= CURLOPTTYPE_OFF_T option)
+    (cond ((= CURLOPT_SHARE option)
+	   (with-arguments-validation (who)
+	       ((curl-share/alive	parameter))
+	     (capi.curl-easy-setopt easy option ($curl-share-pointer parameter))))
+	  ((<= CURLOPTTYPE_OFF_T option)
 	   (with-arguments-validation (who)
 	       ((off_t	parameter))
 	     (capi.curl-easy-setopt easy option parameter)))
@@ -1289,7 +1297,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-struct curl-waitfd
+(define-struct-extended curl-waitfd
   (fd
 		;Fixnum representing a socket descriptor.
    events

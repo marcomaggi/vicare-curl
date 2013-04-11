@@ -117,36 +117,78 @@
   (collect))
 
 
-(parametrise ((check-test-name				'formdata)
-	      (struct-guardian-logger			#f))
+(parametrise ((check-test-name		'formdata)
+	      (struct-guardian-logger	#f))
 
   (check
       (curl-formfree (make-curl-form-data))
     => (void))
 
+  (check
+      (let ((post (make-curl-form-data)))
+	(curl-form-data-string post))
+    => "")
+
+  (check
+      (let* ((post	(make-curl-form-data))
+	     (rv	(curl-formadd post
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_COPYCONTENTS "contents"
+				      CURLFORM_END)))
+	(when (and #f (= rv CURL_FORMADD_OK))
+	  ;;Notice  that  the  generated  string  contains  some  random
+	  ;;characters to define a unique  boundary for the contents, so
+	  ;;we cannot CHECK the result.
+	  (check-display (curl-form-data-string post)))
+	rv)
+    => CURL_FORMADD_OK)
+
+  (check
+      (let* ((post	(make-curl-form-data))
+	     (rv1	(curl-formadd post
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_COPYCONTENTS "contents"
+				      CURLFORM_END))
+	     (rv2	(curl-formadd post
+				      CURLFORM_COPYNAME "other_name"
+				      CURLFORM_COPYCONTENTS "other contents"
+				      CURLFORM_END)))
+	;; (check-pretty-print
+	;;  (list (curl-constant-form-add->symbol rv1)
+	;;        (curl-constant-form-add->symbol rv2)))
+	(when (and #f
+		   (= rv1 CURL_FORMADD_OK)
+		   (= rv2 CURL_FORMADD_OK))
+	  ;;Notice  that  the  generated  string  contains  some  random
+	  ;;characters to define a unique  boundary for the contents, so
+	  ;;we cannot CHECK the result.
+	  (check-display (curl-form-data-string post)))
+	(list rv1 rv2))
+    => (list CURL_FORMADD_OK CURL_FORMADD_OK))
+
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((data	"")
-	     (cb	(make-curl-formget-callback
+      (let* ((post	(make-curl-form-data))
+	     (rv	(curl-formadd post
+				      CURLFORM_COPYNAME "name"
+				      CURLFORM_COPYCONTENTS "contents"
+				      CURLFORM_END)))
+	(let* ((data	"")
+	       (cb	(make-curl-formget-callback
 			 (lambda (custom-data cstring.ptr cstring.len)
 			   (set! data (string-append data
 						     (cstring->string cstring.ptr
 								      cstring.len)))
-			   cstring.len)))
-	     (post	(make-curl-form-data))
-	     (last	(null-pointer))
-	     (rv	(curl-formadd post last
-				      CURLFORM_COPYNAME "name"
-				      CURLFORM_COPYCONTENTS "contents"
-				      CURLFORM_END)))
-	(unwind-protect
-	    (if (= rv CURL_FORMADD_OK)
-		(curl-formget post #f cb)
-	      rv)
-;;;(check-pretty-print data)
-	  (ffi.free-c-callback cb)
-	  (curl-formfree post)))
+			   cstring.len))))
+	  (unwind-protect
+	      (if (= rv CURL_FORMADD_OK)
+		  (let ((rv (curl-formget post #f cb)))
+		    ;;(check-pretty-print data)
+		    rv)
+		rv)
+	    (ffi.free-c-callback cb)
+	    (curl-formfree post))))
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -160,8 +202,7 @@
 								      cstring.len)))
 			   cstring.len)))
 	     (post	(make-curl-form-data))
-	     (last	(null-pointer))
-	     (rv	(curl-formadd post last
+	     (rv	(curl-formadd post
 				      CURLFORM_NAMELENGTH (string-length "name")
 				      CURLFORM_COPYNAME "name"
 				      CURLFORM_CONTENTSLENGTH (string-length "contents")
@@ -187,8 +228,7 @@
 								      cstring.len)))
 			   cstring.len)))
 	     (post	(make-curl-form-data))
-	     (last	(null-pointer))
-	     (rv	(curl-formadd post last
+	     (rv	(curl-formadd post
 				      CURLFORM_COPYNAME "name"
 				      CURLFORM_COPYCONTENTS "<html></html>"
 				      CURLFORM_CONTENTTYPE "text/html"
@@ -213,8 +253,7 @@
 								      cstring.len)))
 			   cstring.len)))
 	     (post	(make-curl-form-data))
-	     (last	(null-pointer))
-	     (rv	(curl-formadd post last
+	     (rv	(curl-formadd post
 				      CURLFORM_COPYNAME "html_code_with_hole"
 				      CURLFORM_COPYCONTENTS "<html></html>"
 				      CURLFORM_CONTENTSLENGTH (string-length "<html></html>")
@@ -271,8 +310,8 @@
   #t)
 
 
-(parametrise ((check-test-name				'shares)
-	      (struct-guardian-logger			#f))
+(parametrise ((check-test-name		'shares)
+	      (struct-guardian-logger	#f))
 
   (check
       (let ((share (curl-share-init)))
@@ -341,6 +380,15 @@
     => CURLSHE_OK)
 
 ;;; --------------------------------------------------------------------
+
+  (check
+      (let ((share (curl-share-init))
+	    (easy  (curl-easy-init)))
+	(curl-share-setopt share CURLSHOPT_USERDATA (null-pointer))
+	(curl-easy-setopt easy CURLOPT_SHARE share))
+    => CURLE_OK)
+
+;;; --------------------------------------------------------------------
 ;;; destructor
 
   (check
@@ -350,6 +398,7 @@
 						    (add-result 123)))
 	 (curl-share-cleanup share)))
     => `(,CURLSHE_OK (123)))
+
   (collect))
 
 
