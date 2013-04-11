@@ -51,10 +51,14 @@ ikrt_curl_multi_init (ikpcb * pcb)
     int version_num = curl_version_info(CURLVERSION_NOW)->version_num;
     /* fprintf(stderr, "%s: version_num=%x\n", __func__, version_num); */
     if ((0x071C00 == version_num) || (0x071D00 == version_num)) {
-      CURL *	easy = curl_easy_init();
-      curl_multi_add_handle(multi, easy);
-      curl_multi_remove_handle(multi, easy);
-      curl_easy_cleanup(easy);
+      ik_enter_c_function(pcb);
+      {
+	CURL *	easy = curl_easy_init();
+	curl_multi_add_handle(multi, easy);
+	curl_multi_remove_handle(multi, easy);
+	curl_easy_cleanup(easy);
+      }
+      ik_leave_c_function(pcb);
     }
   }
   rv = (multi)? ika_pointer_alloc(pcb, (ik_ulong)multi) : IK_FALSE;
@@ -101,6 +105,7 @@ ikrt_curl_multi_add_handle (ikptr s_multi, ikptr s_easy, ikpcb * pcb)
   {
     rv = curl_multi_add_handle(multi, easy);
   }
+  ik_leave_c_function(pcb);
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
