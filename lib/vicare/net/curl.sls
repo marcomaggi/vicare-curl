@@ -167,7 +167,7 @@
     curl-fileinfo.strings.user			curl-fileinfo.strings.group
     curl-fileinfo.strings.target		curl-fileinfo.flags
 
-    curl-fileinfo?				curl-fileinfo->struct
+    curl-fileinfo?				pointer->curl-fileinfo
     curl-fileinfo-filename			curl-fileinfo-filetype
     curl-fileinfo-time				curl-fileinfo-perm
     curl-fileinfo-uid				curl-fileinfo-gid
@@ -1376,7 +1376,7 @@
    strings.target
    flags))
 
-(define (curl-fileinfo->struct stru)
+(define (pointer->curl-fileinfo stru)
   (define-inline (%accessor->string ?accessor)
     (let ((o (?accessor stru)))
       (and o (cstring->string o))))

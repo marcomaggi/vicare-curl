@@ -3903,8 +3903,8 @@ curl}.
 
 
 @defun curl-share-init
-Build a new instance of @code{curl-share} object; if successful return
-the instance, else return @false{}.  @curlman{curl_share_cleaup}.
+Build a new instance of @code{curl-share}; if successful return the
+instance, else return @false{}.  @curlman{curl_share_cleaup}.
 @end defun
 
 
@@ -3913,8 +3913,8 @@ Attempt to release all the resources associated to @var{share}, which
 must be an instance of @code{curl-share}.  If the finalisation happens
 and it is successful: return @code{CURLSHE_OK}; if the finalisation
 happens and it fails: return a @code{CURLSHE_} error code; if
-@var{share} was already finalised: return a single unspecified value
-that is not an exact integer.  @curlman{curl_share_cleanup}.
+@var{share} was already finalised: return @false{}.
+@curlman{curl_share_cleanup}.
 
 It is safe to apply this function multiple times to the same @var{share}
 object: the first time the data is finalised, the subsequent times
@@ -4162,7 +4162,7 @@ Return @true{} if @var{obj} is an instance of @code{curl-fileinfo}.
 @end defun
 
 
-@defun curl-fileinfo->struct @var{pointer}
+@defun pointer->curl-fileinfo @var{pointer}
 Given a pointer object referencing a C language @code{struct
 curl_fileinfo}, build and return an instance of @code{curl-fileinfo}
 mirroring it.
@@ -4239,7 +4239,7 @@ curl}.
 
 
 @defun curl-forms-sizeof-array @var{number-of-structs}
-Return the number of bytes to allocate to hold an array of
+Return the number of bytes that need to be allocated to hold an array of
 @var{number-of-structs} instances of type @code{struct curl_forms}.
 @end defun
 
@@ -4355,18 +4355,12 @@ It is safe to apply this function multiple times to the same
 @defun curl-escape @var{str.data}
 @defunx curl-escape @var{str.data} @var{str.len}
 Obsolete function.  Escape all the characters in the input string to
-make it ready to be a @aurl{} component; if successful return a
+make it ready to be an @aurl{} component; if successful return a
 bytevector holding the @ascii{} encoding of the string, else return
 @false{}.  @curlman{curl_escape}.
 
-@var{str.data} must be a string, bytevector, pointer object or
-@code{memory-block} holding the representation of an @ascii{} string.
-
-The optional @var{str.len} must be @false{} or an exact integer, in the
-range of the C language type @code{int}, representing the number of
-bytes in the input string; when @false{} or not given, the length of the
-string is determined with @cfunc{strlen}.  @var{str.len} is always
-ignored but when @var{str.data} is a pointer object.
+@var{str.data} and @var{str.len} must represent a generalised C string,
+@cstringsref{}.  It must hold the representation of an @ascii{} string.
 @end defun
 
 
@@ -4383,14 +4377,8 @@ if it comes from a @aurl{} component; if successful return a bytevector
 holding the @ascii{} encoding of the string, else return @false{}.
 @curlman{curl_unescape}.
 
-@var{str.data} must be a string, bytevector, pointer object or
-@code{memory-block} holding the representation of an @ascii{} string.
-
-The optional @var{str.len} must be @false{} or an exact integer, in the
-range of the C language type @code{int}, representing the number of
-bytes in the input string; when @false{} or not given, the length of the
-string is determined with @cfunc{strlen}.  @var{str.len} is always
-ignored but when @var{str.data} is a pointer object.
+@var{str.data} and @var{str.len} must represent a generalised C string,
+@cstringsref{}.  It must hold the representation of an @ascii{} string.
 @end defun
 
 
@@ -4404,9 +4392,8 @@ Like @func{curl-unescape} but return a Scheme string.
 Convert a date string to the the number of seconds since the Epoch.
 @curlman{curl_getdate}.
 
-@var{str.data} must be a string, bytevector, pointer object or
-@code{memory-block} holding the representation of the date as @ascii{}
-string.
+@var{date} must represent a generalised C string, @cstringsref{}.  It
+must represent an @asciiz{} string.
 
 @example
 (import (vicare)

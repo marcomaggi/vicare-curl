@@ -46,6 +46,9 @@ Notes for revision 0.2d0
   take the argument LAST anymore.   Handling of the LASTITEM argument of
   the C function "curl_formadd()" is performed internally.
 
+* BACKWARDS INCOMPATIBILITY The  Scheme function "curl-fileinfo->struct"
+  has been renamed to "pointer->curl-fileinfo".
+
 * The function "curl-easy-setopt" now  accepts instances of "curl-share"
   as parameter for the option CURLOPT_SHARE.
 
