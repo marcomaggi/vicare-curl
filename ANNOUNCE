@@ -39,12 +39,18 @@ Notes for revision 0.2d0
 * Updated  to  Vicare Scheme  0.2d21,  which  introduces some  backwards
   incompatibilities.
 
+* BACKWARDS INCOMPATIBILITY The Scheme function "curl-form-data?/filled"
+  has been renamed to "curl-form-data?/alive".
+
+* BACKWARDS INCOMPATIBILITY The Scheme  function "curl-formadd" does not
+  take the argument LAST anymore.   Handling of the LASTITEM argument of
+  the C function "curl_formadd()" is performed internally.
+
 
 Notes for revision 0.1d3
 ------------------------
 
 * Updated to libcurl 7.29.0.
-
 
 Notes for revision 0.1d2
 ------------------------

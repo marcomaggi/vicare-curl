@@ -740,6 +740,10 @@ pointer is expected: @false{} is also accepted and converted to a
 A generalised C string holding some data; Scheme strings are converted
 to bytevectors using @func{string->utf8}.  @cstringsref{}.  For such
 options @false{} is also accepted and converted to @cnull{}.
+
+@item
+When @var{option} is @code{CURLOPT_SHARE}: @var{parameter} must be an
+instance of @code{curl-share}.
 @end itemize
 @end defun
 
@@ -1576,8 +1580,7 @@ Build and return a new instance of @code{curl-multi}.
 Finalise an instance of @code{curl-multi}.  If the finalisation happens
 and it is successful: return @code{CURLM_OK}; if the finalisation
 happens and it fails: return a @code{CURLM_} error code; if @var{multi}
-was already finalised: return a single unspecified value that is not an
-exact integer.  @curlman{curl_multi_cleanup}.
+was already finalised: return @false{}.  @curlman{curl_multi_cleanup}.
 
 It is fine to apply this function multiple times to the same @var{multi}
 value: the first time the underlying session data is finalised, the
@@ -1685,8 +1688,10 @@ pointer is expected: @false{} is also accepted and converted to a
 @cnull{} pointer.
 
 @item
-A string, @ascii{} bytevector, pointer object or @code{memory-block}
-referencing some data.
+A generalised C string referencing some data, @cstringsref{}.  If the
+value is a Scheme strings: it is converted to a bytevector with
+@func{strings->utf8}.  For such values @false{} is also accepted to
+represent the @cnull{} pointer.
 @end itemize
 @end defun
 
@@ -1876,10 +1881,10 @@ curl_waitfd} C language structure.  It has the following fields:
 Fixnum representing a socket descriptor.
 
 @item events
-A fixnum representing a @code{short int} bitmask of events.
+Fixnum representing a @code{short int} bitmask of events.
 
 @item revents
-A fixnum representing a @code{short int} bitmask of events.
+Fixnum representing a @code{short int} bitmask of events.
 @end table
 @end deftp
 
@@ -2139,7 +2144,7 @@ value can also be zero or @math{-1}.
 @end enumerate
 
 @noindent
-else return @math{1} values: a @code{CURLM_} error code and @false{}.
+else return the values: a @code{CURLM_} error code and @false{}.
 @curlman{curl_multi_timeout}.
 @end defun
 
@@ -3481,6 +3486,7 @@ Convert a list of strings to and from a @code{curl-list}.
 
 @menu
 * plain forms structs::         @http{} post data structures.
+* plain forms init::            Initialisation and finalisation.
 * plain forms adding::          Adding data to @http{} post.
 * plain forms inspect::         Inspecting @http{} post data.
 @end menu
@@ -3515,26 +3521,9 @@ otherwise return @false{}.
 @end defun
 
 
-@defun curl-form-data?/filled @var{obj}
+@defun curl-form-data?/alive @var{obj}
 Return @true{} if @var{obj} is an instance of @code{curl-form-data} and
 it holds some contents; otherwise return @false{}.
-@end defun
-
-
-@defun make-curl-form-data
-Build and return a new instance of @code{curl-form-data} ready to be
-handed to @func{curl-formadd}.
-@end defun
-
-
-@defun curl-formfree @var{httppost}
-Release all the resources associated to @var{httppost}, which must be an
-instance of @code{curl-form-data}; return unspecified values.
-@curlman{curl_formfree}.
-
-It is safe to apply this function multiple times to the same
-@var{httppost} argument: the first time the data is finalised, the
-subsequent times nothing happens.
 @end defun
 
 
@@ -3569,6 +3558,31 @@ we can easily associate values to @var{httppost}.
 @end defun
 
 @c page
+@node plain forms init
+@subsection Initialisation and finalisation
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-form-data
+Build and return a new instance of @code{curl-form-data} ready to be
+handed to @func{curl-formadd}.
+@end defun
+
+
+@defun curl-formfree @var{httppost}
+Release all the resources associated to @var{httppost}, which must be an
+instance of @code{curl-form-data}; return unspecified values.
+@curlman{curl_formfree}.
+
+It is safe to apply this function multiple times to the same
+@var{httppost} argument: the first time the data is finalised, the
+subsequent times nothing happens.
+@end defun
+
+@c page
 @node plain forms adding
 @subsection Adding data to @http{} post
 
@@ -3577,14 +3591,14 @@ The following bindings are exported by the library @library{vicare net
 curl}.
 
 
-@defun curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @var{end}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @var{end}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @var{end}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val}
-@defunx curl-formadd @var{httppost} @var{last} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val} @var{end}
+@defun curl-formadd @var{httppost} @vari{opt} @vari{val}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @var{end}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val} @var{end}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @var{end}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val}
+@defunx curl-formadd @var{httppost} @vari{opt} @vari{val} @varii{opt} @varii{val} @variii{opt} @variii{val} @variv{opt} @variv{val} @var{end}
 Add a section to a multipart/formdata @http{} @acronym{POST}; if
 successful return @code{CURL_FORMADD_OK}, else return a
 @code{CURL_FORMADD_} error code.  @curlman{curl_formadd}.
@@ -3593,11 +3607,6 @@ successful return @code{CURL_FORMADD_OK}, else return a
 first invocation of this function @var{httppost} must be the return
 value of @func{make-curl-form-data}.
 
-@var{last} must be a pointer object; the first time this function is
-called to compose data, it must be @cnull{} (the return value of
-@func{null-pointer}); this function mutates @var{last} to reference the
-last item in the composed data.
-
 Each @var{opt}/@var{val} couple must be an option/value couple in which
 @var{opt} is one of the @code{CURLFORM_} constants and @var{val} is one
 among: an exact integer in the range of the C language type @code{long},
@@ -3605,6 +3614,48 @@ a string, an @ascii{} bytevector, a pointer, a @code{memory-block}.
 
 When present @var{end} must be the constant @code{CURLFORM_END}.
 @end defun
+
+
+Example of adding 2 parts:
+
+@example
+(import (rnrs)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
+(define http-post
+  (make-curl-form-data))
+
+(curl-formadd http-post
+  CURLFORM_COPYNAME "name"
+  CURLFORM_COPYCONTENTS "contents"
+  CURLFORM_END)
+
+(curl-formadd http-post
+  CURLFORM_COPYNAME "other_name"
+  CURLFORM_COPYCONTENTS "other contents"
+  CURLFORM_END)
+@end example
+
+@noindent
+the string returned by @func{curl-form-data-string} for such composition
+is something like (with line wrapping added):
+
+@example
+Content-Type: multipart/form-data; \
+  boundary=----------------------------81c1e6167e72
+------------------------------81c1e6167e72
+Content-Disposition: form-data; name="name"
+
+contents
+------------------------------81c1e6167e72
+Content-Disposition: form-data; name="other_name"
+
+other contents
+------------------------------81c1e6167e72--
+@end example
 
 @c page
 @node plain forms inspect
@@ -3677,13 +3728,46 @@ discarded and the callback returns the fixnum zero.
 @end itemize
 @end defun
 
+
+Here is a meaningless usage of the callback:
+
+@example
+(import (rnrs)
+  (vicare net curl)
+  (vicare net curl constants))
+
+(assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
+
+(define http-post
+  (make-curl-form-data))
+
+(curl-formadd http-post
+  CURLFORM_COPYNAME "name"
+  CURLFORM_COPYCONTENTS "contents"
+  CURLFORM_END)
+
+(define data "")
+(define callback
+  (make-curl-formget-callback
+    (lambda (custom-data cstring.ptr cstring.len)
+      (set! data (string-append data
+                   (cstring->string cstring.ptr
+                                    cstring.len)))
+      cstring.len)))
+
+(curl-formget http-post #f callback)
+
+(ffi.free-c-callback callback)
+(curl-formfree http-post)
+@end example
+
 @c page
 @node plain shares
 @section Shared configuration option sets
 
 
-@curl{} allows us to share entities and configuration options among
-through shared sets called @dfn{shares}.
+@value{FOREIGN_PACKAGE} allows us to share entities and configuration
+options among easy handles through shared sets called @dfn{shares}.
 
 @menu
 * plain shares examples::       Shares examples.
@@ -3699,6 +3783,8 @@ through shared sets called @dfn{shares}.
 @node plain shares examples
 @subsection Shares examples
 
+
+Random options setting:
 
 @example
 #!r6rs
@@ -3731,6 +3817,12 @@ through shared sets called @dfn{shares}.
      (lambda (easy what-to-lock custom-data)
        (void))))
 @result{} CURLSHE_OK
+
+(define easy
+  (curl-easy-init))
+
+(curl-easy-setopt easy CURLOPT_SHARE share)
+@result{} CURLE_OK
 @end example
 
 @c page
@@ -3746,7 +3838,8 @@ curl}.
 @cindex @var{share} argument
 @cindex Argument @var{share}
 Opaque structure type used to reference instances of the C language type
-@code{CURLSH}.
+@code{CURLSH}.  Such data structures can be registered in easy handles
+with the @code{CURLOPT_SHARE} option of @func{curl-easy-setopt}.
 
 When instances of this type are used as arguments to functions: this
 documentation identifies them as @var{share}.

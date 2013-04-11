@@ -1,0 +1,4 @@
+* Documentation
+
+  Add documentation for the struct type validation clauses.
+
