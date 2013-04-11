@@ -500,7 +500,8 @@ functions used by @curl{} to manage raw memory with supplied callbacks.
 
 @var{flags} has the same meaning of the argument to
 @func{curl-global-init-mem}.  The other arguments must be pointer
-objects referencing C language functions.
+objects referencing C language functions or @false{} when the callback
+must be reset to @cnull{}.
 @end defun
 
 
@@ -736,8 +737,9 @@ pointer is expected: @false{} is also accepted and converted to a
 @cnull{} pointer.
 
 @item
-A string or @ascii{} bytevector or pointer object or @code{memory-block}
-referencing some data.
+A generalised C string holding some data; Scheme strings are converted
+to bytevectors using @func{string->utf8}.  @cstringsref{}.  For such
+options @false{} is also accepted and converted to @cnull{}.
 @end itemize
 @end defun
 
@@ -992,14 +994,8 @@ Else a @code{CURLE_} error code and @false{}.
 
 @curlman{curl_easy_recv}.
 
-@var{buffer.data} must be a bytevector or pointer object or
-@code{memory-block}; it is the output buffer in which received data will
-be written.
-
-The optional @var{buffer.len} is used only when @var{buffer.data} is a
-pointer object, in the other cases it is ignored; when used, it must be
-an exact integer, in the range of the C language type @code{size_t},
-representing the number of free bytes available in the output buffer.
+@var{buffer.data} and @var{buffer.len} must represent a generalised C
+buffer, @cbuffersref{}.  Received data is written in such buffer.
 @end defun
 
 
@@ -1018,15 +1014,10 @@ Else a @code{CURLE_} error code and @false{}.
 
 @curlman{curl_easy_send}.
 
-@var{buffer.data} must be a string, bytevector, pointer object or
-@code{memory-block}; it is the input buffer from which sent data will be
-read; the string is converted to a bytevector with @code{string->utf8}.
-
-The optional @var{buffer.len} is used only when @var{buffer.data} is a
-pointer object, in the other cases it is ignored; when used, it must be
-an exact integer, in the range of the C language type @code{size_t},
-representing the number of bytes available in the input buffer to be
-sent.
+@var{buffer.data} and @var{buffer.len} must represent a generalised C
+string, @cstringsref{}.  When @var{buffer.data} is a Scheme string: it
+is converted to a bytevector with @code{string->utf8}.  It is the input
+buffer from which sent data will be read.
 @end defun
 
 @c page
@@ -1044,13 +1035,8 @@ Encode the given string to become a portion of @aurl{}; if successful
 return an @ascii{} bytevector, else return @false{}.
 @curlman{curl_easy_escape}.
 
-@var{chars.data} must be a string or bytevector or pointer object or
-@code{memory-block}; it must hold the input data.
-
-The optional @var{chars.len} is used only when @var{chars.data} is a
-pointer object, in the other cases it is ignored; when used, it must be
-an exact integer, in the range of the C language type @code{int},
-representing the number of bytes available in the input buffer.
+@var{chars.data} and @var{chars.len} must represent a generalised C
+string, @cstringsref{}.  It must hold the input data.
 @end defun
 
 
@@ -1060,18 +1046,14 @@ Like @func{curl-easy-escape}, but return a string.
 @end defun
 
 
-@defun curl-easy-unescape @var{easy} @var{chars.data} @var{chars.len}
+@defun curl-easy-unescape @var{easy} @var{chars.data}
+@defunx curl-easy-unescape @var{easy} @var{chars.data} @var{chars.len}
 Decode the given string as if it comes from a portion of @aurl{}; if
 successful return an @ascii{} bytevector, else return @false{}.
 @curlman{curl_easy_unescape}.
 
-@var{chars.data} must be a string or bytevector or pointer object or
-@code{memory-block}; it must hold the input data.
-
-The optional @var{chars.len} is used only when @var{chars.data} is a
-pointer object, in the other cases it is ignored; when used, it must be
-an exact integer, in the range of the C language type @code{int},
-representing the number of bytes available in the input buffer.
+@var{chars.data} and @var{chars.len} must represent a generalised C
+string, @cstringsref{}.  It must hold the input data.
 @end defun
 
 
