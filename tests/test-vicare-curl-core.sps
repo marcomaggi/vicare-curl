@@ -283,7 +283,7 @@
       (let ((share (curl-share-init)))
 	(curl-share-cleanup share)
 	(curl-share-cleanup share))
-    => (void))
+    => #f)
 
 ;;; --------------------------------------------------------------------
 

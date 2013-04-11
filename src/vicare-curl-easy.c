@@ -64,7 +64,9 @@ ikrt_curl_easy_cleanup (ikptr s_easy, ikpcb * pcb)
   if (easy)
     IK_POINTER_SET_NULL(s_pointer);
   /* fprintf(stderr, "%s: leave\n", __func__); */
-  return IK_VOID;
+  /* Return false so  that the return value  of "$curl-easy-finalise" is
+     always false. */
+  return IK_FALSE;
 #else
   feature_failure(__func__);
 #endif

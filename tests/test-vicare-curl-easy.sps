@@ -72,13 +72,13 @@
   (check
       (let ((easy (curl-easy-init)))
   	(curl-easy-cleanup easy))
-    => (void))
+    => #f)
 
   (check
       (let ((easy (curl-easy-init)))
   	(curl-easy-cleanup easy)
   	(curl-easy-cleanup easy))
-    => (void))
+    => #f)
 
   (check
       (let ((easy (curl-easy-init)))
@@ -93,7 +93,7 @@
       (let ((easy (curl-easy-init)))
   	(curl-easy-reset easy)
   	(curl-easy-cleanup easy))
-    => (void))
+    => #f)
 
 ;;; --------------------------------------------------------------------
 ;;; destructor
@@ -104,7 +104,7 @@
 	 (set-curl-easy-custom-destructor! easy (lambda (easy)
 						  (add-result 123)))
 	 (curl-easy-cleanup easy)))
-    => `(,(void) (123)))
+    => '(#f (123)))
 
 ;;; --------------------------------------------------------------------
 
@@ -113,7 +113,7 @@
 	     (clone (curl-easy-duphandle easy)))
   	(curl-easy-cleanup easy)
 	(curl-easy-cleanup clone))
-    => (void))
+    => #f)
 
   (check
       (let* ((easy (curl-easy-init))

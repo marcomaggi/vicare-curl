@@ -69,7 +69,7 @@
       (let ((multi (curl-multi-init)))
   	(curl-multi-cleanup multi)
   	(curl-multi-cleanup multi))
-    => (void))
+    => #f)
 
   (check
       (let ((multi (curl-multi-init)))
