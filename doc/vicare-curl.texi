@@ -621,8 +621,8 @@ has not been finalised; return @false{} otherwise.
 @end defun
 
 
-@defun curl-easy-destructor @var{easy}
-@defunx set-curl-easy-destructor! @var{easy} @var{func}
+@defun curl-easy-custom-destructor @var{easy}
+@defunx set-curl-easy-custom-destructor! @var{easy} @var{func}
 Retrieve or set a destructor function associated to @var{easy}.
 
 Whenever @var{easy} is finalised, either explicitly with
@@ -636,7 +636,7 @@ Notice that @var{func} can be used to associate some state to
 @example
 (define easy ...)
 
-(set-curl-easy-destructor! easy
+(set-curl-easy-custom-destructor! easy
   (let ((state (make-some-data-struct)))
     (case-lambda
       ((easy)
@@ -644,7 +644,7 @@ Notice that @var{func} can be used to associate some state to
       (()
        state))))
 
-(let ((state ((curl-easy-destructor easy))))
+(let ((state ((curl-easy-custom-destructor easy))))
   (do-something-with easy state))
 @end example
 @end defun
@@ -1527,8 +1527,8 @@ has not been finalised; otherwise return @false{}.
 @end defun
 
 
-@defun curl-multi-destructor @var{multi}
-@defunx set-curl-multi-destructor! @var{multi} @var{func}
+@defun curl-multi-custom-destructor @var{multi}
+@defunx set-curl-multi-custom-destructor! @var{multi} @var{func}
 Retrieve or set a destructor function associated to @var{multi}.
 
 Whenever @var{multi} is finalised, either explicitly with
@@ -1542,7 +1542,7 @@ Notice that @var{func} can be used to associate some state to
 @example
 (define multi ...)
 
-(set-curl-multi-destructor! multi
+(set-curl-multi-custom-destructor! multi
   (let ((state (make-some-data-struct)))
     (case-lambda
       ((multi)
@@ -1550,7 +1550,7 @@ Notice that @var{func} can be used to associate some state to
       (()
        state))))
 
-(let ((state ((curl-multi-destructor multi))))
+(let ((state ((curl-multi-custom-destructor multi))))
   (do-something-with multi state))
 @end example
 @end defun
@@ -1571,9 +1571,11 @@ Build and return a new instance of @code{curl-multi}.
 
 
 @defun curl-multi-cleanup @var{multi}
-Finalise an instance of @code{curl-multi}; if successful return
-@code{CURLM_OK}, else return a @code{CURLM_} error code.
-@curlman{curl_multi_cleanup}.
+Finalise an instance of @code{curl-multi}.  If the finalisation happens
+and it is successful: return @code{CURLM_OK}; if the finalisation
+happens and it fails: return a @code{CURLM_} error code; if @var{multi}
+was already finalised: return a single unspecified value that is not an
+exact integer.  @curlman{curl_multi_cleanup}.
 
 It is fine to apply this function multiple times to the same @var{multi}
 value: the first time the underlying session data is finalised, the
@@ -3534,8 +3536,8 @@ subsequent times nothing happens.
 @end defun
 
 
-@defun curl-form-data-destructor @var{httppost}
-@defunx set-curl-form-data-destructor! @var{httppost} @var{func}
+@defun curl-form-data-custom-destructor @var{httppost}
+@defunx set-curl-form-data-custom-destructor! @var{httppost} @var{func}
 Retrieve or set a destructor function associated to the @var{httppost}.
 
 Whenever the @var{httppost} is finalised, either explicitly with
@@ -3548,7 +3550,7 @@ associated to @var{httppost}; if we do:
 
 @example
 (define httppost ...)
-(set-curl-form-data-destructor! httppost
+(set-curl-form-data-custom-destructor! httppost
   (let ((state (make-some-data-struct)))
     (case-lambda
       ((httppost)
@@ -3556,7 +3558,7 @@ associated to @var{httppost}; if we do:
       (()
        state))))
 
-(let ((state ((curl-form-data-destructor httppost))))
+(let ((state ((curl-form-data-custom-destructor httppost))))
   (do-something-with httppost state))
 @end example
 
@@ -3766,8 +3768,8 @@ has not been finalised yet; otherwise return @false{}.
 @end defun
 
 
-@defun curl-share-destructor @var{share}
-@defunx set-curl-share-destructor! @var{share} @var{func}
+@defun curl-share-custom-destructor @var{share}
+@defunx set-curl-share-custom-destructor! @var{share} @var{func}
 Retrieve or set a destructor function associated to the @var{share}.
 
 Whenever the @var{share} is finalised, either explicitly with
@@ -3780,7 +3782,7 @@ associated to @var{share}; if we do:
 
 @example
 (define share ...)
-(set-curl-share-destructor! share
+(set-curl-share-custom-destructor! share
   (let ((state (make-some-data-struct)))
     (case-lambda
       ((share)
@@ -3788,7 +3790,7 @@ associated to @var{share}; if we do:
       (()
        state))))
 
-(let ((state ((curl-share-destructor share))))
+(let ((state ((curl-share-custom-destructor share))))
   (do-something-with share state))
 @end example
 
@@ -3813,9 +3815,11 @@ the instance, else return @false{}.  @curlman{curl_share_cleaup}.
 
 @defun curl-share-cleanup @var{share}
 Attempt to release all the resources associated to @var{share}, which
-must be an instance of @code{curl-share}; if successful return
-@code{CURLSHE_OK}, else return a @code{CURLSHE_} error code.
-@curlman{curl_share_cleanup}.
+must be an instance of @code{curl-share}.  If the finalisation happens
+and it is successful: return @code{CURLSHE_OK}; if the finalisation
+happens and it fails: return a @code{CURLSHE_} error code; if
+@var{share} was already finalised: return a single unspecified value
+that is not an exact integer.  @curlman{curl_share_cleanup}.
 
 It is safe to apply this function multiple times to the same @var{share}
 object: the first time the data is finalised, the subsequent times

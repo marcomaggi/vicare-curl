@@ -53,7 +53,7 @@
 (define (debug-func easy type data size custom-data)
   (define (%print template)
     (fprintf (current-error-port) template (cstring->string data size)))
-  (case-integers type
+  ($case-integers type
     ((CURLINFO_TEXT)
      (%print "Text: ~a"))
     ((CURLINFO_HEADER_IN)
@@ -306,7 +306,7 @@
   (define (socket-func easy sock-fd poll-type callback-data sock-fd-data)
     (define ps
       (retrieve-to-avoid-collecting callback-data))
-    (case-integers poll-type
+    ($case-integers poll-type
       ((CURL_POLL_NONE)
        (void))
       ((CURL_POLL_IN)
@@ -484,7 +484,7 @@
   (define (socket-func easy sock-fd poll-type callback-data sock-fd-data)
     (define ps
       (retrieve-to-avoid-collecting callback-data))
-    (case-integers poll-type
+    ($case-integers poll-type
       ((CURL_POLL_NONE)
        (void))
       ((CURL_POLL_IN)

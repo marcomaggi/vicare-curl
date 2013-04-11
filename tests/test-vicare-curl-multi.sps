@@ -69,7 +69,7 @@
       (let ((multi (curl-multi-init)))
   	(curl-multi-cleanup multi)
   	(curl-multi-cleanup multi))
-    => CURLM_OK)
+    => (void))
 
   (check
       (let ((multi (curl-multi-init)))
@@ -83,8 +83,8 @@
   (check
       (with-result
        (let ((multi (curl-multi-init)))
-	 (set-curl-multi-destructor! multi (lambda (multi)
-					     (add-result 123)))
+	 (set-curl-multi-custom-destructor! multi (lambda (multi)
+						    (add-result 123)))
 	 (curl-multi-cleanup multi)))
     => `(,CURLM_OK (123)))
 

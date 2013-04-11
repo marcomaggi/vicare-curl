@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -236,8 +236,8 @@
   (check
       (with-result
        (let ((httppost (make-curl-form-data)))
-	 (set-curl-form-data-destructor! httppost (lambda (httppost)
-						    (add-result 123)))
+	 (set-curl-form-data-custom-destructor! httppost (lambda (httppost)
+							   (add-result 123)))
 	 (curl-formfree httppost)))
     => `(,(void) (123)))
 
@@ -283,7 +283,7 @@
       (let ((share (curl-share-init)))
 	(curl-share-cleanup share)
 	(curl-share-cleanup share))
-    => CURLSHE_OK)
+    => (void))
 
 ;;; --------------------------------------------------------------------
 
@@ -346,8 +346,8 @@
   (check
       (with-result
        (let ((share (curl-share-init)))
-	 (set-curl-share-destructor! share (lambda (share)
-					     (add-result 123)))
+	 (set-curl-share-custom-destructor! share (lambda (share)
+						    (add-result 123)))
 	 (curl-share-cleanup share)))
     => `(,CURLSHE_OK (123)))
   (collect))

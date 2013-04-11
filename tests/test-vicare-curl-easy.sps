@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -101,8 +101,8 @@
   (check
       (with-result
        (let ((easy (curl-easy-init)))
-	 (set-curl-easy-destructor! easy (lambda (easy)
-					   (add-result 123)))
+	 (set-curl-easy-custom-destructor! easy (lambda (easy)
+						  (add-result 123)))
 	 (curl-easy-cleanup easy)))
     => `(,(void) (123)))
 

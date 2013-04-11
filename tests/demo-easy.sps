@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,7 +51,7 @@
 (define (debug-func easy type data size custom-data)
   (define (%print template)
     (fprintf (current-error-port) template (cstring->string data size)))
-  (case-integers type
+  ($case-integers type
     ((CURLINFO_TEXT)
      (%print "Text: ~a"))
     ((CURLINFO_HEADER_IN)

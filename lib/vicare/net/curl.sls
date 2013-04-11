@@ -68,8 +68,7 @@
     curl-form-data?				curl-form-data?/filled
     (rename (%make-curl-form-data		make-curl-form-data))
     curl-form-data-string
-    curl-form-data-destructor
-    (rename (%set-curl-form-data-destructor!	set-curl-form-data-destructor!))
+    curl-form-data-custom-destructor		set-curl-form-data-custom-destructor!
 
     ;; basic URL string escaping
     curl-escape					curl-escape/string
@@ -83,8 +82,7 @@
 
     curl-share
     curl-share?					curl-share?/alive
-    curl-share-destructor
-    (rename (%set-curl-share-destructor!	set-curl-share-destructor!))
+    curl-share-custom-destructor		set-curl-share-custom-destructor!
 
     ;; easy API
     curl-easy-init				curl-easy-cleanup
@@ -98,8 +96,7 @@
 
     curl-easy
     curl-easy?					curl-easy?/alive
-    curl-easy-destructor
-    (rename (%set-curl-easy-destructor!		set-curl-easy-destructor!))
+    curl-easy-custom-destructor			set-curl-easy-custom-destructor!
 
     ;; multi API
     curl-multi-init				curl-multi-cleanup
@@ -114,8 +111,7 @@
 
     curl-multi
     curl-multi?					curl-multi?/alive
-    curl-multi-destructor
-    (rename (%set-curl-multi-destructor!	set-curl-multi-destructor!))
+    curl-multi-custom-destructor		set-curl-multi-custom-destructor!
 
     curl-waitfd
     make-curl-waitfd				curl-waitfd?
@@ -238,115 +234,19 @@
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi)
 	    capi.)
-    (vicare syntactic-extensions)
     (prefix (vicare unsafe-operations)
-	    unsafe.)
+	    $)
     (prefix (vicare ffi)
 	    ffi.)
+    (vicare ffi foreign-pointer-wrapper)
     (prefix (vicare words)
-	    words.))
+	    words.)
+    (vicare syntactic-extensions)
+    (vicare arguments validation)
+    (vicare arguments general-c-buffers))
 
 
 ;;;; arguments validation
-
-(define-argument-validation (fixnum who obj)
-  (fixnum? obj)
-  (assertion-violation who "expected fixnum as argument" obj))
-
-(define-argument-validation (non-negative-fixnum who obj)
-  (and (fixnum? obj) (unsafe.fx<= 0 obj))
-  (assertion-violation who "expected non-negative fixnum as argument" obj))
-
-(define-argument-validation (pointer who obj)
-  (pointer? obj)
-  (assertion-violation who "expected pointer as argument" obj))
-
-(define-argument-validation (callback who obj)
-  (or (not obj) (pointer? obj))
-  (assertion-violation who "expected callback as argument" obj))
-
-#;(define-argument-validation (bytevector who obj)
-  (bytevector? obj)
-  (assertion-violation who "expected bytevector as argument" obj))
-
-(define-argument-validation (vector who obj)
-  (vector? obj)
-  (assertion-violation who "expected vector as argument" obj))
-
-(define-argument-validation (procedure/false who obj)
-  (or (not obj) (procedure? obj))
-  (assertion-violation who "expected false or procedure as argument" obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (pointer/false who obj)
-  (or (not obj) (pointer? obj))
-  (assertion-violation who "expected false or pointer as argument" obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (general-string who obj)
-  (or (string? obj)
-      (bytevector? obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected string or bytevector or pointer or memory-block as argument" obj))
-
-(define-argument-validation (general-string/false who obj)
-  (or (not obj)
-      (string? obj)
-      (bytevector? obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected false or string or bytevector or pointer or memory-block as argument" obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (general-buffer who obj)
-  (or (bytevector? obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected bytevector or pointer or memory-block as argument" obj))
-
-(define-argument-validation (general-buffer/false who obj)
-  (or (not obj)
-      (bytevector? obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected false or bytevector or pointer or memory-block as general buffer argument"
-    obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (general-sticky-buffer who obj)
-  ;;A general  "sticky" buffer is  a block of  memory that is  NOT moved
-  ;;around by the garbage collector.
-  ;;
-  (or (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected pointer or memory-block as general sticky buffer argument" obj))
-
-(define-argument-validation (general-sticky-buffer/false who obj)
-  (or (not obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected false or pointer or memory-block as general sticky buffer argument"
-    obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (general-data who obj)
-  (or (bytevector? obj)
-      (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who
-    "expected bytevector or pointer or memory-block as argument" obj))
 
 (define-argument-validation (list-of-strings who obj)
   (and (list? obj)
@@ -360,46 +260,15 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-argument-validation (signed-int who obj)
-  (words.signed-int? obj)
-  (assertion-violation who
-    "expected exact integer in the range of the C language type \"int\" as argument"
-    obj))
-
-(define-argument-validation (signed-int/false who obj)
-  (or (not obj) (words.signed-int? obj))
-  (assertion-violation who
-    "expected false or exact integer in the range of the C language type \"int\" as argument"
-    obj))
-
-(define-argument-validation (signed-long who obj)
-  (words.signed-long? obj)
-  (assertion-violation who
-    "expected exact integer in the range of the C language type \"long\" as argument"
-    obj))
-
-(define-argument-validation (off_t who obj)
-  (words.off_t? obj)
-  (assertion-violation who
-    "expected exact integer in the range of the C language type \"off_t\" as argument"
-    obj))
-
-(define-argument-validation (optional-buffer-length who obj buffer)
-  (if (pointer? buffer)
-      (words.size_t? obj)
-    #t)
-  (assertion-violation who
-    "expected exact integer representing \"size_t\" as argument" obj))
-
 (define-argument-validation (file-descriptor who obj)
   (and (fixnum? obj)
-       (unsafe.fx<= 0 obj))
+       ($fx<= 0 obj))
   (assertion-violation who "expected non-negative fixnum as file descriptor argument" obj))
 
 (define-argument-validation (action-socket-descriptor who obj)
   (and (fixnum? obj)
-       (or (unsafe.fx= obj CURL_SOCKET_TIMEOUT)
-	   (unsafe.fx<= 0 obj)))
+       (or ($fx= obj CURL_SOCKET_TIMEOUT)
+	   ($fx<= 0 obj)))
   (assertion-violation who
     "expected CURL_SOCKET_TIMEOUT or non-negative fixnum as socket descriptor argument"
     obj))
@@ -414,12 +283,6 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-argument-validation (curl-form-data who obj)
-  (curl-form-data? obj)
-  (assertion-violation who
-    "expected instance of \"curl-form-data\" as argument"
-    obj))
-
 (define-argument-validation (curl-form-data/filled who obj)
   (curl-form-data?/filled obj)
   (assertion-violation who
@@ -428,43 +291,16 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-argument-validation (curl-share who obj)
-  (curl-share? obj)
-  (assertion-violation who "expected instance of \"curl-share\" as argument" obj))
-
-(define-argument-validation (curl-share/alive who obj)
-  (curl-share?/alive obj)
-  (assertion-violation who "expected alive instance of \"curl-share\" as argument" obj))
-
 (define-argument-validation (curl-share-parameter who parameter option)
   (cond ((or (= option CURLSHOPT_SHARE)
 	     (= option CURLSHOPT_UNSHARE))
 	 (words.signed-int? parameter))
 	(else
-	 (%callback? parameter)))
+	 (or (not parameter)
+	     (pointer? parameter))))
   (assertion-violation who
     "invalid matching between \"curl-share\" option and parameter"
     parameter option))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (curl-easy who obj)
-  (curl-easy? obj)
-  (assertion-violation who "expected instance of \"curl-easy\" as argument" obj))
-
-(define-argument-validation (curl-easy/alive who obj)
-  (curl-easy?/alive obj)
-  (assertion-violation who "expected alive instance of \"curl-easy\" as argument" obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (curl-multi who obj)
-  (curl-multi? obj)
-  (assertion-violation who "expected instance of \"curl-multi\" as argument" obj))
-
-(define-argument-validation (curl-multi/alive who obj)
-  (curl-multi?/alive obj)
-  (assertion-violation who "expected alive instance of \"curl-multi\" as argument" obj))
 
 ;;; --------------------------------------------------------------------
 
@@ -480,53 +316,7 @@
 (define-inline (unimplemented who)
   (assertion-violation who "unimplemented function"))
 
-(define-auxiliary-syntaxes pointer)
-(define-auxiliary-syntaxes owner?)
-
-(define-syntax struct-destructor-application
-  ;;Data structures are might have  a field called DESTRUCTOR holding #f
-  ;;or a function to be applied to the struct instance upon finalisation
-  ;;(either when the finaliser is  explicitly called by the application,
-  ;;or when  the garbage collector  performs the finalisation  through a
-  ;;guardian).
-  ;;
-  ;;This macro should  be used in the finalisation  function to properly
-  ;;apply the destructor to the structure.
-  ;;
-  ;;For example, given the definition:
-  ;;
-  ;;  (define-struct the-type (the-field destructor))
-  ;;
-  ;;the code:
-  ;;
-  ;;  (define (%unsafe.the-type-final struct)
-  ;;    (struct-destructor-application struct
-  ;;      the-type-destructor set-the-type-destructor!))
-  ;;
-  ;;expands to:
-  ;;
-  ;;  (define (%unsafe.the-type-final struct)
-  ;;    (let ((destructor (the-type-destructor struct)))
-  ;;      (when destructor
-  ;;        (guard (E (else (void)))
-  ;;          (destructor struct))
-  ;;        (?mutator ?struct #f))))
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?struct ?accessor ?mutator)
-       (and (identifier? #'?struct)
-	    (identifier? #'?accessor))
-       #'(let ((destructor (?accessor ?struct)))
-	   (when destructor
-	     (guard (E (else (void)))
-	       (destructor ?struct))
-	     (?mutator ?struct #f)))))))
-
 ;;; --------------------------------------------------------------------
-
-(define-inline (%callback? ?obj)
-  (or (not ?obj) (pointer? ?obj)))
 
 (define-inline (%define-raw-struct-accessor ?who ?accessor)
   ;;Used  to define  a  function to  access a  C  language struct  field
@@ -537,59 +327,6 @@
     (with-arguments-validation (who)
 	((pointer	stru))
       (?accessor stru))))
-
-;;; --------------------------------------------------------------------
-
-(define-auxiliary-syntaxes string-to-bytevector)
-
-(define-syntax* (with-general-strings stx)
-  (syntax-case stx (string-to-bytevector)
-    ((_ ((?str^ ?str) ...) ?string->bytevector ?body0 . ?body)
-     (identifier? #'?string->bytevector)
-     #'(with-general-strings ((?str^ ?str) ...)
-	   (string-to-bytevector ?string->bytevector)
-	 ?body0 . ?body))
-    ((_ ((?str^ ?str) ...)
-	(string-to-bytevector ?string->bytevector)
-	?body0 . ?body)
-     (identifier? #'?string->bytevector)
-     #'(let ((?str^ (let ((str ?str))
-		      (cond ((string? str)
-			     (?string->bytevector str))
-			    ((or (bytevector?   str)
-				 (pointer?      str)
-				 (memory-block? str))
-			     str)
-			    (else
-			     (assertion-violation #f "invalid general string" str)))))
-	     ...)
-	 ?body0 . ?body))))
-
-(define-syntax with-general-strings/false
-  (lambda (stx)
-    (syntax-case stx (string-to-bytevector)
-      ((?key ((?str^ ?str) ...) ?string->bytevector ?body0 . ?body)
-       (identifier? #'?string->bytevector)
-       #'(with-general-strings/false ((?str^ ?str) ...)
-	     (string-to-bytevector ?string->bytevector)
-	   ?body0 . ?body))
-      ((_ ((?str^ ?str) ...)
-	  (string-to-bytevector ?string->bytevector)
-	  ?body0 . ?body)
-       (identifier? #'?string->bytevector)
-       #'(let ((?str^ (let ((str ?str))
-			(cond ((string? str)
-			       (?string->bytevector str))
-			      ((or (bytevector?   str)
-				   (pointer?      str)
-				   (memory-block? str))
-			       str)
-			      ((not str)
-			       str)
-			      (else
-			       (assertion-violation #f "invalid general string" str)))))
-	       ...)
-	   ?body0 . ?body)))))
 
 
 ;;;; version functions
@@ -709,13 +446,13 @@
 			  ,CURL_VERSION_TLSAUTH_SRP	,CURL_VERSION_NTLM_WB)))
       (if (null? flags)
 	  result
-	(loop (let ((flag (unsafe.car flags)))
+	(loop (let ((flag ($car flags)))
 		(if (zero? (bitwise-and flag features))
 		    result
 		  (cons (%curl-version-info-features->symbols flag)
 			result)))
 	      features
-	      (unsafe.cdr flags))))))
+	      ($cdr flags))))))
 
 (define-exact-integer->symbol-function %curl-version-info-features->symbols
   (CURL_VERSION_IPV6
@@ -757,11 +494,11 @@
   (define who 'curl-global-init-mem)
   (with-arguments-validation (who)
       ((signed-long	flags)
-       (callback	malloc-callback)
-       (callback	free-callback)
-       (callback	realloc-callback)
-       (callback	strdup-callback)
-       (callback	calloc-callback))
+       (pointer/false	malloc-callback)
+       (pointer/false	free-callback)
+       (pointer/false	realloc-callback)
+       (pointer/false	strdup-callback)
+       (pointer/false	calloc-callback))
     (capi.curl-global-init-mem flags
 			       malloc-callback free-callback realloc-callback
 			       strdup-callback calloc-callback)))
@@ -832,9 +569,10 @@
     (define who 'curl-slist-append)
     (with-arguments-validation (who)
 	((pointer/false		slist)
-	 (general-string	string))
-      (with-general-strings ((string^ string))
-	  (string-to-bytevector string->utf8)
+	 (general-c-string	string))
+      (with-general-c-strings
+	  ((string^ string))
+	(string-to-bytevector string->utf8)
 	(capi.curl-slist-append slist string^))))))
 
 (define (curl-slist-free-all slist)
@@ -860,15 +598,9 @@
 
 ;;;; multipart/formdata composition
 
-(define-struct curl-form-data
-  (pointer
-		;Pointer  object  referencing  an  instance  of  "struct
-		;curl_httppost".
-   destructor
-		;False or a user-supplied function to be called whenever
-		;this instance  is finalised.  The function  must accept
-		;at least one argument being the data structure itself.
-   ))
+(define-foreign-pointer-wrapper curl-form-data
+  (foreign-destructor capi.curl-formfree)
+  (collector-struct-type #f))
 
 (define (%struct-curl-form-data-printer S port sub-printer)
   (define-inline (%display thing)
@@ -880,27 +612,13 @@
   (%display " data=")		(%write   (curl-form-data-string   S))
   (%display "]"))
 
-(define (%unsafe.curl-formfree post)
-  (struct-destructor-application post
-				 $curl-form-data-destructor
-				 $set-curl-form-data-destructor!)
-  (capi.curl-formfree post))
-
 ;;; --------------------------------------------------------------------
 
-(define (curl-form-data?/filled obj)
-  (and (curl-form-data? obj)
-       (not (pointer-null? ($curl-form-data-pointer obj)))))
+(define curl-form-data?/filled
+  curl-form-data?/alive)
 
 (define (%make-curl-form-data)
-  (make-curl-form-data (null-pointer) #f))
-
-(define (%set-curl-form-data-destructor! struct destructor-func)
-  (define who 'set-curl-form-data-destructor!)
-  (with-arguments-validation (who)
-      ((curl-form-data	struct)
-       (procedure/false	destructor-func))
-    ($set-curl-form-data-destructor! struct destructor-func)))
+  (make-curl-form-data/owner (null-pointer)))
 
 ;;; --------------------------------------------------------------------
 
@@ -1021,14 +739,14 @@
   (with-arguments-validation (who)
       ((curl-form-data	post)
        (pointer/false	custom-data)
-       (callback	callback))
+       (pointer/false	callback))
     (capi.curl-formget post custom-data callback)))
 
 (define (curl-formfree post)
   (define who 'curl-formfree)
   (with-arguments-validation (who)
       ((curl-form-data	post))
-    (%unsafe.curl-formfree post)))
+    ($curl-form-data-finalise post)))
 
 ;;; --------------------------------------------------------------------
 
@@ -1070,10 +788,9 @@
    ((str.data str.len)
     (define who 'curl-escape)
     (with-arguments-validation (who)
-	((general-string	str.data)
-	 (signed-int/false	str.len))
-      (with-general-strings ((str.data^ str.data))
-	  string->ascii
+	((general-c-string*	str.data str.len))
+      (with-general-c-strings
+	  ((str.data^ str.data))
 	(capi.curl-escape str.data^ str.len))))))
 
 (define curl-unescape
@@ -1083,10 +800,9 @@
    ((str.data str.len)
     (define who 'curl-unescape)
     (with-arguments-validation (who)
-	((general-string	str.data)
-	 (signed-int/false	str.len))
-      (with-general-strings ((str.data^ str.data))
-	  string->ascii
+	((general-c-string*	str.data str.len))
+      (with-general-c-strings
+	  ((str.data^ str.data))
 	(capi.curl-unescape str.data^ str.len))))))
 
 ;;; --------------------------------------------------------------------
@@ -1110,14 +826,9 @@
 
 ;;;; shared configuration option sets
 
-(define-struct curl-share
-  (pointer
-		;Pointer object referencing an instance of "CURLSH".
-   destructor
-		;False or a user-supplied function to be called whenever
-		;this instance  is finalised.  The function  must accept
-		;at least one argument being the data structure itself.
-   ))
+(define-foreign-pointer-wrapper curl-share
+  (foreign-destructor capi.curl-share-cleanup)
+  (collector-struct-type #f))
 
 (define (%struct-curl-share-printer S port sub-printer)
   (define-inline (%display thing)
@@ -1128,31 +839,11 @@
   (%display " pointer=")	(%display ($curl-share-pointer S))
   (%display "]"))
 
-(define (%unsafe.curl-share-cleanup share)
-  (struct-destructor-application share $curl-share-destructor $set-curl-share-destructor!)
-  (capi.curl-share-cleanup share))
-
-;;; --------------------------------------------------------------------
-
-(define-inline (%make-curl-share pointer)
-  (make-curl-share pointer #f))
-
-(define (curl-share?/alive obj)
-  (and (curl-share? obj)
-       (not (pointer-null? (curl-share-pointer obj)))))
-
-(define (%set-curl-share-destructor! struct destructor-func)
-  (define who 'set-curl-share-destructor!)
-  (with-arguments-validation (who)
-      ((curl-share	struct)
-       (procedure/false	destructor-func))
-    ($set-curl-share-destructor! struct destructor-func)))
-
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
   (let ((rv (capi.curl-share-init)))
-    (and rv (%make-curl-share rv))))
+    (and rv (make-curl-share/owner rv))))
 
 (define (curl-share-setopt share option parameter)
   (define who 'curl-share-setopt)
@@ -1166,7 +857,7 @@
   (define who 'curl-share-cleanup)
   (with-arguments-validation (who)
       ((curl-share	share))
-    (%unsafe.curl-share-cleanup share)))
+    ($curl-share-finalise share)))
 
 (define (curl-share-strerror errcode)
   (define who 'curl-share-strerror)
@@ -1188,9 +879,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle)
 				       data locktype
 				       (if (pointer-null? userptr)
 					   #f
@@ -1205,9 +894,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle)
 				       data
 				       (if (pointer-null? userptr)
 					   #f
@@ -1217,18 +904,9 @@
 
 ;;;; easy API
 
-(define-struct curl-easy
-  (pointer
-		;Pointer  object  referencing  an   instance  of  the  C
-		;language type "CURL".
-   owner?
-		;Boolean,  true   if  this   data  structure   owns  the
-		;referenced "CURL" instance.
-   destructor
-		;False or a user-supplied function to be called whenever
-		;this instance  is finalised.  The function  must accept
-		;at least one argument being the data structure itself.
-   ))
+(define-foreign-pointer-wrapper curl-easy
+  (foreign-destructor capi.curl-easy-cleanup)
+  (collector-struct-type curl-multi))
 
 (define (%struct-curl-easy-printer S port sub-printer)
   (define-inline (%display thing)
@@ -1237,46 +915,22 @@
     (write thing port))
   (%display "#[curl-easy")
   (%display " pointer=")	(%display ($curl-easy-pointer S))
-  (%display " owner?=")		(%display ($curl-easy-owner?  S))
+  (%display " owner?=")		(%display (curl-easy-pointer-owner? S))
   (%display "]"))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax %make-curl-easy
-  (syntax-rules (pointer owner?)
-    ((_ (pointer ?pointer) (owner? ?owner?))
-     (make-curl-easy ?pointer ?owner? #f))
-    ((_ ?pointer ?owner?)
-     (make-curl-easy ?pointer ?owner? #f))))
-
-(define (curl-easy?/alive obj)
-  (and (curl-easy? obj)
-       (not (pointer-null? (curl-easy-pointer obj)))))
-
-(define (%unsafe.curl-easy-cleanup easy)
-  (struct-destructor-application easy $curl-easy-destructor $set-curl-easy-destructor!)
-  (capi.curl-easy-cleanup easy))
-
-(define (%set-curl-easy-destructor! struct destructor-func)
-  (define who 'set-curl-easy-destructor!)
-  (with-arguments-validation (who)
-      ((curl-easy	struct)
-       (procedure/false	destructor-func))
-    ($set-curl-easy-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
 (define (curl-easy-init)
   (let ((rv (capi.curl-easy-init)))
-    (and rv (%make-curl-easy
-		(pointer rv)
-	      (owner? #t)))))
+    (and rv
+	 ;;This struct instance has no collector.
+	 (make-curl-easy/owner rv #f))))
 
 (define (curl-easy-cleanup easy)
   (define who 'curl-easy-cleanup)
   (with-arguments-validation (who)
       ((curl-easy	easy))
-    (%unsafe.curl-easy-cleanup easy)))
+    ($curl-easy-finalise easy)))
 
 (define (curl-easy-reset easy)
   (define who 'curl-easy-reset)
@@ -1297,13 +951,14 @@
 	     (capi.curl-easy-setopt easy option parameter)))
 	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
 	   (with-arguments-validation (who)
-	       ((callback	parameter))
+	       ((pointer/false	parameter))
 	     (capi.curl-easy-setopt easy option parameter)))
 	  ((<= CURLOPTTYPE_OBJECTPOINT option)
 	   (with-arguments-validation (who)
-	       ((general-string/false	parameter))
-	     (with-general-strings/false ((parameter^ parameter))
-		 string->utf8
+	       ((general-c-string/false		parameter))
+	     (with-general-c-strings/false
+		 ((parameter^ parameter))
+	       (string-to-bytevector string->utf8)
 	       (capi.curl-easy-setopt easy option parameter^))))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
@@ -1323,16 +978,16 @@
        (signed-int	info))
     (let ((rv (capi.curl-easy-getinfo easy info)))
       (if (pair? rv)
-	  (let ((retval.type	(unsafe.car rv))
-		(retval.value	(unsafe.cdr rv)))
-	    (case-integers info
+	  (let ((retval.type	($car rv))
+		(retval.value	($cdr rv)))
+	    ($case-integers info
 	      ((CURLINFO_CERTINFO)
 	       (values CURLE_OK (and retval.value
 				     (curl-certinfo.certinfo retval.value))))
 	      ((CURLINFO_PRIVATE)
 	       (values CURLE_OK retval.value))
 	      (else
-	       (case-integers retval.type
+	       ($case-integers retval.type
 		 ((CURLINFO_SLIST)
 		  (values CURLE_OK (and retval.value
 					(let ((rv (curl-slist->list retval.value)))
@@ -1359,9 +1014,7 @@
   (with-arguments-validation (who)
       ((curl-easy/alive	easy))
     (let ((rv (capi.curl-easy-duphandle easy)))
-      (and rv (%make-curl-easy
-		  (pointer rv)
-		(owner? #t))))))
+      (and rv (make-curl-easy/owner rv #f)))))
 
 (define (curl-easy-pause easy bitmask)
   (define who 'curl-easy-pause)
@@ -1380,11 +1033,10 @@
     (define who 'curl-easy-recv)
     (with-arguments-validation (who)
 	((curl-easy/alive		easy)
-	 (general-buffer		buffer.data)
-	 (optional-buffer-length	buffer.len buffer.data))
+	 (general-c-buffer*		buffer.data buffer.len))
       (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
 	(if (pair? rv)
-	    (values (unsafe.car rv) (unsafe.cdr rv))
+	    (values ($car rv) ($cdr rv))
 	  (values rv #f)))))))
 
 (define curl-easy-send
@@ -1395,13 +1047,13 @@
     (define who 'curl-easy-send)
     (with-arguments-validation (who)
 	((curl-easy/alive		easy)
-	 (general-string		buffer.data)
-	 (optional-buffer-length	buffer.len buffer.data))
-      (with-general-strings ((buffer.data^ buffer.data))
-	  string->utf8
+	 (general-c-string*		buffer.data buffer.len))
+      (with-general-c-strings
+	  ((buffer.data^ buffer.data))
+	(string-to-bytevector string->utf8)
 	(let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
 	  (if (pair? rv)
-	      (values (unsafe.car rv) (unsafe.cdr rv))
+	      (values ($car rv) ($cdr rv))
 	    (values rv #f))))))))
 
 ;;; --------------------------------------------------------------------
@@ -1414,10 +1066,10 @@
     (define who 'curl-easy-escape)
     (with-arguments-validation (who)
 	((curl-easy/alive		easy)
-	 (general-string		chars.data)
-	 (optional-buffer-length	chars.len chars.data))
-      (with-general-strings ((chars.data^ chars.data))
-	  string->utf8
+	 (general-c-string*		chars.data chars.len))
+      (with-general-c-strings
+	  ((chars.data^ chars.data))
+	(string-to-bytevector string->utf8)
 	(capi.curl-easy-escape easy chars.data^ chars.len))))))
 
 (define curl-easy-unescape
@@ -1428,10 +1080,10 @@
     (define who 'curl-easy-unescape)
     (with-arguments-validation (who)
 	((curl-easy/alive		easy)
-	 (general-string		chars.data)
-	 (optional-buffer-length	chars.len chars.data))
-      (with-general-strings ((chars.data^ chars.data))
-	  string->utf8
+	 (general-c-string*		chars.data chars.len))
+      (with-general-c-strings
+	  ((chars.data^ chars.data))
+	(string-to-bytevector string->utf8)
 	(capi.curl-easy-unescape easy chars.data^ chars.len))))))
 
 (define curl-easy-escape/string
@@ -1464,20 +1116,10 @@
 
 ;;;; multi API
 
-(define-struct curl-multi
-  (pointer
-		;Pointer  object  referencing  an   instance  of  the  C
-		;language type "CURLM".
-   owner?
-		;Boolean,  true   if  this   data  structure   owns  the
-		;referenced "CURLM" instance.
-   destructor
-		;False or a user-supplied function to be called whenever
-		;this instance  is finalised.  The function  must accept
-		;at least one argument being the data structure itself.
-   easies
-		;Hash table of "curl-easy" instances.
-   ))
+(define-foreign-pointer-wrapper curl-multi
+  (foreign-destructor capi.curl-multi-cleanup)
+  (collector-struct-type #f)
+  (collected-struct-type curl-easy))
 
 (define (%struct-curl-multi-printer S port sub-printer)
   (define-inline (%display thing)
@@ -1486,61 +1128,20 @@
     (write thing port))
   (%display "#[curl-multi")
   (%display " pointer=")	(%display ($curl-multi-pointer S))
-  (%display " owner?=")		(%display ($curl-multi-owner?  S))
+  (%display " owner?=")		(%display (curl-multi-pointer-owner? S))
   (%display "]"))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax %make-curl-multi
-  (syntax-rules (pointer owner?)
-    ((_ (pointer ?pointer) (owner? ?owner?))
-     (make-curl-multi ?pointer ?owner? #f (make-eq-hashtable)))
-    ((_ ?pointer ?owner?)
-     (make-curl-multi ?pointer ?owner? #f (make-eq-hashtable)))))
-
-(define (curl-multi?/alive obj)
-  (and (curl-multi? obj)
-       (not (pointer-null? ($curl-multi-pointer obj)))))
-
-(define (%unsafe.curl-multi-cleanup multi)
-  (struct-destructor-application multi $curl-multi-destructor $set-curl-multi-destructor!)
-  (let* ((easies-table	($curl-multi-easies multi))
-	 (easies	(hashtable-keys easies-table)))
-    ;;NOTE With  cURL 7.28.0 and 7.29.0  applying "curl_multi_cleanup()"
-    ;;to a multi handle than never  had any easy handles registered will
-    ;;cause a segmentation  fault.  For this reason we  register an easy
-    ;;handle here when we detect  a "clean" multi handle.  (Marco Maggi;
-    ;;Mon Feb 11, 2013)
-    (when (and %empty-multi-handle-cleanup-crash-bug?
-	       (curl-multi?/alive multi)
-	       (unsafe.fxzero? (unsafe.vector-length easies)))
-      (curl-multi-add-handle multi (curl-easy-init)))
-    (vector-for-each (lambda (easy)
-		       (capi.curl-multi-remove-handle multi easy)
-		       (hashtable-delete! easies-table easy))
-      easies))
-  (capi.curl-multi-cleanup multi))
-
-(define (%set-curl-multi-destructor! struct destructor-func)
-  (define who 'set-curl-multi-destructor!)
-  (with-arguments-validation (who)
-      ((curl-multi	struct)
-       (procedure/false	destructor-func))
-    ($set-curl-multi-destructor! struct destructor-func)))
 
 ;;; --------------------------------------------------------------------
 
 (define (curl-multi-init)
   (let ((rv (capi.curl-multi-init)))
-    (and rv (%make-curl-multi
-		(pointer rv)
-	      (owner? #t)))))
+    (and rv (make-curl-multi/owner rv))))
 
 (define (curl-multi-cleanup multi)
   (define who 'curl-multi-cleanup)
   (with-arguments-validation (who)
       ((curl-multi	multi))
-    (%unsafe.curl-multi-cleanup multi)))
+    ($curl-multi-finalise multi)))
 
 ;;; --------------------------------------------------------------------
 
@@ -1549,26 +1150,24 @@
   (with-arguments-validation (who)
       ((curl-multi/alive	multi)
        (curl-easy		easy))
-    (let ((easies ($curl-multi-easies multi)))
-      (if (hashtable-contains? easies easy)
-	  CURLM_OK
-	(let ((rv (capi.curl-multi-add-handle multi easy)))
-	  (when (= rv CURLM_OK)
-	    (hashtable-set! easies easy easy))
-	  rv)))))
+    (if ($curl-multi-contains-curl-easy? multi easy)
+	CURLM_OK
+      (let ((rv (capi.curl-multi-add-handle multi easy)))
+	(when (= rv CURLM_OK)
+	  ($curl-multi-register-curl-easy! multi easy))
+	rv))))
 
 (define (curl-multi-remove-handle multi easy)
   (define who 'curl-multi-remove-handle)
   (with-arguments-validation (who)
       ((curl-multi/alive	multi)
        (curl-easy		easy))
-    (let ((easies ($curl-multi-easies multi)))
-      (if (hashtable-contains? easies easy)
-	  (let ((rv (capi.curl-multi-remove-handle multi easy)))
-	    (when (= rv CURLM_OK)
-	      (hashtable-delete! easies easy)
-	      rv))
-	CURLM_OK))))
+    (if ($curl-multi-contains-curl-easy? multi easy)
+	(let ((rv (capi.curl-multi-remove-handle multi easy)))
+	  (when (= rv CURLM_OK)
+	    ($curl-multi-forget-curl-easy! multi easy))
+	  rv)
+      CURLM_OK)))
 
 (define (%curl-multi-easies multi)
   ;;This function  name is prefixed  with %  to avoid conflict  with the
@@ -1577,7 +1176,7 @@
   (define who 'curl-multi-easies)
   (with-arguments-validation (who)
       ((curl-multi/alive	multi))
-    (hashtable-keys ($curl-multi-easies multi))))
+    ($curl-multi-vector-of-collected-curl-easy multi)))
 
 ;;; --------------------------------------------------------------------
 
@@ -1592,13 +1191,14 @@
 	     (capi.curl-multi-setopt multi option parameter)))
 	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
 	   (with-arguments-validation (who)
-	       ((callback	parameter))
+	       ((pointer/false	parameter))
 	     (capi.curl-multi-setopt multi option parameter)))
 	  ((<= CURLOPTTYPE_OBJECTPOINT option)
 	   (with-arguments-validation (who)
-	       ((general-string/false	parameter))
-	     (with-general-strings/false ((parameter^ parameter))
-		 string->utf8
+	       ((general-c-string/false	parameter))
+	     (with-general-c-strings/false
+		 ((parameter^ parameter))
+	       (string-to-bytevector string->utf8)
 	       (capi.curl-multi-setopt multi option parameter^))))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
@@ -1616,13 +1216,13 @@
 (define (curl-multi-fdset multi read-fds write-fds exc-fds)
   (define who 'curl-multi-fdset)
   (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (general-sticky-buffer/false	read-fds)
-       (general-sticky-buffer/false	write-fds)
-       (general-sticky-buffer/false	exc-fds))
+      ((curl-multi/alive		multi)
+       (general-c-sticky-buffer/false	read-fds)
+       (general-c-sticky-buffer/false	write-fds)
+       (general-c-sticky-buffer/false	exc-fds))
     (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
-      (values (unsafe.car rv)
-	      (unsafe.cdr rv)))))
+      (values ($car rv)
+	      ($cdr rv)))))
 
 (define curl-multi-socket-action
   (case-lambda
@@ -1635,8 +1235,8 @@
 	 (action-socket-descriptor	sock-fd)
 	 (signed-int			ev-bitmask))
       (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
-	(values (unsafe.car rv)
-		(unsafe.cdr rv)))))))
+	(values ($car rv)
+		($cdr rv)))))))
 
 (define (curl-multi-socket multi sock-fd)
   ;;This is deprecated.
@@ -1646,8 +1246,8 @@
       ((curl-multi/alive	multi)
        (file-descriptor		sock-fd))
     (let ((rv (capi.curl-multi-socket multi sock-fd)))
-      (values (unsafe.car rv)
-	      (unsafe.cdr rv)))))
+      (values ($car rv)
+	      ($cdr rv)))))
 
 (define (curl-multi-socket-all multi)
   ;;This is deprecated.
@@ -1664,8 +1264,8 @@
   (with-arguments-validation (who)
       ((curl-multi/alive	multi))
     (let ((rv (capi.curl-multi-perform multi)))
-      (values (unsafe.car rv)
-	      (unsafe.cdr rv)))))
+      (values ($car rv)
+	      ($cdr rv)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1675,8 +1275,8 @@
       ((curl-multi/alive	multi))
     (let ((rv (capi.curl-multi-timeout multi)))
       (if (pair? rv)
-	  (values (unsafe.car rv)
-		  (unsafe.cdr rv))
+	  (values ($car rv)
+		  ($cdr rv))
 	(values rv #f)))))
 
 (define (curl-multi-assign multi sock custom-data)
@@ -1705,7 +1305,7 @@
        (vector-of-curl-waitfd/false	extra-fds)
        (signed-int			timeout))
     (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
-      (values (unsafe.car rv) (unsafe.cdr rv)))))
+      (values ($car rv) ($cdr rv)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1714,7 +1314,7 @@
   (with-arguments-validation (who)
       ((curl-multi/alive	multi))
     (let ((rv (capi.curl-multi-info-read multi)))
-      (values (unsafe.car rv) (unsafe.cdr rv)))))
+      (values ($car rv) ($cdr rv)))))
 
 (define (curl-multi-strerror code)
   (define who 'curl-multi-strerror)
@@ -1735,9 +1335,9 @@
 (define (curl-getdate date)
   (define who 'curl-getdate)
   (with-arguments-validation (who)
-      ((general-string	date))
-    (with-general-strings ((date^ date))
-	string->ascii
+      ((general-c-string	date))
+    (with-general-c-strings
+	((date^ date))
       (capi.curl-getdate date^))))
 
 ;;; --------------------------------------------------------------------
@@ -1811,7 +1411,7 @@
   (with-arguments-validation (who)
       ((pointer		stru))
     (let ((rv (capi.curl-khkey.key stru)))
-      (values (unsafe.car rv) (unsafe.cdr rv)))))
+      (values ($car rv) ($cdr rv)))))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors and mutators for "struct curl_forms" arrays
@@ -1825,21 +1425,21 @@
 (define (curl-forms.option pointer index)
   (define who 'curl-forms.option)
   (with-arguments-validation (who)
-      ((general-data		pointer)
+      ((general-c-buffer	pointer)
        (non-negative-fixnum	index))
     (capi.curl-forms.option pointer index)))
 
 (define (curl-forms.value pointer index)
   (define who 'curl-forms.value)
   (with-arguments-validation (who)
-      ((general-data		pointer)
+      ((general-c-buffer	pointer)
        (non-negative-fixnum	index))
     (capi.curl-forms.value pointer index)))
 
 (define (curl-forms.option-set! pointer index value)
   (define who 'curl-forms.option-set!)
   (with-arguments-validation (who)
-      ((general-data		pointer)
+      ((general-c-buffer	pointer)
        (non-negative-fixnum	index)
        (signed-int		value))
     (let ((rv (capi.curl-forms.option-set! pointer index value)))
@@ -1848,7 +1448,7 @@
 (define (curl-forms.value-set! pointer index value)
   (define who 'curl-forms.value-set!)
   (with-arguments-validation (who)
-      ((general-data		pointer)
+      ((general-c-buffer	pointer)
        (non-negative-fixnum	index)
        (pointer/memory-block	value))
     (capi.curl-forms.value-set! pointer index value)))
@@ -1876,9 +1476,8 @@
   (define who 'curl-msg.easy_handle)
   (with-arguments-validation (who)
       ((pointer	stru))
-    (%make-curl-easy
-	(pointer (capi.curl-msg.easy_handle stru))
-      (owner? #f))))
+    ;;This struct instance has no collector.
+    (make-curl-easy/owner (capi.curl-msg.easy_handle stru) #f)))
 
 
 ;;;; callback makers: easy API
@@ -1922,9 +1521,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  CURLIOE_UNKNOWNCMD))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       cmd
 				       (%cdata custom-data))))))))
 
@@ -2006,9 +1603,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       type data size
 				       (%cdata custom-data))))))))
 
@@ -2020,9 +1615,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  CURLE_ABORTED_BY_CALLBACK))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       ssl-ctx (%cdata custom-data))))))))
 
 ;;; --------------------------------------------------------------------
@@ -2097,9 +1690,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  CURLKHSTAT_REJECT))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       (%cdata knownkey) foundkey khmatch
 				       (%cdata custom-data))))))))
 
@@ -2116,9 +1707,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback (%make-curl-easy
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       sock what
 				       (%cdata callback-custom-data)
 				       (%cdata socket-custom-data))
@@ -2132,9 +1721,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  0))
-		 (user-scheme-callback (%make-curl-multi
-					   (pointer handle)
-					 (owner? #f))
+		 (user-scheme-callback (make-curl-multi/not-owner handle)
 				       timeout-ms (%cdata custom-data))))))))
 
 
@@ -2921,16 +2508,6 @@
 
 ;;;; done
 
-(define %empty-multi-handle-cleanup-crash-bug?
-  ;;NOTE With cURL 7.28.0  and 7.29.0 applying "curl_multi_cleanup()" to
-  ;;a multi handle than never had any easy handles registered will cause
-  ;;a segmentation  fault.  For this  reason we register an  easy handle
-  ;;here when we  detect a "clean" multi handle.  (Marco  Maggi; Mon Feb
-  ;;11, 2013)
-  (let ((V (curl-version-info-data-version (curl-version-info CURLVERSION_NOW))))
-    (or (string=? V "7.28.0")
-	(string=? V "7.29.0"))))
-
 (set-rtd-printer! (type-descriptor curl-version-info-data)
 		  %struct-curl-version-info-data-printer)
 (set-rtd-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
@@ -2938,18 +2515,9 @@
 (set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
 (set-rtd-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
 
-(set-rtd-destructor! (type-descriptor curl-form-data)	%unsafe.curl-formfree)
-(set-rtd-destructor! (type-descriptor curl-share)	%unsafe.curl-share-cleanup)
-(set-rtd-destructor! (type-descriptor curl-easy)	%unsafe.curl-easy-cleanup)
-(set-rtd-destructor! (type-descriptor curl-multi)	%unsafe.curl-multi-cleanup)
-
 )
 
 ;;; end of file
 ;;Local Variables:
-;;eval: (put '%make-curl-easy 'scheme-indent-function 1)
-;;eval: (put '%make-curl-multi 'scheme-indent-function 1)
-;;eval: (put 'with-general-strings 'scheme-indent-function 2)
-;;eval: (put 'with-general-strings/false 'scheme-indent-function 2)
 ;;eval: (put '%define-raw-struct-accessor 'scheme-indent-function 1)
 ;;End:

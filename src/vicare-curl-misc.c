@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -465,13 +465,12 @@ ikrt_curl_formget (ikptr s_form_data, ikptr s_data, ikptr s_callback, ikpcb * pc
   ik_curl_http_post_t *	post		= IK_CURL_FORM_DATA(s_form_data);
   void *		custom_data	= IK_VOIDP_FROM_POINTER_OR_MBLOCK_OR_FALSE(s_data);
   curl_formget_callback	callback	= IK_VOIDP_FROM_POINTER_OR_FALSE(s_callback);
-  ikptr			sk;
   int			rv;
-  sk = ik_enter_c_function(pcb);
+  ik_enter_c_function(pcb);
   {
     rv = curl_formget(post, custom_data, callback);
   }
-  ik_leave_c_function(pcb, sk);
+  ik_leave_c_function(pcb);
   return IK_BOOLEAN_FROM_INT(rv);
 #else
   feature_failure(__func__);
@@ -595,12 +594,11 @@ ikrt_curl_share_cleanup (ikptr s_share, ikpcb * pcb)
   CURLSHcode	rv;
   /* fprintf(stderr, "%s: enter %p\n", __func__, (void*)share); */
   if (share) {
-    ikptr	sk;
-    sk = ik_enter_c_function(pcb);
+    ik_enter_c_function(pcb);
     {
       rv = curl_share_cleanup(share);
     }
-    ik_leave_c_function(pcb, sk);
+    ik_leave_c_function(pcb);
     if (CURLSHE_OK == rv) {
       IK_POINTER_SET_NULL(s_pointer);
     }

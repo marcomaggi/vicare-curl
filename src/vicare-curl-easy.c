@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -55,12 +55,11 @@ ikrt_curl_easy_cleanup (ikptr s_easy, ikpcb * pcb)
   int		owner		= IK_BOOLEAN_TO_INT(IK_CURL_EASY_OWNER(s_easy));
   /* fprintf(stderr, "%s: enter easy=%p, owner=%d\n", __func__, (void*)easy, owner); */
   if (easy && owner) {
-    ikptr	sk;
-    sk = ik_enter_c_function(pcb);
+    ik_enter_c_function(pcb);
     {
       curl_easy_cleanup(easy);
     }
-    ik_leave_c_function(pcb, sk);
+    ik_leave_c_function(pcb);
   }
   if (easy)
     IK_POINTER_SET_NULL(s_pointer);
@@ -75,12 +74,11 @@ ikrt_curl_easy_reset (ikptr s_easy, ikpcb * pcb)
 {
 #ifdef HAVE_CURL_EASY_RESET
   CURL *	easy = IK_CURL_EASY(s_easy);
-  ikptr	sk;
-  sk = ik_enter_c_function(pcb);
+  ik_enter_c_function(pcb);
   {
     curl_easy_reset(easy);
   }
-  ik_leave_c_function(pcb, sk);
+  ik_leave_c_function(pcb);
   return IK_VOID;
 #else
   feature_failure(__func__);
@@ -248,12 +246,11 @@ ikrt_curl_easy_perform (ikptr s_easy, ikpcb * pcb)
 #ifdef HAVE_CURL_EASY_PERFORM
   CURL *	easy = IK_CURL_EASY(s_easy);
   CURLcode	rv;
-  ikptr		sk;
-  sk = ik_enter_c_function(pcb);
+  ik_enter_c_function(pcb);
   {
     rv = curl_easy_perform(easy);
   }
-  ik_leave_c_function(pcb, sk);
+  ik_leave_c_function(pcb);
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -265,12 +262,11 @@ ikrt_curl_easy_duphandle (ikptr s_easy, ikpcb * pcb)
 #ifdef HAVE_CURL_EASY_DUPHANDLE
   CURL *	easy = IK_CURL_EASY(s_easy);
   CURL *	rv;
-  ikptr		sk;
-  sk = ik_enter_c_function(pcb);
+  ik_enter_c_function(pcb);
   {
     rv = curl_easy_duphandle(easy);
   }
-  ik_leave_c_function(pcb, sk);
+  ik_leave_c_function(pcb);
   return (rv)? ika_pointer_alloc(pcb, (ik_ulong)rv) : IK_FALSE;
 #else
   feature_failure(__func__);
@@ -283,12 +279,11 @@ ikrt_curl_easy_pause (ikptr s_easy, ikptr s_bitmask, ikpcb * pcb)
   CURL *	easy	= IK_CURL_EASY(s_easy);
   int		bitmask	= ik_integer_to_int(s_bitmask);
   CURLcode	rv;
-  ikptr		sk;
-  sk = ik_enter_c_function(pcb);
+  ik_enter_c_function(pcb);
   {
     rv = curl_easy_pause(easy, bitmask);
   }
-  ik_leave_c_function(pcb, sk);
+  ik_leave_c_function(pcb);
   return ika_integer_from_curlcode(pcb, rv);
 #else
   feature_failure(__func__);
@@ -315,13 +310,11 @@ ikrt_curl_easy_recv (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
+  ik_enter_c_function(pcb);
   {
-    ikptr	sk = ik_enter_c_function(pcb);
-    {
-      rv = curl_easy_recv(easy, buffer, buflen, &received);
-    }
-    ik_leave_c_function(pcb, sk);
+    rv = curl_easy_recv(easy, buffer, buflen, &received);
   }
+  ik_leave_c_function(pcb);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
@@ -352,13 +345,11 @@ ikrt_curl_easy_send (ikptr s_easy, ikptr s_buffer, ikptr s_buflen, ikpcb * pcb)
     buflen = ik_integer_to_size_t(s_buflen);
   else
     buflen = IK_MBLOCK_SIZE_T(s_buffer);
+  ik_enter_c_function(pcb);
   {
-    ikptr	sk = ik_enter_c_function(pcb);
-    {
-      rv = curl_easy_send(easy, buffer, buflen, &sent);
-    }
-    ik_leave_c_function(pcb, sk);
+    rv = curl_easy_send(easy, buffer, buflen, &sent);
   }
+  ik_leave_c_function(pcb);
   if (CURLE_OK == rv) {
     ikptr	s_pair = ika_pair_alloc(pcb);
     pcb->root0 = &s_pair;
