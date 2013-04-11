@@ -1,4 +1,4 @@
-Subject: [announce] Vicare/cURL revision 0.1d4
+Subject: [announce] Vicare/cURL revision 0.2d0
 
 			      Vicare/cURL
 			      ===========
@@ -33,10 +33,11 @@ tested Libcurl version 7.29.0; the Libcurl library is available at:
 		     <http://curl.haxx.se/libcurl/>
 
 
-Notes for revision 0.1d4
+Notes for revision 0.2d0
 ------------------------
 
-*
+* Updated  to  Vicare Scheme  0.2d21,  which  introduces some  backwards
+  incompatibilities.
 
 
 Notes for revision 0.1d3

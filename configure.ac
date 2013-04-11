@@ -2,7 +2,7 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-AC_INIT([Vicare/cURL],[0.1d4],[marco.maggi-ipsu@poste.it],
+AC_INIT([Vicare/cURL],[0.2d0],[marco.maggi-ipsu@poste.it],
   [vicare-curl],[http://marcomaggi.github.com/vicare.html])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([autotools])
@@ -13,22 +13,8 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall foreign dist-xz no-dist-gzip])
 AM_MAINTAINER_MODE
 
-#page
-#### options
-
-VICARE_DEBUG=no
-AC_MSG_CHECKING([whether debugging features are included in compiled Scheme libraries])
-AC_ARG_ENABLE([debug],
-  [AS_HELP_STRING([--enable-debug],
-     [enable compilation of Scheme libraries with debugging features (default is disable)])],
-  [AC_MSG_RESULT([$enableval])
-  if test "z$enableval" = zno
-  then VICARE_DEBUG=no
-  else VICARE_DEBUG=yes
-  fi],
-  [VICARE_DEBUG=no
-   AC_MSG_RESULT([no])])
-AM_CONDITIONAL([WANT_VICARE_DEBUG],[test x$VICARE_DEBUG = xyes])
+VICARE_OPTION_DEBUGGING_MODE
+VICARE_OPTION_NAUSICAA([no])
 
 #page
 #### compiler
