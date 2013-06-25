@@ -816,7 +816,7 @@
     CURLMOPT_TIMERDATA
     CURLMOPT_MAXCONNECTS
     CURLMOPT_LASTENTRY)
-  (import (rename (only (vicare syntactic-extensions)
+  (import (rename (only (vicare)
 			define-inline-constant)
 		  (define-inline-constant	defc)))
 

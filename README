@@ -104,6 +104,7 @@ repository, we  will have to first  build the infrastructure
 running a script from the top source directory:
 
    $ cd vicare-curl
+   $ libtoolize
    $ sh autogen.sh
 
 after this the procedure is the same as the one for building

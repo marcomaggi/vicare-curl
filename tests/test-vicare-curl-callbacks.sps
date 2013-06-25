@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,8 +30,8 @@
   (vicare net curl)
   (vicare net curl constants)
   (vicare net curl features)
-  (vicare syntactic-extensions)
-  (vicare platform-constants)
+  #;(vicare language-extensions syntaxes)
+  (vicare platform constants)
   (prefix (vicare ffi) ffi.)
   (vicare checks))
 

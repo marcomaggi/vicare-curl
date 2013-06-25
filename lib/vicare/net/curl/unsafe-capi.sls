@@ -109,17 +109,6 @@
   (import (vicare))
 
 
-;;;; helpers
-
-(define-syntax define-inline
-  (syntax-rules ()
-    ((_ (?name ?arg ... . ?rest) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ... . ?rest)
-	  (begin ?form0 ?form ...)))))))
-
-
 ;;;; version functions
 
 (define-inline (vicare-curl-version-interface-current)

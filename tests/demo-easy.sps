@@ -31,7 +31,7 @@
   (vicare net curl constants)
   (vicare net curl features)
   (prefix (vicare ffi) ffi.)
-  (vicare syntactic-extensions)
+  (vicare language-extensions syntaxes)
   (vicare checks))
 
 (check-set-mode! 'report-failed)

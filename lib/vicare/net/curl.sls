@@ -256,24 +256,16 @@
     (vicare net curl constants)
     (prefix (vicare net curl unsafe-capi)
 	    capi.)
-    (prefix (vicare unsafe-operations)
-	    $)
-    (prefix (vicare ffi)
-	    ffi.)
+    (vicare unsafe operations)
+    (prefix (vicare ffi) ffi.)
     (vicare ffi foreign-pointer-wrapper)
-    (prefix (vicare words)
-	    words.)
-    (vicare syntactic-extensions)
+    (prefix (vicare platform words) words.)
+    (vicare language-extensions syntaxes)
     (vicare arguments validation)
     (vicare arguments general-c-buffers))
 
 
 ;;;; arguments validation
-
-(define-argument-validation (list-of-strings who obj)
-  (and (list? obj)
-       (for-all string? obj))
-  (assertion-violation who "expected list of strings as argument" obj))
 
 (define-argument-validation (pointer/memory-block who obj)
   (or (pointer? obj)
@@ -324,7 +316,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (%define-raw-struct-accessor ?who ?accessor)
+(define-syntax-rule (%define-raw-struct-accessor ?who ?accessor)
   ;;Used  to define  a  function to  access a  C  language struct  field
   ;;through a pointer to it.
   ;;
@@ -1664,7 +1656,7 @@
 				       remains)))))))
 
 (define make-curl-chunk-end-callback
-  ;; long curl_chunk_end_callback (void *ptr)
+  ;;long curl_chunk_end_callback (void *ptr)
   (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data)

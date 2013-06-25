@@ -30,7 +30,7 @@
   (vicare net curl)
   (vicare net curl constants)
   (vicare net curl features)
-  (vicare syntactic-extensions)
+  #;(vicare language-extensions syntaxes)
   (prefix (vicare ffi) ffi.)
   (vicare checks))
 
