@@ -42,7 +42,7 @@
 @set FOREIGN_URL                @url{http:/@//@/curl.haxx.se/@/libcurl/@/}
 @set FOREIGN_SCHEME_LIB         @library{vicare net curl}
 @set GITHUB_URL                 @url{http://github.com/marcomaggi/vicare-curl}
-@set DOWNLOAD_URL               @url{http://code.google.com/p/vicare-scheme/downloads/list}
+@set DOWNLOAD_URL               @url{https://sourceforge.net/projects/vicare-curl/files/}
 @set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/vicare-curl.html}
 
 @macro curl{}
