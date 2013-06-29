@@ -15,9 +15,9 @@ FILE).
 
   This package makes use of the GNU Autotools.
 
-  The latest version of this package can be downloaded from Github:
+  The latest version of this package can be downloaded from:
 
-	<http://code.google.com/p/vicare-scheme/downloads/list>
+	 <https://sourceforge.net/projects/vicare-curl/files/>
 
 the home page of the Vicare project is at:
 
@@ -26,6 +26,10 @@ the home page of the Vicare project is at:
 development takes place at:
 
 	      <http://github.com/marcomaggi/vicare-curl/>
+
+and as backup at:
+
+	    <https://sourceforge.net/projects/vicare-curl/>
 
   The last  time the author  bothered to  update this paragraph,  he had
 tested Libcurl version 7.29.0; the Libcurl library is available at:
