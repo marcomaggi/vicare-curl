@@ -36,8 +36,7 @@ tested Libcurl version 7.29.0; the Libcurl library is available at:
 Notes for revision 0.2d0
 ------------------------
 
-* Updated  to  Vicare Scheme  0.2d21,  which  introduces some  backwards
-  incompatibilities.
+* Updated to and dependent from Vicare Scheme 0.3d0.
 
 * BACKWARDS INCOMPATIBILITY The Scheme function "curl-form-data?/filled"
   has been renamed to "curl-form-data?/alive".
