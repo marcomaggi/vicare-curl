@@ -13,31 +13,27 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall foreign dist-xz no-dist-gzip])
 AM_MAINTAINER_MODE
 
-VICARE_OPTION_DEBUGGING_MODE
-VICARE_OPTION_NAUSICAA([no])
-
-#page
-#### compiler
-
 AC_PROG_CC
 AC_PROG_CC_C_O
-
 AM_PROG_AR
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-
+AC_PROG_MKDIR_P
 LT_PREREQ([2.4])
 LT_INIT([shared disable-static])
 
-dnl AC_LANG([C])
-dnl AC_DEFINE([_GNU_SOURCE],[1],[enable everything GNU])
+VICARE_SCHEME
 
-#page
-#### vicare configuration
+VICARE_OPTION_DEBUGGING_MODE
+VICARE_OPTION_NAUSICAA([no])
+AM_CONDITIONAL([WANT_NAUSICAA],[test x$vicare_with_nausicaa = xyes])
 
-AC_CHECK_HEADERS([vicare.h],,[AC_MSG_FAILURE([missing vicare.h header],[2])])
-AC_CHECK_PROG([VICARE],[vicare],[vicare],[:])
+AM_CONDITIONAL([WANT_VICARE_DEBUG],[test x$VICARE_DEBUG = xyes])
+AM_COND_IF([WANT_VICARE_DEBUG],[AS_VAR_SET(VFLAGS,"$VFLAGS -g")])
+
+AC_LANG([C])
+AC_DEFINE([_GNU_SOURCE],[1],[enable everything GNU])
 
 #page
 #### cURL configuration
@@ -56,24 +52,7 @@ AC_CHECK_LIB([curl],[curl_free],,
 dnl AC_CHECK_HEADER([ioctl.h])
 dnl AC_CHECK_HEADER([time.h])
 
-vicare_curl_VERSION_INTERFACE_CURRENT=0
-vicare_curl_VERSION_INTERFACE_REVISION=1
-vicare_curl_VERSION_INTERFACE_AGE=0
-AC_DEFINE_UNQUOTED([vicare_curl_VERSION_INTERFACE_CURRENT],
-  [$vicare_curl_VERSION_INTERFACE_CURRENT],
-  [current interface number])
-AC_DEFINE_UNQUOTED([vicare_curl_VERSION_INTERFACE_REVISION],
-  [$vicare_curl_VERSION_INTERFACE_REVISION],
-  [current interface implementation number])
-AC_DEFINE_UNQUOTED([vicare_curl_VERSION_INTERFACE_AGE],
-  [$vicare_curl_VERSION_INTERFACE_AGE],
-  [current interface age number])
-AC_DEFINE_UNQUOTED([vicare_curl_VERSION_INTERFACE_STRING],
-  ["$vicare_curl_VERSION_INTERFACE_CURRENT.$vicare_curl_VERSION_INTERFACE_REVISION"],
-  [library interface version])
-AC_SUBST([vicare_curl_VERSION_INTERFACE_CURRENT])
-AC_SUBST([vicare_curl_VERSION_INTERFACE_REVISION])
-AC_SUBST([vicare_curl_VERSION_INTERFACE_AGE])
+VICARE_EXTENSION_LIBRARY_VERSION([curl],[0],[1],[0])
 
 #page
 #### symbols
@@ -721,6 +700,7 @@ AC_CHECK_FUNCS([curl_multi_init curl_multi_add_handle curl_multi_remove_handle c
 #page
 #### finish
 
+VICARE_OUTPUT
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile]
         [src/Makefile]
