@@ -2,7 +2,7 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-AC_INIT([Vicare/cURL],[0.2d1],[marco.maggi-ipsu@poste.it],
+AC_INIT([Vicare/cURL],[0.2d2],[marco.maggi-ipsu@poste.it],
   [vicare-curl],[http://marcomaggi.github.com/vicare.html])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([autotools])
