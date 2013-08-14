@@ -38,7 +38,7 @@
 @c ------------------------------------------------------------
 
 @set FOREIGN_PACKAGE            Libcurl
-@set FOREIGN_VERSION            7.29.0
+@set FOREIGN_VERSION            7.32.0
 @set FOREIGN_URL                @url{http:/@//@/curl.haxx.se/@/libcurl/@/}
 @set FOREIGN_SCHEME_LIB         @library{vicare net curl}
 @set GITHUB_URL                 @url{http://github.com/marcomaggi/vicare-curl}

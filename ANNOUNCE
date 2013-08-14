@@ -32,7 +32,7 @@ and as backup at:
 	    <https://sourceforge.net/projects/vicare-curl/>
 
   The last  time the author  bothered to  update this paragraph,  he had
-tested Libcurl version 7.29.0; the Libcurl library is available at:
+tested Libcurl version 7.32.0; the Libcurl library is available at:
 
 		     <http://curl.haxx.se/libcurl/>
 
