@@ -2323,6 +2323,7 @@ Easy @api{} callbacks
                                 chunks of data.
 * plain callbacks fnmatch::     Implementing wildcard matching.
 * plain callbacks sshkey::      Accepting or rejecting @acronym{SSH} connections.
+* plain callbacks xferinfo::    Getting notifications of timeouts.
 
 Multi @api{} callbacks
 
@@ -3366,6 +3367,66 @@ Block and discard all the raised exceptions using @func{guard} from
 callback returns @code{CURLKHSTAT_REJECT} to the caller.
 @var{user-scheme-callback} should take care of handling its own
 exceptions.
+@end itemize
+@end defun
+
+@c page
+@node plain callbacks xferinfo
+@subsection Getting notifications of timeouts
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun make-curl-xferinfo-callback @var{user-scheme-callback}
+Wrap a user supplied Scheme function and return a pointer object
+referencing a callback function suitable to be used as
+@code{curl_xferinfo_callback} callback; the returned pointer must be
+released with a call to @func{free-c-callback} from @library{vicare
+ffi}.
+
+This callback is associated to @code{curl-easy} instances with the
+@code{CURLOPT_XFERINFOFUNCTION} option of @func{curl-easy-setopt}; it is
+invoked to notify the application of statistics about the transferred
+data.  @curlref{curl_easy_setopt, CURLOPT_XFERINFOFUNCTION}.
+
+@var{user-scheme-callback} must accept @math{5} arguments:
+
+@enumerate
+@item
+@false{} or a custom pointer selected by the application with the option
+@code{CURLOPT_XFERINFODATA}.
+
+@item
+An exact integer representing the number of bytes expected to be
+downloaded in this transfer.
+
+@item
+An exact integer representing the number of bytes downloaded so far.
+
+@item
+An exact integer representing the number of bytes expected to be
+uploaded in this transfer.
+
+@item
+An exact integer representing the number of bytes uploaded so far.
+@end enumerate
+
+@var{user-scheme-callback} must return a single value being an exact
+integer in the range of the C language type @code{signed int}; when the
+callback is successul: the return value should be zero, non--zero
+otherwise.
+
+@var{user-scheme-callback} is wrapped in an internally generated Scheme
+function which does the following:
+
+@itemize
+@item
+Block and discard all the raised exceptions using @func{guard} from
+@library{vicare}; when an exception is catched: it is discarded and the
+callback returns @code{0} to the caller.  @var{user-scheme-callback}
+should take care of handling its own exceptions.
 @end itemize
 @end defun
 

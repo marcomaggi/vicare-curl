@@ -40,7 +40,10 @@ tested Libcurl version 7.29.0; the Libcurl library is available at:
 Notes for revision 0.2d1
 ------------------------
 
-*
+* Updated to Libcurl 7.32.0.
+
+* Added   callback  maker   MAKE-CURL-XFERINFO-CALLBACK  and   constants
+  CURLOPT_XFERINFOFUNCTION CURLOPT_XFERINFODATA.
 
 
 Notes for revision 0.2d0

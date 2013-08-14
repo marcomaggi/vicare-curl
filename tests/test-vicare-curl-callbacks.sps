@@ -364,6 +364,24 @@
   #t)
 
 
+(parametrise ((check-test-name	'xferinfo))
+
+  (check	;make-curl-xferinfo-callback
+      (with-result
+       (let ((co (ffi.make-c-callout-maker 'signed-int
+					   '(pointer off_t off_t off_t off_t)))
+	     (cb (make-curl-xferinfo-callback
+		  (lambda (custom-data dltotal dlnow ultotal ulnow)
+		    (add-result (list custom-data dltotal dlnow ultotal ulnow))
+		    0))))
+	 (unwind-protect
+	     ((co cb) (null-pointer) 1 2 3 4)
+	   (ffi.free-c-callback cb))))
+    => `(0 ((#f 1 2 3 4))))
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

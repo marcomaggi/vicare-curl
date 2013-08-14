@@ -150,7 +150,7 @@
     make-curl-interleave-callback		make-curl-chunk-begin-callback
     make-curl-chunk-end-callback		make-curl-fnmatch-callback
     make-curl-sshkey-callback			make-curl-socket-callback
-    make-curl-multi-timer-callback
+    make-curl-multi-timer-callback		make-curl-xferinfo-callback
 
     ;; miscellaneous functions
     curl-free					curl-getdate
@@ -1719,6 +1719,18 @@
 			  0))
 		 (user-scheme-callback (make-curl-multi/not-owner handle)
 				       timeout-ms (%cdata custom-data))))))))
+
+(define make-curl-xferinfo-callback
+  ;; int curl_xferinfo_callback (void *clientp,
+  ;;                             curl_off_t dltotal, curl_off_t dlnow,
+  ;;                             curl_off_t ultotal, curl_off_t ulnow);
+  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t off_t off_t off_t))))
+    (lambda (user-scheme-callback)
+      (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
+	       (guard (E (else
+			  #;(pretty-print E (current-error-port))
+			  0))
+		 (user-scheme-callback (%cdata custom-data) dltotal dlnow ultotal ulnow)))))))
 
 
 ;;;; constants to symbols
