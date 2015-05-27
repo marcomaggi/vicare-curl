@@ -874,36 +874,45 @@
 
 ;;; --------------------------------------------------------------------
 
-(define* (curl-easy-setopt {easy curl-easy?/alive} {option words.signed-int?} parameter)
-  (cond ((= CURLOPT_SHARE option)
-	 (with-arguments-validation (__who__)
-	     ((curl-share/alive	parameter))
-	   (capi.curl-easy-setopt easy option ($curl-share-pointer parameter))))
-	((<= CURLOPTTYPE_OFF_T option)
-	 (with-arguments-validation (__who__)
-	     ((off_t	parameter))
-	   (capi.curl-easy-setopt easy option parameter)))
-	((<= CURLOPTTYPE_FUNCTIONPOINT option)
-	 (with-arguments-validation (__who__)
-	     ((pointer/false	parameter))
-	   (capi.curl-easy-setopt easy option parameter)))
-	((<= CURLOPTTYPE_OBJECTPOINT option)
-	 (with-arguments-validation (__who__)
-	     ((general-c-string/false		parameter))
-	   (with-general-c-strings/false
-	       ((parameter^ parameter))
-	     (string-to-bytevector string->utf8)
-	     (capi.curl-easy-setopt easy option parameter^))))
-	((<= CURLOPTTYPE_LONG option)
-	 (if (boolean? parameter)
-	     (capi.curl-easy-setopt easy option (if parameter 1 0))
-	   (with-arguments-validation (__who__)
-	       ((signed-long	parameter))
-	     (capi.curl-easy-setopt easy option parameter))))
-	(else
-	 (procedure-argument-violation __who__
-	   "invalid parameter type for selected option"
-	   easy option parameter))))
+(module (curl-easy-setopt)
+
+  (define* (curl-easy-setopt {easy curl-easy?/alive} {option words.signed-int?} parameter)
+    (cond ((= CURLOPT_SHARE option)
+	   (%curl-easy-setopt/share easy option parameter))
+	  ((<= CURLOPTTYPE_OFF_T option)
+	   (%curl-easy-setopt/type-off-t easy option parameter))
+	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
+	   (%curl-easy-setopt/function-pointer easy option parameter))
+	  ((<= CURLOPTTYPE_OBJECTPOINT option)
+	   (%curl-easy-setopt/object-pointer easy option parameter))
+	  ((<= CURLOPTTYPE_LONG option)
+	   (if (boolean? parameter)
+	       (capi.curl-easy-setopt easy option (if parameter 1 0))
+	     (%curl-easy-setopt/type-long easy option parameter)))
+	  (else
+	   (procedure-argument-violation __who__
+	     "invalid parameter type for selected option"
+	     easy option parameter))))
+
+  (define* (%curl-easy-setopt/share easy option {parameter curl-share?/alive})
+    (capi.curl-easy-setopt easy option ($curl-share-pointer parameter)))
+
+  (define* (%curl-easy-setopt/type-off-t easy option {parameter words.off_t?})
+    (capi.curl-easy-setopt easy option parameter))
+
+  (define* (%curl-easy-setopt/function-pointer easy option {parameter false-or-pointer?})
+    (capi.curl-easy-setopt easy option parameter))
+
+  (define* (%curl-easy-setopt/object-pointer easy option {parameter (or not general-c-string?)})
+    (with-general-c-strings/false
+	((parameter^ parameter))
+      (string-to-bytevector string->utf8)
+      (capi.curl-easy-setopt easy option parameter^)))
+
+  (define* (%curl-easy-setopt/type-long easy option {parameter words.signed-long?})
+    (capi.curl-easy-setopt easy option parameter))
+
+  #| end of module |# )
 
 (define (curl-easy-getinfo easy info)
   (define who 'curl-easy-getinfo)
