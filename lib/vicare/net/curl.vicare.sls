@@ -914,88 +914,66 @@
 
   #| end of module |# )
 
-(define (curl-easy-getinfo easy info)
-  (define who 'curl-easy-getinfo)
-  (with-arguments-validation (who)
-      ((curl-easy/alive	easy)
-       (signed-int	info))
-    (let ((rv (capi.curl-easy-getinfo easy info)))
-      (if (pair? rv)
-	  (let ((retval.type	($car rv))
-		(retval.value	($cdr rv)))
-	    (cond ((= info CURLINFO_CERTINFO)
-		   (values CURLE_OK (and retval.value
-					 (curl-certinfo.certinfo retval.value))))
-		  ((= info CURLINFO_PRIVATE)
-		   (values CURLE_OK retval.value))
-		  (else
-		   (cond ((= retval.type CURLINFO_SLIST)
-			  (values CURLE_OK (and retval.value
-						(let ((rv (curl-slist->list retval.value)))
-						  (curl-slist-free-all retval.value)
-						  rv))))
-			 ((= retval.type CURLINFO_DOUBLE CURLINFO_LONG)
-			  (values CURLE_OK retval.value))
-			 ((= retval.type CURLINFO_STRING)
-			  (values CURLE_OK (and retval.value (ascii->string retval.value))))
-			 (else
-			  (values CURLE_OK retval.value))))))
-	(values rv #f)))))
+(define* (curl-easy-getinfo {easy curl-easy?/alive} {info words.signed-int?})
+  (let ((rv (capi.curl-easy-getinfo easy info)))
+    (if (pair? rv)
+	(let ((retval.type	($car rv))
+	      (retval.value	($cdr rv)))
+	  (cond ((= info CURLINFO_CERTINFO)
+		 (values CURLE_OK (and retval.value
+				       (curl-certinfo.certinfo retval.value))))
+		((= info CURLINFO_PRIVATE)
+		 (values CURLE_OK retval.value))
+		(else
+		 (cond ((= retval.type CURLINFO_SLIST)
+			(values CURLE_OK (and retval.value
+					      (let ((rv (curl-slist->list retval.value)))
+						(curl-slist-free-all retval.value)
+						rv))))
+		       ((= retval.type CURLINFO_DOUBLE CURLINFO_LONG)
+			(values CURLE_OK retval.value))
+		       ((= retval.type CURLINFO_STRING)
+			(values CURLE_OK (and retval.value (ascii->string retval.value))))
+		       (else
+			(values CURLE_OK retval.value))))))
+      (values rv #f))))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-easy-perform easy)
-  (define who 'curl-easy-perform)
-  (with-arguments-validation (who)
-      ((curl-easy/alive	easy))
-    (capi.curl-easy-perform easy)))
+(define* (curl-easy-perform {easy curl-easy?/alive})
+  (capi.curl-easy-perform easy))
 
-(define (curl-easy-duphandle easy)
-  (define who 'curl-easy-duphandle)
-  (with-arguments-validation (who)
-      ((curl-easy/alive	easy))
-    (let ((rv (capi.curl-easy-duphandle easy)))
-      (and rv (make-curl-easy/owner rv #f)))))
+(define* (curl-easy-duphandle {easy curl-easy?/alive})
+  (let ((rv (capi.curl-easy-duphandle easy)))
+    (and rv (make-curl-easy/owner rv #f))))
 
-(define (curl-easy-pause easy bitmask)
-  (define who 'curl-easy-pause)
-  (with-arguments-validation (who)
-      ((curl-easy/alive	easy)
-       (signed-int	bitmask))
-    (capi.curl-easy-pause easy bitmask)))
+(define* (curl-easy-pause {easy curl-easy?/alive} {bitmask words.signed-int?})
+  (capi.curl-easy-pause easy bitmask))
 
 ;;; --------------------------------------------------------------------
 
-(define curl-easy-recv
-  (case-lambda
-   ((easy buffer.data)
-    (curl-easy-recv easy buffer.data #f))
-   ((easy buffer.data buffer.len)
-    (define who 'curl-easy-recv)
-    (with-arguments-validation (who)
-	((curl-easy/alive		easy)
-	 (general-c-buffer*		buffer.data buffer.len))
-      (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
-	(if (pair? rv)
-	    (values ($car rv) ($cdr rv))
-	  (values rv #f)))))))
+(case-define* curl-easy-recv
+  ((easy buffer.data)
+   (curl-easy-recv easy buffer.data #f))
+  (({easy curl-easy?/alive} {buffer.data general-c-buffer?} buffer.len)
+   (assert-general-c-buffer-and-length __who__ buffer.data buffer.len)
+   (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
+     (if (pair? rv)
+	 (values ($car rv) ($cdr rv))
+       (values rv #f)))))
 
-(define curl-easy-send
-  (case-lambda
-   ((easy buffer.data)
-    (curl-easy-send easy buffer.data #f))
-   ((easy buffer.data buffer.len)
-    (define who 'curl-easy-send)
-    (with-arguments-validation (who)
-	((curl-easy/alive		easy)
-	 (general-c-string*		buffer.data buffer.len))
-      (with-general-c-strings
-	  ((buffer.data^ buffer.data))
-	(string-to-bytevector string->utf8)
-	(let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
-	  (if (pair? rv)
-	      (values ($car rv) ($cdr rv))
-	    (values rv #f))))))))
+(case-define* curl-easy-send
+  ((easy buffer.data)
+   (curl-easy-send easy buffer.data #f))
+  (({easy curl-easy?/alive} {buffer.data general-c-string?} buffer.len)
+   (assert-general-c-string-and-length __who__ buffer.data buffer.len)
+   (with-general-c-strings
+       ((buffer.data^ buffer.data))
+     (string-to-bytevector string->utf8)
+     (let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
+       (if (pair? rv)
+	   (values ($car rv) ($cdr rv))
+	 (values rv #f))))))
 
 ;;; --------------------------------------------------------------------
 
