@@ -1043,46 +1043,32 @@
   (let ((rv (capi.curl-multi-init)))
     (and rv (make-curl-multi/owner rv))))
 
-(define (curl-multi-cleanup multi)
-  (define who 'curl-multi-cleanup)
-  (with-arguments-validation (who)
-      ((curl-multi	multi))
-    ($curl-multi-finalise multi)))
+(define* (curl-multi-cleanup {multi curl-multi?})
+  ($curl-multi-finalise multi))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-add-handle multi easy)
-  (define who 'curl-multi-add-handle)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (curl-easy		easy))
-    (if ($curl-multi-contains-curl-easy? multi easy)
-	CURLM_OK
-      (let ((rv (capi.curl-multi-add-handle multi easy)))
+(define* (curl-multi-add-handle {multi curl-multi?/alive} {easy curl-easy?})
+  (if ($curl-multi-contains-curl-easy? multi easy)
+      CURLM_OK
+    (receive-and-return (rv)
+	(capi.curl-multi-add-handle multi easy)
+      (when (= rv CURLM_OK)
+	($curl-multi-register-curl-easy! multi easy)))))
+
+(define* (curl-multi-remove-handle {multi curl-multi?/alive} {easy curl-easy?})
+  (if ($curl-multi-contains-curl-easy? multi easy)
+      (receive-and-return (rv)
+	  (capi.curl-multi-remove-handle multi easy)
 	(when (= rv CURLM_OK)
-	  ($curl-multi-register-curl-easy! multi easy))
-	rv))))
+	  ($curl-multi-forget-curl-easy! multi easy)))
+    CURLM_OK))
 
-(define (curl-multi-remove-handle multi easy)
-  (define who 'curl-multi-remove-handle)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (curl-easy		easy))
-    (if ($curl-multi-contains-curl-easy? multi easy)
-	(let ((rv (capi.curl-multi-remove-handle multi easy)))
-	  (when (= rv CURLM_OK)
-	    ($curl-multi-forget-curl-easy! multi easy))
-	  rv)
-      CURLM_OK)))
-
-(define (%curl-multi-easies multi)
+(define* (%curl-multi-easies {multi curl-multi?/alive})
   ;;This function  name is prefixed  with %  to avoid conflict  with the
   ;;accessor for the "easies" field of the CURL-MULTI data structure.
   ;;
-  (define who 'curl-multi-easies)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi))
-    ($curl-multi-vector-of-collected-curl-easy multi)))
+  ($curl-multi-vector-of-collected-curl-easy multi))
 
 ;;; --------------------------------------------------------------------
 
