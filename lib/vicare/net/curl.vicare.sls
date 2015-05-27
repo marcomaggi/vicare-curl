@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,8 +26,8 @@
 
 
 #!vicare
-#!(load-shared-library "vicare-curl")
 (library (vicare net curl)
+  (foreign-library "vicare-curl")
   (export
 
     ;; version numbers and strings
@@ -871,7 +871,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (make-curl-easy/not-owner handle)
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       data locktype
 				       (if (pointer-null? userptr)
 					   #f
@@ -886,7 +886,7 @@
 	       (guard (E (else
 			  #;(pretty-print E (current-error-port))
 			  (void)))
-		 (user-scheme-callback (make-curl-easy/not-owner handle)
+		 (user-scheme-callback (make-curl-easy/not-owner handle #f)
 				       data
 				       (if (pointer-null? userptr)
 					   #f
@@ -976,25 +976,23 @@
       (if (pair? rv)
 	  (let ((retval.type	($car rv))
 		(retval.value	($cdr rv)))
-	    ($case-integers info
-	      ((CURLINFO_CERTINFO)
-	       (values CURLE_OK (and retval.value
-				     (curl-certinfo.certinfo retval.value))))
-	      ((CURLINFO_PRIVATE)
-	       (values CURLE_OK retval.value))
-	      (else
-	       ($case-integers retval.type
-		 ((CURLINFO_SLIST)
-		  (values CURLE_OK (and retval.value
-					(let ((rv (curl-slist->list retval.value)))
-					  (curl-slist-free-all retval.value)
-					  rv))))
-		 ((CURLINFO_DOUBLE CURLINFO_LONG)
-		  (values CURLE_OK retval.value))
-		 ((CURLINFO_STRING)
-		  (values CURLE_OK (and retval.value (ascii->string retval.value))))
-		 (else
-		  (values CURLE_OK retval.value))))))
+	    (cond ((= info CURLINFO_CERTINFO)
+		   (values CURLE_OK (and retval.value
+					 (curl-certinfo.certinfo retval.value))))
+		  ((= info CURLINFO_PRIVATE)
+		   (values CURLE_OK retval.value))
+		  (else
+		   (cond ((= retval.type CURLINFO_SLIST)
+			  (values CURLE_OK (and retval.value
+						(let ((rv (curl-slist->list retval.value)))
+						  (curl-slist-free-all retval.value)
+						  rv))))
+			 ((= retval.type CURLINFO_DOUBLE CURLINFO_LONG)
+			  (values CURLE_OK retval.value))
+			 ((= retval.type CURLINFO_STRING)
+			  (values CURLE_OK (and retval.value (ascii->string retval.value))))
+			 (else
+			  (values CURLE_OK retval.value))))))
 	(values rv #f)))))
 
 ;;; --------------------------------------------------------------------

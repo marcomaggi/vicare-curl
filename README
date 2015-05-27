@@ -1,6 +1,6 @@
 
-			Vicare/cURL
-			===========
+			      Vicare/cURL
+			      ===========
 
 Topics
 ------
@@ -17,16 +17,16 @@ Topics
 1. Introduction
 ---------------
 
-This package is a distribution of C and Scheme libraries for
-Vicare Scheme,  an R6RS compliant Scheme  implementation; it
-provides bindings for the Libcurl C language library.
+This package  is a  distribution of  C and  Scheme libraries  for Vicare
+Scheme, an  R6RS compliant  Scheme implementation; it  provides bindings
+for the Libcurl C language library.
 
-  cURL is a tool to transfer data from or to a server, using
-one  of the  supported  protocols (HTTP,  HTTPS, FTP,  FTPS,
-TFTP, DICT, TELNET, LDAP or FILE).
+  cURL is a tool to transfer data from  or to a server, using one of the
+supported protocols (HTTP, HTTPS, FTP, FTPS, TFTP, DICT, TELNET, LDAP or
+FILE).
 
-  The  last   time  the  author  bothered   to  update  this
-paragraph, he had tested Libcurl version 7.29.0.
+  The last  time the author  bothered to  update this paragraph,  he had
+tested Libcurl version 7.42.1.
 
   This package makes use of the GNU Autotools.
 
@@ -34,35 +34,32 @@ paragraph, he had tested Libcurl version 7.29.0.
 2. License
 ----------
 
-Copyright (c) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 
-This  program  is free  software:  you  can redistribute  it
-and/or modify it  under the terms of the  GNU General Public
-License as published by the Free Software Foundation, either
-version  3 of  the License,  or (at  your option)  any later
-version.
+This program is free software: you  can redistribute it and/or modify it
+under the  terms of the GNU  General Public License as  published by the
+Free Software Foundation,  either version 3 of the License,  or (at your
+option) any later version.
 
-This  program is  distributed in  the hope  that it  will be
-useful, but  WITHOUT ANY WARRANTY; without  even the implied
-warranty  of MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR
-PURPOSE.   See  the  GNU  General Public  License  for  more
-details.
+This program  is distributed  in the  hope that it  will be  useful, but
+WITHOUT   ANY   WARRANTY;  without   even   the   implied  warranty   of
+MERCHANTABILITY  or  FITNESS FOR  A  PARTICULAR  PURPOSE.  See  the  GNU
+General Public License for more details.
 
-You should  have received a  copy of the GNU  General Public
-License   along   with    this   program.    If   not,   see
-<http://www.gnu.org/licenses/>.
+You should have received a copy  of the GNU General Public License along
+with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 3. Install
 ----------
 
-Before installing Vicare/cURL make  sure to have a correctly
-installed Libcurl library.
+Before installing  Vicare/cURL make sure  to have a  correctly installed
+Libcurl library and Vicare Scheme.
 
-  To install  Vicare/cURL from a proper  release tarball, we
-must unpack the archive then do:
+  To install Vicare/cURL  from a proper release tarball,  we must unpack
+the archive then do:
 
-   $ cd vicare-curl-0.1.0
+   $ cd vicare-curl-0.4.0
    $ mkdir build
    $ cd build
    $ ../configure
@@ -70,54 +67,67 @@ must unpack the archive then do:
    $ make check
    $ make install
 
-notice  that the  "configure" script  is prepared  to enable
-shared libraries and disable static libraries: this must not
-be  changed, because  the package  is meant  to install  a C
-shared library to be dynamically loaded.
+notice  that  the  "configure"  script  is  prepared  to  enable  shared
+libraries  and  disable static  libraries:  this  must not  be  changed,
+because  the package  is  meant to  install  a C  shared  library to  be
+dynamically loaded.
 
-  Notice that to  successfully run the test suite  we do not
-need to  be connected to the  Net.  Additional demonstration
-tests are in the "tests/demo-*.sps"  files, and to run those
-we must  be connected  to the  Internet, because  some tests
-access the following URLs:
+  The Makefile is designed to allow parallel builds, so we can do:
 
-    http://google.com/
-    https://github.com/
+   $ make -j4 all && make -j4 check
 
-to run the demonstrations do:
+which,  on  a  4-core  CPU,   should  speed  up  building  and  checking
+significantly.
 
-    $ make demo
-
-and expect a lot of output.
 
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n
 
-  The "Makefile" supports the "DESTDIR" environment variable
-to install the files under a temporary location; example:
+  The "Makefile" supports the  "DESTDIR" environment variable to install
+the files under a temporary location; example:
 
     $ make install DESTDIR=/tmp/vicare-curl
 
-  If,  instead, we  have  checked out  a  revision from  the
-repository, we  will have to first  build the infrastructure
-running a script from the top source directory:
+  If, instead,  we have checked out  a revision from the  repository, we
+will have  to first build the  infrastructure running a script  from the
+top source directory:
 
    $ cd vicare-curl
-   $ libtoolize
    $ sh autogen.sh
 
-after this the procedure is the same as the one for building
-from a proper release tarball.
+notice  that  "autogen.sh"  will   run  the  programs  "autoreconf"  and
+"libtoolize"; the  latter is  selected through the  environment variable
+"LIBTOOLIZE",  whose  value  can  be  customised;  for  example  to  run
+"glibtoolize" rather than "libtoolize" we do:
+
+   $ LIBTOOLIZE=glibtoolize sh autogen.sh
+
+  After this the  procedure is the same  as the one for  building from a
+proper release tarball, but we have to enable maintainer mode:
+
+    $ ../configure --enable-maintainer-mode [options]
+    $ make
+    $ make check
+    $ make install
 
   Libraries are installed under the directory:
 
-		  $(libdir)/vicare-scheme
+			$(libdir)/vicare-scheme
 
-  After  installation, the  makefile rule  "vfasl-installed"
-will  precompile the  libraries installed  in the  hierarchy
-(vicare curl ---); the makefile rule "installcheck" will run
-the test suite against the installed libraries.
+on 32-bit platforms we should arrange such library to be:
+
+		      $(prefix)/lib/vicare-scheme
+
+on 64-bit platforms we should arrange such library to be:
+
+		     $(prefix)/lib64/vicare-scheme
+
+  The variable VFLAGS is available  to the user when running "configure"
+and "make" to add command line options to the execution of "vicare" when
+compiling libraries and running tests; for example:
+
+   $ make VFLAGS="-g -O2 --option print-loaded-libraries"
 
 
 4. Usage
@@ -129,21 +139,21 @@ Read the documentation.
 A. Credits
 ----------
 
-Vicare/cURL was written by Marco Maggi.  Vicare Scheme is an
-R6RS compliant fork of  Ikarus Scheme; originally created by
-Abdulaziz Ghuloum, it is now maintained by Marco Maggi.
+Vicare/cURL  was written  by  Marco  Maggi.  Vicare  Scheme  is an  R6RS
+compliant  fork  of  Ikarus  Scheme;  originally  created  by  Abdulaziz
+Ghuloum, it is now maintained by Marco Maggi.
 
-  The main  developer of  cURL is  Daniel Stenberg,  for the
-list of contributors see the source distribution.
+  The  main developer  of  cURL  is Daniel  Stenberg,  for  the list  of
+contributors see the source distribution.
 
 
 B. Bugs
 -------
 
-Bug  reports  are  appreciated.    Register  issues  at  the
-Vicare/cURL issue tracker:
+Bug reports are  appreciated.  Register issues at  the Vicare/cURL issue
+tracker:
 
-     <http://github.com/marcomaggi/vicare-curl/issues>
+	   <http://github.com/marcomaggi/vicare-curl/issues>
 
 
 C. Resources
@@ -151,33 +161,33 @@ C. Resources
 
 The documentation of Vicare/cURL is available online:
 
-    <http://marcomaggi.github.com/docs/vicare-curl.html>
+	  <http://marcomaggi.github.io/docs/vicare-curl.html>
 
 the latest version of this package can be downloaded from:
 
-   <https://sourceforge.net/projects/vicare-curl/files/>
+	<https://bitbucket.org/marcomaggi/vicare-curl/downloads>
 
 development takes place at:
 
-	<http://github.com/marcomaggi/vicare-curl/>
+	      <http://github.com/marcomaggi/vicare-curl/>
 
 and as backup at:
 
-      <https://sourceforge.net/projects/vicare-curl/>
+	    <https://bitbucket.org/marcomaggi/vicare-curl/>
 
 the home page of the Vicare project is at:
 
-	 <http://marcomaggi.github.com/vicare.html>
+	       <http://marcomaggi.github.io/vicare.html>
 
 the Libcurl library is available at:
 
-	       <http://curl.haxx.se/libcurl/>
+		     <http://curl.haxx.se/libcurl/>
 
 
 ### end of file
 # Local Variables:
 # mode: text
 # coding: utf-8-unix
-# fill-column: 60
+# fill-column: 72
 # paragraph-start: "*"
 # End:

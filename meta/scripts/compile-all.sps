@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Vicare/cURL
+;;;Part of: Vicare/Template
 ;;;Contents: compile script
-;;;Date: Wed Sep  5, 2012
+;;;Date: Sat Jan 21, 2012
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,10 +26,8 @@
 
 #!r6rs
 (import
-  (only (vicare net curl constants))
-  (only (vicare net curl unsafe-capi))
-  (only (vicare net curl features))
-  (only (vicare net curl))
+    (only (vicare category template))
+  (only (vicare category template features))
   )
 
 ;;; end of file

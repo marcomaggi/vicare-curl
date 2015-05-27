@@ -33,17 +33,19 @@
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2012, 2013
+@set COPYRIGHT_YEARS            2012, 2013, 2015
 
 @c ------------------------------------------------------------
 
 @set FOREIGN_PACKAGE            Libcurl
-@set FOREIGN_VERSION            7.32.0
+@set FOREIGN_VERSION            7.42.1
 @set FOREIGN_URL                @url{http:/@//@/curl.haxx.se/@/libcurl/@/}
 @set FOREIGN_SCHEME_LIB         @library{vicare net curl}
-@set GITHUB_URL                 @url{http://github.com/marcomaggi/vicare-curl}
-@set DOWNLOAD_URL               @url{https://sourceforge.net/projects/vicare-curl/files/}
-@set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/vicare-curl.html}
+@set GITHUB_URL                 @url{http://github.com/marcomaggi/@value{PACKAGE_NICKNAME}}
+@set BITBUCKET_URL              @url{https://bitbucket.org/marcomaggi/@value{PACKAGE_NICKNAME}}
+@set DOWNLOAD_URL               @url{https://bitbucket.org/marcomaggi/@value{PACKAGE_NICKNAME}/downloads}
+@set DOCUMENTATION_URL          @url{http://marcomaggi.github.io/docs/@value{PACKAGE_NICKNAME}.html}
+@set VICARE_HOMEPAGE_URL        @url{http://marcomaggi.github.io/vicare.html}
 
 @macro curl{}
 cURL
@@ -223,28 +225,8 @@ defined by the @command{configure} script, expanding to @true{} or
 @false{}.
 @end table
 
-Scheme libraries are installed under the directory:
-
-@center @file{$(libdir)/vicare-scheme}
-
-After installation, under the directory:
-
-@center @file{$(libexecdir)/@value{PACKAGE_NICKNAME}}
-
-@noindent
-a script @file{compile-all.sps} can be executed to precompile the
-installed libraries; for example:
-
-@example
-$ sudo vicare \
-   --fasl-directory /var/cache/vicare-scheme \
-   --compile-dependencies \
-      /usr/local/libexec/vicare-curl/compile-all.sps
-@end example
-
 This document contains only a brief description of the functions: refer
 to the @value{FOREIGN_PACKAGE}'s documentation for details.
-
 
 @c page
 @node plain
@@ -4972,12 +4954,7 @@ development takes place at:
 @noindent
 the home page of the Vicare project is at:
 
-@center @url{http://marcomaggi.github.com/vicare.html}
-
-@noindent
-the home page of the Nausicaa project is at:
-
-@center @url{http://marcomaggi.github.com/nausicaa.html}
+@center @value{VICARE_HOMEPAGE_URL}
 
 @noindent
 @value{FOREIGN_PACKAGE} can be found here:

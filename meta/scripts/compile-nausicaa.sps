@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Vicare/cURL
+;;;Part of: Vicare/Template
 ;;;Contents: compile script for Nausicaa
-;;;Date: Thu Apr 11, 2013
+;;;Date: Sat Jan 21, 2012
 ;;;
 ;;;Abstract
 ;;;
@@ -25,8 +25,8 @@
 ;;;
 
 #!r6rs
-(import (rnrs)
-    #;(only (nausicaa net curl))
+(import
+    (only (nausicaa category template))
   )
 
 ;;; end of file

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,21 +51,20 @@
 (define (debug-func easy type data size custom-data)
   (define (%print template)
     (fprintf (current-error-port) template (cstring->string data size)))
-  ($case-integers type
-    ((CURLINFO_TEXT)
-     (%print "Text: ~a"))
-    ((CURLINFO_HEADER_IN)
-     (%print "Header-In: ~a"))
-    ((CURLINFO_HEADER_OUT)
-     (%print "Header-Out: ~a"))
-    ((CURLINFO_DATA_IN)
-     (when (debug-print-data)
-       (%print "Data-In:\n~a\n")))
-    ((CURLINFO_DATA_OUT)
-     (when (debug-print-data)
-       (%print "Data-Out:\n~a\n")))
-    (else
-     (%print "Boh:\n~a\n")))
+  (cond ((= type CURLINFO_TEXT)
+	 (%print "Text: ~a"))
+	((= type CURLINFO_HEADER_IN)
+	 (%print "Header-In: ~a"))
+	((= type CURLINFO_HEADER_OUT)
+	 (%print "Header-Out: ~a"))
+	((= type CURLINFO_DATA_IN)
+	 (when (debug-print-data)
+	   (%print "Data-In:\n~a\n")))
+	((= type CURLINFO_DATA_OUT)
+	 (when (debug-print-data)
+	   (%print "Data-Out:\n~a\n")))
+	(else
+	 (%print "Boh:\n~a\n")))
   0)
 
 

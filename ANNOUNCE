@@ -1,4 +1,4 @@
-Subject: [announce] Vicare/cURL revision 0.2d2
+Subject: [announce] Vicare/cURL revision 0.4d0
 
 			      Vicare/cURL
 			      ===========
@@ -17,11 +17,11 @@ FILE).
 
   The latest version of this package can be downloaded from:
 
-	 <https://sourceforge.net/projects/vicare-curl/files/>
+	<https://bitbucket.org/marcomaggi/vicare-curl/downloads>
 
 the home page of the Vicare project is at:
 
-	       <http://marcomaggi.github.com/vicare.html>
+	       <http://marcomaggi.github.io/vicare.html>
 
 development takes place at:
 
@@ -29,18 +29,18 @@ development takes place at:
 
 and as backup at:
 
-	    <https://sourceforge.net/projects/vicare-curl/>
+	    <https://bitbucket.org/marcomaggi/vicare-curl/>
 
   The last  time the author  bothered to  update this paragraph,  he had
-tested Libcurl version 7.32.0; the Libcurl library is available at:
+tested Libcurl version 7.42.1; the Libcurl library is available at:
 
 		     <http://curl.haxx.se/libcurl/>
 
 
-Notes for revision 0.2d2
+Notes for revision 0.4d0
 ------------------------
 
-*
+* Start support for Vicare Scheme 0.4.
 
 
 Notes for revision 0.2d1
