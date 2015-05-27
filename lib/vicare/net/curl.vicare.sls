@@ -977,60 +977,47 @@
 
 ;;; --------------------------------------------------------------------
 
-(define curl-easy-escape
-  (case-lambda
-   ((easy chars.data)
-    (curl-easy-escape easy chars.data #f))
-   ((easy chars.data chars.len)
-    (define who 'curl-easy-escape)
-    (with-arguments-validation (who)
-	((curl-easy/alive		easy)
-	 (general-c-string*		chars.data chars.len))
-      (with-general-c-strings
-	  ((chars.data^ chars.data))
-	(string-to-bytevector string->utf8)
-	(capi.curl-easy-escape easy chars.data^ chars.len))))))
+(case-define* curl-easy-escape
+  ((easy chars.data)
+   (curl-easy-escape easy chars.data #f))
+  (({easy curl-easy?/alive} {chars.data general-c-string?} chars.len)
+   (assert-general-c-string-and-length __who__ chars.data chars.len)
+   (with-general-c-strings
+       ((chars.data^ chars.data))
+     (string-to-bytevector string->utf8)
+     (capi.curl-easy-escape easy chars.data^ chars.len))))
 
-(define curl-easy-unescape
-  (case-lambda
-   ((easy chars.data)
-    (curl-easy-unescape easy chars.data #f))
-   ((easy chars.data chars.len)
-    (define who 'curl-easy-unescape)
-    (with-arguments-validation (who)
-	((curl-easy/alive		easy)
-	 (general-c-string*		chars.data chars.len))
-      (with-general-c-strings
-	  ((chars.data^ chars.data))
-	(string-to-bytevector string->utf8)
-	(capi.curl-easy-unescape easy chars.data^ chars.len))))))
+(case-define* curl-easy-unescape
+  ((easy chars.data)
+   (curl-easy-unescape easy chars.data #f))
+  (({easy curl-easy?/alive} {chars.data general-c-string?} chars.len)
+   (assert-general-c-string-and-length __who__ chars.data chars.len)
+   (with-general-c-strings
+       ((chars.data^ chars.data))
+     (string-to-bytevector string->utf8)
+     (capi.curl-easy-unescape easy chars.data^ chars.len))))
 
-(define curl-easy-escape/string
-  (case-lambda
-   ((easy chars.data)
-    (let ((rv (curl-easy-escape easy chars.data #f)))
-      (and rv (ascii->string rv))))
-   ((easy chars.data chars.len)
-    (let ((rv (curl-easy-escape easy chars.data chars.len)))
-      (and rv (ascii->string rv))))))
+(case-define* curl-easy-escape/string
+  ((easy chars.data)
+   (let ((rv (curl-easy-escape easy chars.data #f)))
+     (and rv (ascii->string rv))))
+  ((easy chars.data chars.len)
+   (let ((rv (curl-easy-escape easy chars.data chars.len)))
+     (and rv (ascii->string rv)))))
 
-(define curl-easy-unescape/string
-  (case-lambda
-   ((easy chars.data)
-    (let ((rv (curl-easy-unescape easy chars.data #f)))
-      (and rv (ascii->string rv))))
-   ((easy chars.data chars.len)
-    (let ((rv (curl-easy-unescape easy chars.data chars.len)))
-      (and rv (ascii->string rv))))))
+(case-define* curl-easy-unescape/string
+  ((easy chars.data)
+   (let ((rv (curl-easy-unescape easy chars.data #f)))
+     (and rv (ascii->string rv))))
+  ((easy chars.data chars.len)
+   (let ((rv (curl-easy-unescape easy chars.data chars.len)))
+     (and rv (ascii->string rv)))))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-easy-strerror code)
-  (define who 'curl-easy-strerror)
-  (with-arguments-validation (who)
-      ((signed-int	code))
-    (let ((rv (capi.curl-easy-strerror code)))
-      (and rv (ascii->string rv)))))
+(define* (curl-easy-strerror {code words.signed-int?})
+  (let ((rv (capi.curl-easy-strerror code)))
+    (and rv (ascii->string rv))))
 
 
 ;;;; multi API
