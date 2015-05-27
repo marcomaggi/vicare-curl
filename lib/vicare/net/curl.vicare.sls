@@ -703,19 +703,11 @@
 
   #| end of module |# )
 
-(define (curl-formget post custom-data callback)
-  (define who 'curl-formget)
-  (with-arguments-validation (who)
-      ((curl-form-data	post)
-       (pointer/false	custom-data)
-       (pointer/false	callback))
-    (capi.curl-formget post custom-data callback)))
+(define* (curl-formget {post curl-form-data?} {custom-data false-or-pointer?} {callback ffi.false-or-c-callback?})
+  (capi.curl-formget post custom-data callback))
 
-(define (curl-formfree post)
-  (define who 'curl-formfree)
-  (with-arguments-validation (who)
-      ((curl-form-data	post))
-    ($curl-form-data-finalise post)))
+(define* (curl-formfree {post curl-form-data?})
+  ($curl-form-data-finalise post))
 
 ;;; --------------------------------------------------------------------
 
@@ -731,21 +723,18 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-form-data-string post)
-  (define who 'curl-form-data-string)
-  (with-arguments-validation (who)
-      ((curl-form-data	post))
-    (if (pointer-null? (curl-form-data-pointer post))
-	""
-      (let* ((data "")
-	     (cb   (make-curl-formget-callback
-		    (lambda (custom-data cstring.ptr cstring.len)
-		      (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
-		      cstring.len))))
-	(unwind-protect
-	    (and (not (curl-formget post #f cb))
-		 data)
-	  (ffi.free-c-callback cb))))))
+(define* (curl-form-data-string {post curl-form-data?})
+  (if (pointer-null? (curl-form-data-pointer post))
+      ""
+    (let* ((data "")
+	   (cb   (make-curl-formget-callback
+		  (lambda (custom-data cstring.ptr cstring.len)
+		    (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
+		    cstring.len))))
+      (unwind-protect
+	  (and (not (curl-formget post #f cb))
+	       data)
+	(ffi.free-c-callback cb)))))
 
 
 ;;;; basic URL string escaping
