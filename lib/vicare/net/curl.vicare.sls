@@ -267,6 +267,10 @@
 
 ;;;; arguments validation
 
+(define (false-or-pointer? obj)
+  (or (not obj)
+      (pointer? obj)))
+
 (define (pointer-or-memory-block? obj)
   (or (pointer? obj)
       (memory-block? obj)))
@@ -500,26 +504,15 @@
 
 ;;;; global initialisation and finalisation functions
 
-(define (curl-global-init flags)
-  (define who 'curl-global-init)
-  (with-arguments-validation (who)
-      ((signed-long	flags))
-    (capi.curl-global-init flags)))
+(define* (curl-global-init {flags words.signed-long?})
+  (capi.curl-global-init flags))
 
-(define (curl-global-init-mem flags
-			      malloc-callback free-callback realloc-callback
-			      strdup-callback calloc-callback)
-  (define who 'curl-global-init-mem)
-  (with-arguments-validation (who)
-      ((signed-long	flags)
-       (pointer/false	malloc-callback)
-       (pointer/false	free-callback)
-       (pointer/false	realloc-callback)
-       (pointer/false	strdup-callback)
-       (pointer/false	calloc-callback))
-    (capi.curl-global-init-mem flags
-			       malloc-callback free-callback realloc-callback
-			       strdup-callback calloc-callback)))
+(define* (curl-global-init-mem {flags words.signed-long?}
+			       {malloc-callback false-or-pointer?} {free-callback false-or-pointer?} {realloc-callback false-or-pointer?}
+			       {strdup-callback false-or-pointer?} {calloc-callback false-or-pointer?})
+  (capi.curl-global-init-mem flags
+			     malloc-callback free-callback realloc-callback
+			     strdup-callback calloc-callback))
 
 (define (curl-global-cleanup)
   (capi.curl-global-cleanup))
@@ -579,39 +572,25 @@
 
 ;;;; string lists
 
-(define curl-slist-append
-  (case-lambda
-   ((string)
-    (curl-slist-append #f string))
-   ((slist string)
-    (define who 'curl-slist-append)
-    (with-arguments-validation (who)
-	((pointer/false		slist)
-	 (general-c-string	string))
-      (with-general-c-strings
-	  ((string^ string))
-	(string-to-bytevector string->utf8)
-	(capi.curl-slist-append slist string^))))))
+(case-define* curl-slist-append
+  ((string)
+   (curl-slist-append #f string))
+  (({slist false-or-pointer?} {string general-c-string?})
+   (with-general-c-strings
+       ((string^ string))
+     (string-to-bytevector string->utf8)
+     (capi.curl-slist-append slist string^))))
 
-(define (curl-slist-free-all slist)
-  (define who 'curl-slist-free-all)
-  (with-arguments-validation (who)
-      ((pointer/false	slist))
-    (capi.curl-slist-free-all slist)))
+(define* (curl-slist-free-all {slist false-or-pointer?})
+  (capi.curl-slist-free-all slist))
 
-(define (curl-slist->list slist)
-  (define who 'curl-slist->list)
-  (with-arguments-validation (who)
-      ((pointer/false	slist))
-    (map ascii->string (reverse (capi.curl-slist->list slist)))))
+(define* (curl-slist->list {slist false-or-pointer?})
+  (map ascii->string (reverse (capi.curl-slist->list slist))))
 
-(define (list->curl-slist list-of-strings)
-  (define who 'list->curl-slist)
-  (with-arguments-validation (who)
-      ((list-of-strings	list-of-strings))
-    (fold-left (lambda (slist str)
-		 (curl-slist-append slist str))
-      #f list-of-strings)))
+(define* (list->curl-slist {list-of-strings list-of-strings?})
+  (fold-left (lambda (slist str)
+	       (curl-slist-append slist str))
+    #f list-of-strings))
 
 
 ;;;; multipart/formdata composition
