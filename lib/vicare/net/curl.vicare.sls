@@ -1065,43 +1065,47 @@
     CURLM_OK))
 
 (define* (%curl-multi-easies {multi curl-multi?/alive})
-  ;;This function  name is prefixed  with %  to avoid conflict  with the
-  ;;accessor for the "easies" field of the CURL-MULTI data structure.
+  ;;This function name is prefixed with % to avoid conflict with the accessor for the
+  ;;"easies" field of the CURL-MULTI data structure.
   ;;
   ($curl-multi-vector-of-collected-curl-easy multi))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-setopt multi option parameter)
-  (define who 'curl-multi-setopt)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (signed-int		option))
+(module (curl-multi-setopt)
+
+  (define* (curl-multi-setopt {multi curl-multi?/alive} {option words.signed-int?} parameter)
     (cond ((<= CURLOPTTYPE_OFF_T option)
-	   (with-arguments-validation (who)
-	       ((off_t	parameter))
-	     (capi.curl-multi-setopt multi option parameter)))
+	   (%curl-multi-setopt/type-off-t multi option parameter))
 	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
-	   (with-arguments-validation (who)
-	       ((pointer/false	parameter))
-	     (capi.curl-multi-setopt multi option parameter)))
+	   (%curl-multi-setopt/function-pointer multi option parameter))
 	  ((<= CURLOPTTYPE_OBJECTPOINT option)
-	   (with-arguments-validation (who)
-	       ((general-c-string/false	parameter))
-	     (with-general-c-strings/false
-		 ((parameter^ parameter))
-	       (string-to-bytevector string->utf8)
-	       (capi.curl-multi-setopt multi option parameter^))))
+	   (%curl-multi-setopt/object-pointer multi option parameter))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
 	       (capi.curl-multi-setopt multi option (if parameter 1 0))
-	     (with-arguments-validation (who)
-		 ((signed-long	parameter))
-	       (capi.curl-multi-setopt multi option parameter))))
+	     (%curl-multi-setopt/type-long multi option parameter)))
 	  (else
-	   (assertion-violation who
+	   (procedure-argument-violation __who__
 	     "invalid parameter type for selected option"
-	     multi option parameter)))))
+	     multi option parameter))))
+
+  (define* (%curl-multi-setopt/type-off-t multi option {parameter words.off_t?})
+    (capi.curl-multi-setopt multi option parameter))
+
+  (define* (%curl-multi-setopt/function-pointer multi option {parameter false-or-pointer?})
+    (capi.curl-multi-setopt multi option parameter))
+
+  (define* (%curl-multi-setopt/object-pointer multi option {parameter (or not general-c-string?)})
+    (with-general-c-strings/false
+	((parameter^ parameter))
+      (string-to-bytevector string->utf8)
+      (capi.curl-multi-setopt multi option parameter^)))
+
+  (define* (%curl-multi-setopt/type-long multi option {parameter words.signed-long?})
+    (capi.curl-multi-setopt multi option parameter))
+
+  #| end of module |# )
 
 ;;; --------------------------------------------------------------------
 
