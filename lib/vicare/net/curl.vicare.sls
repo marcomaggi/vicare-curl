@@ -627,101 +627,79 @@
 	  (else
 	   val)))
 
-  (define-argument-validation (a-value who obj)
+  (define (a-value? obj)
     (or (words.signed-long? obj)
 	(string? obj)
 	(bytevector? obj)
 	(pointer? obj)
-	(memory-block? obj))
-    (assertion-violation who
-      "invalid HTTP form option's value" obj))
+	(memory-block? obj)))
 
-  (define curl-formadd
-    (case-lambda
-     ((post opt1 val1 optend)
-      (arguments-validation-forms
-       (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post
-		    opt1 val1))
+  (define (curl-form-end? obj)
+    (eqv? obj CURLFORM_END))
 
-     ((post opt1 val1)
-      (define who 'curl-formadd)
-      (with-arguments-validation (who)
-	  ((curl-form-data	post)
-	   (signed-int		opt1)
-	   (a-value		val1))
-	(capi.curl-formadd-1 post ($curl-form-data-pointer-to-last post)
-			     opt1 (%normalise-val val1))))
+  (case-define* curl-formadd
+    ((post opt1 val1 {optend curl-form-end?})
+     (curl-formadd post opt1 val1))
 
-     ((post opt1 val1 opt2 val2 optend)
-      (arguments-validation-forms
-       (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post
-		    opt1 val1
-		    opt2 val2))
+    (({post curl-form-data?} {opt1 words.signed-int?} {val1 a-value?})
+     (capi.curl-formadd-1 post ($curl-form-data-pointer-to-last post)
+			  opt1 (%normalise-val val1)))
 
-     ((post opt1 val1 opt2 val2)
-      (define who 'curl-formadd)
-      (with-arguments-validation (who)
-	  ((curl-form-data	post)
-	   (signed-int		opt1)
-	   (a-value		val1)
-	   (signed-int		opt2)
-	   (a-value		val2))
-	(capi.curl-formadd-2 post ($curl-form-data-pointer-to-last post)
-			     opt1 (%normalise-val val1)
-			     opt2 (%normalise-val val2))))
+    ((post opt1 val1 opt2 val2 {optend curl-form-end?})
+     (curl-formadd post
+		   opt1 val1
+		   opt2 val2))
 
-     ((post opt1 val1 opt2 val2 opt3 val3 optend)
-      (arguments-validation-forms
-       (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post
-		    opt1 val1
-		    opt2 val2
-		    opt3 val3))
+    (({post curl-form-data?}
+      {opt1 words.signed-int?} {val1 a-value?}
+      {opt2 words.signed-int?} {val2 a-value?})
+     (capi.curl-formadd-2 post ($curl-form-data-pointer-to-last post)
+			  opt1 (%normalise-val val1)
+			  opt2 (%normalise-val val2)))
 
-     ((post opt1 val1 opt2 val2 opt3 val3)
-      (define who 'curl-formadd)
-      (with-arguments-validation (who)
-	  ((curl-form-data	post)
-	   (signed-int		opt1)
-	   (a-value		val1)
-	   (signed-int		opt2)
-	   (a-value		val2)
-	   (signed-int		opt3)
-	   (a-value		val3))
-	(capi.curl-formadd-3 post ($curl-form-data-pointer-to-last post)
-			     opt1 (%normalise-val val1)
-			     opt2 (%normalise-val val2)
-			     opt3 (%normalise-val val3))))
+    (({post curl-form-data?}
+      {opt1 words.signed-int?} {val1 a-value?}
+      {opt2 words.signed-int?} {val2 a-value?}
+      {opt3 words.signed-int?} {val3 a-value?}
+      {optend curl-form-end?})
+     (curl-formadd post
+		   opt1 val1
+		   opt2 val2
+		   opt3 val3))
 
-     ((post opt1 val1 opt2 val2 opt3 val3 opt4 val4 optend)
-      (arguments-validation-forms
-       (assert (eqv? optend CURLFORM_END)))
-      (curl-formadd post
-		    opt1 val1
-		    opt2 val2
-		    opt3 val3
-		    opt4 val4))
+    (({post curl-form-data?}
+      {opt1 words.signed-int?} {val1 a-value?}
+      {opt2 words.signed-int?} {val2 a-value?}
+      {opt3 words.signed-int?} {val3 a-value?})
+     (capi.curl-formadd-3 post ($curl-form-data-pointer-to-last post)
+			  opt1 (%normalise-val val1)
+			  opt2 (%normalise-val val2)
+			  opt3 (%normalise-val val3)))
 
-     ((post opt1 val1 opt2 val2 opt3 val3 opt4 val4)
-      (define who 'curl-formadd)
-      (with-arguments-validation (who)
-	  ((curl-form-data	post)
-	   (signed-int		opt1)
-	   (a-value		val1)
-	   (signed-int		opt2)
-	   (a-value		val2)
-	   (signed-int		opt3)
-	   (a-value		val3)
-	   (signed-int		opt4)
-	   (a-value		val4))
-	(capi.curl-formadd-4 post ($curl-form-data-pointer-to-last post)
-			     opt1 (%normalise-val val1)
-			     opt2 (%normalise-val val2)
-			     opt3 (%normalise-val val3)
-			     opt4 (%normalise-val val4))))
-     ))
+    (({post curl-form-data?}
+      {opt1 words.signed-int?} {val1 a-value?}
+      {opt2 words.signed-int?} {val2 a-value?}
+      {opt3 words.signed-int?} {val3 a-value?}
+      {opt4 words.signed-int?} {val4 a-value?}
+      {optend curl-form-end?})
+     (curl-formadd post
+		   opt1 val1
+		   opt2 val2
+		   opt3 val3
+		   opt4 val4))
+
+    (({post curl-form-data?}
+      {opt1 words.signed-int?} {val1 a-value?}
+      {opt2 words.signed-int?} {val2 a-value?}
+      {opt3 words.signed-int?} {val3 a-value?}
+      {opt4 words.signed-int?} {val4 a-value?})
+     (capi.curl-formadd-4 post ($curl-form-data-pointer-to-last post)
+			  opt1 (%normalise-val val1)
+			  opt2 (%normalise-val val2)
+			  opt3 (%normalise-val val3)
+			  opt4 (%normalise-val val4)))
+
+    #| end of CASE-DEFINE* |# )
 
   #| end of module |# )
 
