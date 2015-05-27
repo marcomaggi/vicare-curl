@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -111,68 +111,68 @@
 
 ;;;; version functions
 
-(define-inline (vicare-curl-version-interface-current)
+(define-syntax-rule (vicare-curl-version-interface-current)
   (foreign-call "ikrt_vicare_curl_version_interface_current"))
 
-(define-inline (vicare-curl-version-interface-revision)
+(define-syntax-rule (vicare-curl-version-interface-revision)
   (foreign-call "ikrt_vicare_curl_version_interface_revision"))
 
-(define-inline (vicare-curl-version-interface-age)
+(define-syntax-rule (vicare-curl-version-interface-age)
   (foreign-call "ikrt_vicare_curl_version_interface_age"))
 
-(define-inline (vicare-curl-version)
+(define-syntax-rule (vicare-curl-version)
   (foreign-call "ikrt_vicare_curl_version"))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-version)
+(define-syntax-rule (curl-version)
   (foreign-call "ikrt_curl_version"))
 
-(define-inline (curl-version-info rtd version-code)
+(define-syntax-rule (curl-version-info rtd version-code)
   (foreign-call "ikrt_curl_version_info" rtd version-code))
 
 
 ;;;; initialisation functions
 
-(define-inline (curl-global-init flags)
+(define-syntax-rule (curl-global-init flags)
   (foreign-call "ikrt_curl_global_init" flags))
 
-(define-inline (curl-global-init-mem flags
+(define-syntax-rule (curl-global-init-mem flags
 				     malloc-callback free-callback realloc-callback
 				     strdup-callback calloc-callback)
   (foreign-call "ikrt_curl_global_init_mem" flags
 		malloc-callback free-callback realloc-callback
 		strdup-callback calloc-callback))
 
-(define-inline (curl-global-cleanup)
+(define-syntax-rule (curl-global-cleanup)
   (foreign-call "ikrt_curl_global_cleanup"))
 
 
 ;;;; string lists
 
-(define-inline (curl-slist-append slist string)
+(define-syntax-rule (curl-slist-append slist string)
   (foreign-call "ikrt_curl_slist_append" slist string))
 
-(define-inline (curl-slist-free-all slist)
+(define-syntax-rule (curl-slist-free-all slist)
   (foreign-call "ikrt_curl_slist_free_all" slist))
 
-(define-inline (curl-slist->list slist)
+(define-syntax-rule (curl-slist->list slist)
   (foreign-call "ikrt_curl_slist_to_bytevectors" slist))
 
 
 ;;;; multipart/formdata composition
 
-(define-inline (curl-formadd-1 post last-item opt val)
+(define-syntax-rule (curl-formadd-1 post last-item opt val)
   (foreign-call "ikrt_curl_formadd_1" post last-item opt val))
 
-(define-inline (curl-formadd-2 post last-item
+(define-syntax-rule (curl-formadd-2 post last-item
 			       opt1 val1
 			       opt2 val2)
   (foreign-call "ikrt_curl_formadd_2" post last-item
 		opt1 val1
 		opt2 val2))
 
-(define-inline (curl-formadd-3 post last-item
+(define-syntax-rule (curl-formadd-3 post last-item
 			       opt1 val1
 			       opt2 val2
 			       opt3 val3)
@@ -181,7 +181,7 @@
 		opt2 val2
 		opt3 val3))
 
-(define-inline (curl-formadd-4 post last-item
+(define-syntax-rule (curl-formadd-4 post last-item
 			       opt1 val1
 			       opt2 val2
 			       opt3 val3
@@ -194,267 +194,267 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-formget post custom-data callback)
+(define-syntax-rule (curl-formget post custom-data callback)
   (foreign-call "ikrt_curl_formget" post custom-data callback))
 
-(define-inline (curl-formfree post)
+(define-syntax-rule (curl-formfree post)
   (foreign-call "ikrt_curl_formfree" post))
 
 
 ;;;; basic URL string escaping
 
-(define-inline (curl-escape str.data str.len)
+(define-syntax-rule (curl-escape str.data str.len)
   (foreign-call "ikrt_curl_escape" str.data str.len))
 
-(define-inline (curl-unescape str.data str.len)
+(define-syntax-rule (curl-unescape str.data str.len)
   (foreign-call "ikrt_curl_unescape" str.data str.len))
 
 
 ;;;; shared configuration option sets
 
-(define-inline (curl-share-init)
+(define-syntax-rule (curl-share-init)
   (foreign-call "ikrt_curl_share_init"))
 
-(define-inline (curl-share-setopt share option parameter)
+(define-syntax-rule (curl-share-setopt share option parameter)
   (foreign-call "ikrt_curl_share_setopt" share option parameter))
 
-(define-inline (curl-share-cleanup share)
+(define-syntax-rule (curl-share-cleanup share)
   (foreign-call "ikrt_curl_share_cleanup" share))
 
-(define-inline (curl-share-strerror errcode)
+(define-syntax-rule (curl-share-strerror errcode)
   (foreign-call "ikrt_curl_share_strerror" errcode))
 
 
 ;;;; miscellaneous functions
 
-(define-inline (curl-free ptr)
+(define-syntax-rule (curl-free ptr)
   (foreign-call "ikrt_curl_free" ptr))
 
-(define-inline (curl-getdate date)
+(define-syntax-rule (curl-getdate date)
   (foreign-call "ikrt_curl_getdate" date))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_sockaddr"
 
-(define-inline (curl-sockaddr.family pointer)
+(define-syntax-rule (curl-sockaddr.family pointer)
   (foreign-call "ikrt_curl_sockaddr_family" pointer))
 
-(define-inline (curl-sockaddr.socktype pointer)
+(define-syntax-rule (curl-sockaddr.socktype pointer)
   (foreign-call "ikrt_curl_sockaddr_socktype" pointer))
 
-(define-inline (curl-sockaddr.protocol pointer)
+(define-syntax-rule (curl-sockaddr.protocol pointer)
   (foreign-call "ikrt_curl_sockaddr_protocol" pointer))
 
-(define-inline (curl-sockaddr.addrlen pointer)
+(define-syntax-rule (curl-sockaddr.addrlen pointer)
   (foreign-call "ikrt_curl_sockaddr_addrlen" pointer))
 
-(define-inline (curl-sockaddr.addr pointer)
+(define-syntax-rule (curl-sockaddr.addr pointer)
   (foreign-call "ikrt_curl_sockaddr_addr" pointer))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_fileinfo"
 
-(define-inline (curl-fileinfo.filename struct)
+(define-syntax-rule (curl-fileinfo.filename struct)
   (foreign-call "ikrt_curl_fileinfo_filename" struct))
 
-(define-inline (curl-fileinfo.filetype struct)
+(define-syntax-rule (curl-fileinfo.filetype struct)
   (foreign-call "ikrt_curl_fileinfo_filetype" struct))
 
-(define-inline (curl-fileinfo.time struct)
+(define-syntax-rule (curl-fileinfo.time struct)
   (foreign-call "ikrt_curl_fileinfo_time" struct))
 
-(define-inline (curl-fileinfo.perm struct)
+(define-syntax-rule (curl-fileinfo.perm struct)
   (foreign-call "ikrt_curl_fileinfo_perm" struct))
 
-(define-inline (curl-fileinfo.uid struct)
+(define-syntax-rule (curl-fileinfo.uid struct)
   (foreign-call "ikrt_curl_fileinfo_uid" struct))
 
-(define-inline (curl-fileinfo.gid struct)
+(define-syntax-rule (curl-fileinfo.gid struct)
   (foreign-call "ikrt_curl_fileinfo_gid" struct))
 
-(define-inline (curl-fileinfo.size struct)
+(define-syntax-rule (curl-fileinfo.size struct)
   (foreign-call "ikrt_curl_fileinfo_size" struct))
 
-(define-inline (curl-fileinfo.hardlinks struct)
+(define-syntax-rule (curl-fileinfo.hardlinks struct)
   (foreign-call "ikrt_curl_fileinfo_hardlinks" struct))
 
-(define-inline (curl-fileinfo.strings.time struct)
+(define-syntax-rule (curl-fileinfo.strings.time struct)
   (foreign-call "ikrt_curl_fileinfo_strings_time" struct))
 
-(define-inline (curl-fileinfo.strings.perm struct)
+(define-syntax-rule (curl-fileinfo.strings.perm struct)
   (foreign-call "ikrt_curl_fileinfo_strings_perm" struct))
 
-(define-inline (curl-fileinfo.strings.user struct)
+(define-syntax-rule (curl-fileinfo.strings.user struct)
   (foreign-call "ikrt_curl_fileinfo_strings_user" struct))
 
-(define-inline (curl-fileinfo.strings.group struct)
+(define-syntax-rule (curl-fileinfo.strings.group struct)
   (foreign-call "ikrt_curl_fileinfo_strings_group" struct))
 
-(define-inline (curl-fileinfo.strings.target struct)
+(define-syntax-rule (curl-fileinfo.strings.target struct)
   (foreign-call "ikrt_curl_fileinfo_strings_target" struct))
 
-(define-inline (curl-fileinfo.flags struct)
+(define-syntax-rule (curl-fileinfo.flags struct)
   (foreign-call "ikrt_curl_fileinfo_flags" struct))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_khkey"
 
-(define-inline (curl-khkey.key struct)
+(define-syntax-rule (curl-khkey.key struct)
   (foreign-call "ikrt_curl_khkey_key" struct))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors and mutators for "struct curl_forms" arrays
 
-(define-inline (curl-forms-sizeof-array number-of-structs)
+(define-syntax-rule (curl-forms-sizeof-array number-of-structs)
   (foreign-call "ikrt_curl_forms_sizeof" number-of-structs))
 
-(define-inline (curl-forms.option array index)
+(define-syntax-rule (curl-forms.option array index)
   (foreign-call "ikrt_curl_forms_option" array index))
 
-(define-inline (curl-forms.option-set! array index value)
+(define-syntax-rule (curl-forms.option-set! array index value)
   (foreign-call "ikrt_curl_forms_option_set" array index value))
 
-(define-inline (curl-forms.value array index)
+(define-syntax-rule (curl-forms.value array index)
   (foreign-call "ikrt_curl_forms_value" array index))
 
-(define-inline (curl-forms.value-set! array index value)
+(define-syntax-rule (curl-forms.value-set! array index value)
   (foreign-call "ikrt_curl_forms_value_set" array index value))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_certinfo"
 
-(define-inline (curl-certinfo.certinfo struct)
+(define-syntax-rule (curl-certinfo.certinfo struct)
   (foreign-call "ikrt_curl_certinfo_certinfo" struct))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct CURLMsg"
 
-(define-inline (curl-msg.msg struct)
+(define-syntax-rule (curl-msg.msg struct)
   (foreign-call "ikrt_curl_msg_msg" struct))
 
-(define-inline (curl-msg.easy_handle struct)
+(define-syntax-rule (curl-msg.easy_handle struct)
   (foreign-call "ikrt_curl_msg_easy_handle" struct))
 
-(define-inline (curl-msg.data.whatever struct)
+(define-syntax-rule (curl-msg.data.whatever struct)
   (foreign-call "ikrt_curl_msg_data_whatever" struct))
 
-(define-inline (curl-msg.data.result struct)
+(define-syntax-rule (curl-msg.data.result struct)
   (foreign-call "ikrt_curl_msg_data_result" struct))
 
 
 ;;;; easy API
 
-(define-inline (curl-easy-init)
+(define-syntax-rule (curl-easy-init)
   (foreign-call "ikrt_curl_easy_init"))
 
-(define-inline (curl-easy-cleanup easy)
+(define-syntax-rule (curl-easy-cleanup easy)
   (foreign-call "ikrt_curl_easy_cleanup" easy))
 
-(define-inline (curl-easy-reset easy)
+(define-syntax-rule (curl-easy-reset easy)
   (foreign-call "ikrt_curl_easy_reset" easy))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-setopt easy option parameter)
+(define-syntax-rule (curl-easy-setopt easy option parameter)
   (foreign-call "ikrt_curl_easy_setopt" easy option parameter))
 
-(define-inline (curl-easy-getinfo easy info)
+(define-syntax-rule (curl-easy-getinfo easy info)
   (foreign-call "ikrt_curl_easy_getinfo" easy info))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-perform easy)
+(define-syntax-rule (curl-easy-perform easy)
   (foreign-call "ikrt_curl_easy_perform" easy))
 
-(define-inline (curl-easy-duphandle easy)
+(define-syntax-rule (curl-easy-duphandle easy)
   (foreign-call "ikrt_curl_easy_duphandle" easy))
 
-(define-inline (curl-easy-pause easy bitmask)
+(define-syntax-rule (curl-easy-pause easy bitmask)
   (foreign-call "ikrt_curl_easy_pause" easy bitmask))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-recv easy buffer.data buffer.len)
+(define-syntax-rule (curl-easy-recv easy buffer.data buffer.len)
   (foreign-call "ikrt_curl_easy_recv" easy buffer.data buffer.len))
 
-(define-inline (curl-easy-send easy buffer.data buffer.len)
+(define-syntax-rule (curl-easy-send easy buffer.data buffer.len)
   (foreign-call "ikrt_curl_easy_send" easy buffer.data buffer.len))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-escape easy chars.data chars.len)
+(define-syntax-rule (curl-easy-escape easy chars.data chars.len)
   (foreign-call "ikrt_curl_easy_escape" easy chars.data chars.len))
 
-(define-inline (curl-easy-unescape easy chars.data chars.len)
+(define-syntax-rule (curl-easy-unescape easy chars.data chars.len)
   (foreign-call "ikrt_curl_easy_unescape" easy chars.data chars.len))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-easy-strerror code)
+(define-syntax-rule (curl-easy-strerror code)
   (foreign-call "ikrt_curl_easy_strerror" code))
 
 
 ;;;; multi API
 
-(define-inline (curl-multi-init)
+(define-syntax-rule (curl-multi-init)
   (foreign-call "ikrt_curl_multi_init"))
 
-(define-inline (curl-multi-cleanup multi)
+(define-syntax-rule (curl-multi-cleanup multi)
   (foreign-call "ikrt_curl_multi_cleanup" multi))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-add-handle multi easy)
+(define-syntax-rule (curl-multi-add-handle multi easy)
   (foreign-call "ikrt_curl_multi_add_handle" multi easy))
 
-(define-inline (curl-multi-remove-handle multi easy)
+(define-syntax-rule (curl-multi-remove-handle multi easy)
   (foreign-call "ikrt_curl_multi_remove_handle" multi easy))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-setopt multi option parameter)
+(define-syntax-rule (curl-multi-setopt multi option parameter)
   (foreign-call "ikrt_curl_multi_setopt" multi option parameter))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-fdset multi read-fds write-fds exc-fds)
+(define-syntax-rule (curl-multi-fdset multi read-fds write-fds exc-fds)
   (foreign-call "ikrt_curl_multi_fdset" multi read-fds write-fds exc-fds))
 
-(define-inline (curl-multi-socket-action multi sock-fd ev-bitmask)
+(define-syntax-rule (curl-multi-socket-action multi sock-fd ev-bitmask)
   (foreign-call "ikrt_curl_multi_socket_action" multi sock-fd ev-bitmask))
 
-(define-inline (curl-multi-timeout multi)
+(define-syntax-rule (curl-multi-timeout multi)
   (foreign-call "ikrt_curl_multi_timeout" multi))
 
 ;;;This is deprecated.
-(define-inline (curl-multi-socket multi sock-fd)
+(define-syntax-rule (curl-multi-socket multi sock-fd)
   (foreign-call "ikrt_curl_multi_socket" multi sock-fd))
 
 ;;;This is deprecated.
-(define-inline (curl-multi-socket-all multi)
+(define-syntax-rule (curl-multi-socket-all multi)
   (foreign-call "ikrt_curl_multi_socket_all" multi))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-perform multi)
+(define-syntax-rule (curl-multi-perform multi)
   (foreign-call "ikrt_curl_multi_perform" multi))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-assign multi sock custom-data)
+(define-syntax-rule (curl-multi-assign multi sock custom-data)
   (foreign-call "ikrt_curl_multi_assign" multi sock custom-data))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-wait multi extra-fds timeout)
+(define-syntax-rule (curl-multi-wait multi extra-fds timeout)
   (foreign-call "ikrt_curl_multi_wait" multi extra-fds timeout))
 
 ;;; --------------------------------------------------------------------
 
-(define-inline (curl-multi-info-read multi)
+(define-syntax-rule (curl-multi-info-read multi)
   (foreign-call "ikrt_curl_multi_info_read" multi))
 
-(define-inline (curl-multi-strerror code)
+(define-syntax-rule (curl-multi-strerror code)
   (foreign-call "ikrt_curl_multi_strerror" code))
 
 

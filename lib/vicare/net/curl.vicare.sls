@@ -267,6 +267,38 @@
 
 ;;;; arguments validation
 
+(define (pointer-or-memory-block? obj)
+  (or (pointer? obj)
+      (memory-block? obj)))
+
+(define-syntax-rule (file-descriptor? obj)
+  (non-negative-fixnum? obj))
+
+(define (action-socket-descriptor? obj)
+  (and (fixnum? obj)
+       (or ($fx= obj CURL_SOCKET_TIMEOUT)
+	   ($fxnonnegative? obj))))
+
+(define (assert-curl-share-parameter who parameter option)
+  (unless (cond ((or (= option CURLSHOPT_SHARE)
+		     (= option CURLSHOPT_UNSHARE))
+		 (words.signed-int? parameter))
+		(else
+		 (or (not parameter)
+		     (pointer? parameter))))
+    (procedure-arguments-consistency-violation who
+      "invalid matching between \"curl-share\" option and parameter"
+      parameter option)))
+
+(define (false-or-vector-of-curl-waitfd? obj)
+  (or (not obj)
+      (and (vector? obj)
+	   (vector-for-all curl-waitfd? obj))))
+
+
+
+;;; --------------------------------------------------------------------
+
 (define-argument-validation (pointer/memory-block who obj)
   (or (pointer? obj)
       (memory-block? obj))
@@ -311,20 +343,17 @@
 
 ;;;; helpers
 
-(define-inline (unimplemented who)
+(define-syntax-rule (unimplemented who)
   (assertion-violation who "unimplemented function"))
 
 ;;; --------------------------------------------------------------------
 
 (define-syntax-rule (%define-raw-struct-accessor ?who ?accessor)
-  ;;Used  to define  a  function to  access a  C  language struct  field
-  ;;through a pointer to it.
+  ;;Used to define a  function to access a C language struct  field through a pointer
+  ;;to it.
   ;;
-  (define (?who stru)
-    (define who '?who)
-    (with-arguments-validation (who)
-	((pointer	stru))
-      (?accessor stru))))
+  (define* (?who {stru pointer?})
+    (?accessor stru)))
 
 
 ;;;; version functions
@@ -402,39 +431,34 @@
   (%display " libssh-version=")	(%write   (curl-version-info-data-libssh-version S))
   (%display "]"))
 
-(define (curl-version-info version-code)
-  (define who 'curl-version-info)
-  (with-arguments-validation (who)
-      ((non-negative-fixnum	version-code))
-    (let ((rv (capi.curl-version-info (type-descriptor curl-version-info-data) version-code)))
-      (define-inline (b->s S G)
-	(S rv (let ((b (G rv)))
-		(and b (ascii->string b)))))
-      (b->s set-curl-version-info-data-version!
-	    curl-version-info-data-version)
-      (b->s set-curl-version-info-data-host!
-	    curl-version-info-data-host)
-      (b->s set-curl-version-info-data-ssl-version!
-	    curl-version-info-data-ssl-version)
-      (b->s set-curl-version-info-data-libz-version!
-	    curl-version-info-data-libz-version)
-      (b->s set-curl-version-info-data-ares!
-	    curl-version-info-data-ares)
-      (b->s set-curl-version-info-data-libidn!
-	    curl-version-info-data-libidn)
-      (b->s set-curl-version-info-data-libssh-version!
-	    curl-version-info-data-libssh-version)
-      (set-curl-version-info-data-protocols!
-       rv (map ascii->string (curl-version-info-data-protocols rv)))
-      rv)))
+(define* (curl-version-info {version-code non-negative-fixnum?})
+  (receive-and-return (rv)
+      (capi.curl-version-info (type-descriptor curl-version-info-data) version-code)
+    (define-inline (b->s S G)
+      (S rv (let ((b (G rv)))
+	      (and b (ascii->string b)))))
+    (b->s set-curl-version-info-data-version!
+	  curl-version-info-data-version)
+    (b->s set-curl-version-info-data-host!
+	  curl-version-info-data-host)
+    (b->s set-curl-version-info-data-ssl-version!
+	  curl-version-info-data-ssl-version)
+    (b->s set-curl-version-info-data-libz-version!
+	  curl-version-info-data-libz-version)
+    (b->s set-curl-version-info-data-ares!
+	  curl-version-info-data-ares)
+    (b->s set-curl-version-info-data-libidn!
+	  curl-version-info-data-libidn)
+    (b->s set-curl-version-info-data-libssh-version!
+	  curl-version-info-data-libssh-version)
+    (set-curl-version-info-data-protocols!
+     rv (map ascii->string (curl-version-info-data-protocols rv)))))
 
-(define (curl-version-info-features->symbols S)
-  (define who 'curl-version-info-features->symbols)
-  (with-arguments-validation (who)
-      ((curl-version-info-data	S))
-    (let loop ((result   '())
-	       (features (curl-version-info-data-features S))
-	       (flags	`(,CURL_VERSION_IPV6		,CURL_VERSION_KERBEROS4
+(define* (curl-version-info-features->symbols {S curl-version-info-data?})
+  (let loop ((result   '())
+	     (features (curl-version-info-data-features S))
+	     (flags	`( ;;
+			  ,CURL_VERSION_IPV6		,CURL_VERSION_KERBEROS4
 			  ,CURL_VERSION_SSL		,CURL_VERSION_LIBZ
 			  ,CURL_VERSION_NTLM		,CURL_VERSION_GSSNEGOTIATE
 			  ,CURL_VERSION_DEBUG		,CURL_VERSION_ASYNCHDNS
@@ -442,15 +466,15 @@
 			  ,CURL_VERSION_IDN		,CURL_VERSION_SSPI
 			  ,CURL_VERSION_CONV		,CURL_VERSION_CURLDEBUG
 			  ,CURL_VERSION_TLSAUTH_SRP	,CURL_VERSION_NTLM_WB)))
-      (if (null? flags)
-	  result
-	(loop (let ((flag ($car flags)))
-		(if (zero? (bitwise-and flag features))
-		    result
-		  (cons (%curl-version-info-features->symbols flag)
-			result)))
-	      features
-	      ($cdr flags))))))
+    (if (null? flags)
+	result
+      (loop (let ((flag ($car flags)))
+	      (if (zero? (bitwise-and flag features))
+		  result
+		(cons (%curl-version-info-features->symbols flag)
+		      result)))
+	    features
+	    ($cdr flags)))))
 
 (define-exact-integer->symbol-function %curl-version-info-features->symbols
   (CURL_VERSION_IPV6
@@ -470,12 +494,8 @@
    CURL_VERSION_TLSAUTH_SRP
    CURL_VERSION_NTLM_WB))
 
-(define (curl-version-feature? S feature)
-  (define who 'curl-version-feature?)
-  (with-arguments-validation (who)
-      ((curl-version-info-data	S)
-       (non-negative-fixnum	feature))
-    (not (zero? (bitwise-and feature (curl-version-info-data-features S))))))
+(define* (curl-version-feature? {S curl-version-info-data?} {feature non-negative-fixnum?})
+  (not (zero? (bitwise-and feature (curl-version-info-data-features S)))))
 
 
 ;;;; global initialisation and finalisation functions
