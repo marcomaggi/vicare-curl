@@ -1284,14 +1284,11 @@
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_certinfo"
 
-(define (curl-certinfo.certinfo pointer)
-  (define who 'curl-certinfo.certinfo)
-  (with-arguments-validation (who)
-      ((pointer		pointer))
-    (let ((rv (capi.curl-certinfo.certinfo pointer)))
-      (vector-map (lambda (slist)
-		    (curl-slist->list slist))
-	rv))))
+(define* (curl-certinfo.certinfo {pointer pointer?})
+  (let ((rv (capi.curl-certinfo.certinfo pointer)))
+    (vector-map (lambda (slist)
+		  (curl-slist->list slist))
+      rv)))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct CURLMsg"
@@ -1300,12 +1297,9 @@
 (%define-raw-struct-accessor curl-msg.data.whatever	capi.curl-msg.data.whatever)
 (%define-raw-struct-accessor curl-msg.data.result	capi.curl-msg.data.result)
 
-(define (curl-msg.easy_handle stru)
-  (define who 'curl-msg.easy_handle)
-  (with-arguments-validation (who)
-      ((pointer	stru))
-    ;;This struct instance has no collector.
-    (make-curl-easy/owner (capi.curl-msg.easy_handle stru) #f)))
+(define* (curl-msg.easy_handle {stru pointer?})
+  ;;This struct instance has no collector.
+  (make-curl-easy/owner (capi.curl-msg.easy_handle stru) #f))
 
 
 ;;;; callback makers: easy API
