@@ -1125,54 +1125,36 @@
      (values ($car rv)
 	     ($cdr rv)))))
 
-(define (curl-multi-socket multi sock-fd)
+(define* (curl-multi-socket {multi curl-multi?/alive} {sock-fd file-descriptor?})
   ;;This is deprecated.
   ;;
-  (define who 'curl-multi-socket)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (file-descriptor		sock-fd))
-    (let ((rv (capi.curl-multi-socket multi sock-fd)))
-      (values ($car rv)
-	      ($cdr rv)))))
+  (let ((rv (capi.curl-multi-socket multi sock-fd)))
+    (values ($car rv)
+	    ($cdr rv))))
 
-(define (curl-multi-socket-all multi)
+(define* (curl-multi-socket-all {multi curl-multi?/alive})
   ;;This is deprecated.
   ;;
-  (define who 'curl-multi-socket-all)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi))
-    (capi.curl-multi-socket-all multi)))
+  (capi.curl-multi-socket-all multi))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-perform multi)
-  (define who 'curl-multi-perform)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi))
-    (let ((rv (capi.curl-multi-perform multi)))
-      (values ($car rv)
-	      ($cdr rv)))))
+(define* (curl-multi-perform {multi curl-multi?/alive})
+  (let ((rv (capi.curl-multi-perform multi)))
+    (values ($car rv)
+	    ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-timeout multi)
-  (define who 'curl-multi-timeout)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi))
-    (let ((rv (capi.curl-multi-timeout multi)))
-      (if (pair? rv)
-	  (values ($car rv)
-		  ($cdr rv))
-	(values rv #f)))))
+(define* (curl-multi-timeout {multi curl-multi?/alive})
+  (let ((rv (capi.curl-multi-timeout multi)))
+    (if (pair? rv)
+	(values ($car rv)
+		($cdr rv))
+      (values rv #f))))
 
-(define (curl-multi-assign multi sock custom-data)
-  (define who 'curl-multi-assign)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi)
-       (file-descriptor		sock)
-       (pointer/false		custom-data))
-    (capi.curl-multi-assign multi sock custom-data)))
+(define* (curl-multi-assign {multi curl-multi?/alive} {sock file-descriptor?} {custom-data false-or-pointer?})
+  (capi.curl-multi-assign multi sock custom-data))
 
 ;;; --------------------------------------------------------------------
 
@@ -1185,30 +1167,19 @@
 		;A fixnum representing a "short int" bitmask of events.
    ))
 
-(define (curl-multi-wait multi extra-fds timeout)
-  (define who 'curl-multi-wait)
-  (with-arguments-validation (who)
-      ((curl-multi/alive		multi)
-       (vector-of-curl-waitfd/false	extra-fds)
-       (signed-int			timeout))
-    (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
-      (values ($car rv) ($cdr rv)))))
+(define* (curl-multi-wait {multi curl-multi?/alive} {extra-fds false-or-vector-of-curl-waitfd?} {timeout words.signed-int?})
+  (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
+    (values ($car rv) ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-info-read multi)
-  (define who 'curl-multi-info-read)
-  (with-arguments-validation (who)
-      ((curl-multi/alive	multi))
-    (let ((rv (capi.curl-multi-info-read multi)))
-      (values ($car rv) ($cdr rv)))))
+(define* (curl-multi-info-read {multi curl-multi?/alive})
+  (let ((rv (capi.curl-multi-info-read multi)))
+    (values ($car rv) ($cdr rv))))
 
-(define (curl-multi-strerror code)
-  (define who 'curl-multi-strerror)
-  (with-arguments-validation (who)
-      ((signed-int	code))
-    (let ((rv (capi.curl-multi-strerror code)))
-      (and rv (ascii->string rv)))))
+(define* (curl-multi-strerror {code words.signed-int?})
+  (let ((rv (capi.curl-multi-strerror code)))
+    (and rv (ascii->string rv))))
 
 
 ;;;; miscellaneous functions
