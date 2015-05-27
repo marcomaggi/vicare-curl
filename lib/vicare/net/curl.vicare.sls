@@ -1271,29 +1271,15 @@
 (define* (curl-forms.option {pointer general-c-buffer?} {index non-negative-fixnum?})
   (capi.curl-forms.option pointer index))
 
-(define (curl-forms.value pointer index)
-  (define who 'curl-forms.value)
-  (with-arguments-validation (who)
-      ((general-c-buffer	pointer)
-       (non-negative-fixnum	index))
-    (capi.curl-forms.value pointer index)))
+(define* (curl-forms.value {pointer general-c-buffer?} {index non-negative-fixnum?})
+  (capi.curl-forms.value pointer index))
 
-(define (curl-forms.option-set! pointer index value)
-  (define who 'curl-forms.option-set!)
-  (with-arguments-validation (who)
-      ((general-c-buffer	pointer)
-       (non-negative-fixnum	index)
-       (signed-int		value))
-    (let ((rv (capi.curl-forms.option-set! pointer index value)))
-      (and rv (ascii->string rv)))))
+(define* (curl-forms.option-set! {pointer general-c-buffer?} {index non-negative-fixnum?} {value words.signed-int?})
+  (let ((rv (capi.curl-forms.option-set! pointer index value)))
+    (and rv (ascii->string rv))))
 
-(define (curl-forms.value-set! pointer index value)
-  (define who 'curl-forms.value-set!)
-  (with-arguments-validation (who)
-      ((general-c-buffer	pointer)
-       (non-negative-fixnum	index)
-       (pointer/memory-block	value))
-    (capi.curl-forms.value-set! pointer index value)))
+(define* (curl-forms.value-set! {pointer general-c-buffer?} {index non-negative-fixnum?} {value pointer-or-memory-block?})
+  (capi.curl-forms.value-set! pointer index value))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_certinfo"
