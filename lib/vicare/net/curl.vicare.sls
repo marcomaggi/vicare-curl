@@ -2349,7 +2349,7 @@
 (set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
 (set-rtd-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
 
-)
+#| end of library |# )
 
 ;;; end of file
 ;;Local Variables:
