@@ -1184,19 +1184,13 @@
 
 ;;;; miscellaneous functions
 
-(define (curl-free pointer)
-  (define who 'curl-free)
-  (with-arguments-validation (who)
-      ((pointer/false	pointer))
-    (capi.curl-free pointer)))
+(define* (curl-free {pointer false-or-pointer?})
+  (capi.curl-free pointer))
 
-(define (curl-getdate date)
-  (define who 'curl-getdate)
-  (with-arguments-validation (who)
-      ((general-c-string	date))
-    (with-general-c-strings
-	((date^ date))
-      (capi.curl-getdate date^))))
+(define* (curl-getdate {date general-c-string?})
+  (with-general-c-strings
+      ((date^ date))
+    (capi.curl-getdate date^)))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_sockaddr"
@@ -1264,28 +1258,18 @@
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_khkey"
 
-(define (curl-khkey.key stru)
-  (define who 'curl-khkey.key)
-  (with-arguments-validation (who)
-      ((pointer		stru))
-    (let ((rv (capi.curl-khkey.key stru)))
-      (values ($car rv) ($cdr rv)))))
+(define* (curl-khkey.key {stru pointer?})
+  (let ((rv (capi.curl-khkey.key stru)))
+    (values ($car rv) ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors and mutators for "struct curl_forms" arrays
 
-(define (curl-forms-sizeof-array number-of-structs)
-  (define who 'curl-forms-sizeof-array)
-  (with-arguments-validation (who)
-      ((non-negative-fixnum	number-of-structs))
-    (capi.curl-forms-sizeof-array number-of-structs)))
+(define* (curl-forms-sizeof-array {number-of-structs non-negative-fixnum?})
+  (capi.curl-forms-sizeof-array number-of-structs))
 
-(define (curl-forms.option pointer index)
-  (define who 'curl-forms.option)
-  (with-arguments-validation (who)
-      ((general-c-buffer	pointer)
-       (non-negative-fixnum	index))
-    (capi.curl-forms.option pointer index)))
+(define* (curl-forms.option {pointer general-c-buffer?} {index non-negative-fixnum?})
+  (capi.curl-forms.option pointer index))
 
 (define (curl-forms.value pointer index)
   (define who 'curl-forms.value)
