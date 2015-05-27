@@ -1117,19 +1117,13 @@
     (values ($car rv)
 	    ($cdr rv))))
 
-(define curl-multi-socket-action
-  (case-lambda
-   ((multi sock-fd)
-    (curl-multi-socket-action multi sock-fd 0))
-   ((multi sock-fd ev-bitmask)
-    (define who 'curl-multi-socket-action)
-    (with-arguments-validation (who)
-	((curl-multi/alive		multi)
-	 (action-socket-descriptor	sock-fd)
-	 (signed-int			ev-bitmask))
-      (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
-	(values ($car rv)
-		($cdr rv)))))))
+(case-define* curl-multi-socket-action
+  ((multi sock-fd)
+   (curl-multi-socket-action multi sock-fd 0))
+  (({multi curl-multi?/alive} {sock-fd action-socket-descriptor?} {ev-bitmask words.signed-int?})
+   (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
+     (values ($car rv)
+	     ($cdr rv)))))
 
 (define (curl-multi-socket multi sock-fd)
   ;;This is deprecated.
