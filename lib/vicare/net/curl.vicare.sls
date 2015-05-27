@@ -739,47 +739,39 @@
 
 ;;;; basic URL string escaping
 
-(define curl-escape
-  (case-lambda
-   ((str.data)
-    (curl-escape str.data #f))
-   ((str.data str.len)
-    (define who 'curl-escape)
-    (with-arguments-validation (who)
-	((general-c-string*	str.data str.len))
-      (with-general-c-strings
-	  ((str.data^ str.data))
-	(capi.curl-escape str.data^ str.len))))))
+(case-define* curl-escape
+  ((str.data)
+   (curl-escape str.data #f))
+  (({str.data general-c-string?} str.len)
+   (assert-general-c-string-and-length __who__ str.data str.len)
+   (with-general-c-strings
+       ((str.data^ str.data))
+     (capi.curl-escape str.data^ str.len))))
 
-(define curl-unescape
-  (case-lambda
-   ((str.data)
-    (curl-unescape str.data #f))
-   ((str.data str.len)
-    (define who 'curl-unescape)
-    (with-arguments-validation (who)
-	((general-c-string*	str.data str.len))
-      (with-general-c-strings
-	  ((str.data^ str.data))
-	(capi.curl-unescape str.data^ str.len))))))
+(case-define* curl-unescape
+  ((str.data)
+   (curl-unescape str.data #f))
+  (({str.data general-c-string?} str.len)
+   (assert-general-c-string-and-length __who__ str.data str.len)
+   (with-general-c-strings
+       ((str.data^ str.data))
+     (capi.curl-unescape str.data^ str.len))))
 
 ;;; --------------------------------------------------------------------
 
-(define curl-escape/string
-  (case-lambda
-   ((str.data)
-    (curl-escape/string str.data #f))
-   ((str.data str.len)
-    (let ((rv (curl-escape str.data str.len)))
-      (and rv (ascii->string rv))))))
+(case-define* curl-escape/string
+  ((str.data)
+   (curl-escape/string str.data #f))
+  ((str.data str.len)
+   (let ((rv (curl-escape str.data str.len)))
+     (and rv (ascii->string rv)))))
 
-(define curl-unescape/string
-  (case-lambda
-   ((str.data)
-    (curl-unescape/string str.data #f))
-   ((str.data str.len)
-    (let ((rv (curl-unescape str.data str.len)))
-      (and rv (ascii->string rv))))))
+(case-define* curl-unescape/string
+  ((str.data)
+   (curl-unescape/string str.data #f))
+  ((str.data str.len)
+   (let ((rv (curl-unescape str.data str.len)))
+     (and rv (ascii->string rv)))))
 
 
 ;;;; shared configuration option sets
