@@ -1109,16 +1109,13 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (curl-multi-fdset multi read-fds write-fds exc-fds)
-  (define who 'curl-multi-fdset)
-  (with-arguments-validation (who)
-      ((curl-multi/alive		multi)
-       (general-c-sticky-buffer/false	read-fds)
-       (general-c-sticky-buffer/false	write-fds)
-       (general-c-sticky-buffer/false	exc-fds))
-    (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
-      (values ($car rv)
-	      ($cdr rv)))))
+(define* (curl-multi-fdset {multi curl-multi?/alive}
+			   {read-fds	(or not general-c-sticky-buffer?)}
+			   {write-fds	(or not general-c-sticky-buffer?)}
+			   {exc-fds	(or not general-c-sticky-buffer?)})
+  (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
+    (values ($car rv)
+	    ($cdr rv))))
 
 (define curl-multi-socket-action
   (case-lambda
