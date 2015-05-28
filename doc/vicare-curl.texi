@@ -202,10 +202,11 @@ so @cfunc{curl_global_init} becomes @func{curl-global-init}.
 @item vicare net curl unsafe-capi
 @cindex @library{vicare net curl unsafe-api}, library
 @cindex Library @library{vicare net curl unsafe-api}
-It exports one syntax binding for each @curl{} public function.  All the
-Scheme syntax names are directly derived from the C function names by
-replacing underscore characters @samp{_} with dash characters @samp{-};
-so @cfunc{curl_global_init} becomes @func{curl-global-init}.
+It exports one keyword syntactic binding for each @curl{} public
+function.  All the Scheme syntax names are directly derived from the C
+function names by replacing underscore characters @samp{_} with dash
+characters @samp{-}; so @cfunc{curl_global_init} becomes
+@func{curl-global-init}.
 
 These syntaxes expand to a direct call to the C language wrapper
 functions in the @value{PACKAGE} library; they are not meant to be
@@ -868,8 +869,7 @@ the value of some options:
 (import (vicare)
   (vicare net curl)
   (vicare net curl constants)
-  (prefix (vicare ffi) ffi.)
-  (vicare syntactic-extensions))
+  (prefix (vicare ffi) ffi.))
 
 (define (dummy-write-cb buffer size nitems outstream)
   (* size nitems))
@@ -928,8 +928,7 @@ short):
 (import (vicare)
   (vicare net curl)
   (vicare net curl constants)
-  (prefix (vicare ffi) ffi.)
-  (vicare syntactic-extensions))
+  (prefix (vicare ffi) ffi.))
 
 (define (dummy-write-cb buffer size nitems outstream)
   (* size nitems))
@@ -1131,8 +1130,7 @@ using @func{curl-multi-perform}, @func{curl-multi-fdset} and
   (vicare net curl)
   (vicare net curl constants)
   (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.)
-  (vicare syntactic-extensions))
+  (prefix (vicare posix) px.))
 
 (define-inline (%pretty-print ?thing)
   (pretty-print ?thing (current-error-port)))
@@ -1207,8 +1205,7 @@ timer callback:
   (vicare net curl)
   (vicare net curl constants)
   (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.)
-  (vicare syntactic-extensions))
+  (prefix (vicare posix) px.))
 
 (define-inline (%pretty-print ?thing)
   (pretty-print ?thing (current-error-port)))
@@ -1289,8 +1286,7 @@ multi timer callback:
   (vicare net curl)
   (vicare net curl constants)
   (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.)
-  (vicare syntactic-extensions))
+  (prefix (vicare posix) px.))
 
 (define-struct pending-socks
   (rd-requests
@@ -1979,8 +1975,7 @@ The following is a usage example for @func{curl-multi-wait} and
   (vicare net curl)
   (vicare net curl constants)
   (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.)
-  (vicare syntactic-extensions))
+  (prefix (vicare posix) px.))
 
 (assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 

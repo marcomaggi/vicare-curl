@@ -26,7 +26,7 @@
 
 
 #!vicare
-(library (vicare net curl)
+(library (vicare net curl (0 4 2015 5 28))
   (foreign-library "vicare-curl")
   (export
 
@@ -252,12 +252,13 @@
     curl-constant-wait-poll->symbol
     curl-constant-cselect->symbol
     curl-constant-mopt->symbol)
-  (import (vicare)
-    (vicare net curl constants)
-    (prefix (vicare net curl unsafe-capi)
+  (import (vicare (0 4 2015 5 28))
+    (vicare net curl constants (0 4 2015 5 28))
+    (prefix (vicare net curl unsafe-capi (0 4 2015 5 28))
 	    capi.)
-    (vicare unsafe operations)
-    (prefix (vicare ffi) ffi.)
+    (vicare system $fx)
+    (vicare system $pairs)
+    (prefix (vicare ffi (0 4 2015 5 28)) ffi.)
     (vicare ffi foreign-pointer-wrapper)
     (prefix (vicare platform words) words.)
     (vicare language-extensions syntaxes)
@@ -266,10 +267,6 @@
 
 
 ;;;; arguments validation
-
-(define (false-or-pointer? obj)
-  (or (not obj)
-      (pointer? obj)))
 
 (define (pointer-or-memory-block? obj)
   (or (pointer? obj)

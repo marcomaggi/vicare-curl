@@ -26,7 +26,7 @@
 
 
 #!r6rs
-(library (vicare net curl unsafe-capi)
+(library (vicare net curl unsafe-capi (0 4 2015 5 28))
   (export
 
     ;; version functions
