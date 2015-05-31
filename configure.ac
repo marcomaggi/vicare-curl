@@ -222,7 +222,7 @@ VICARE_CONSTANT_TESTS([CURLGSSAPI_DELEGATION_NONE CURLGSSAPI_DELEGATION_POLICY_F
 dnl
 VICARE_CONSTANT_TESTS([CURL_ERROR_SIZE])
 
-dnl enum type keytype
+dnl enum curl_khtype
 VICARE_CONSTANT_TESTS([CURLKHTYPE_UNKNOWN CURLKHTYPE_RSA1 CURLKHTYPE_RSA CURLKHTYPE_DSS])
 
 dnl enum curl_khstat
@@ -779,6 +779,18 @@ AC_CHECK_FUNCS([curl_getdate])
 AC_CHECK_FUNCS([curl_share_init curl_share_setopt curl_share_cleanup curl_share_strerror])
 AC_CHECK_FUNCS([curl_easy_init curl_easy_setopt curl_easy_perform curl_easy_cleanup curl_easy_getinfo curl_easy_duphandle curl_easy_reset curl_easy_recv curl_easy_send curl_easy_strerror curl_easy_pause])
 AC_CHECK_FUNCS([curl_multi_init curl_multi_add_handle curl_multi_remove_handle curl_multi_fdset curl_multi_perform curl_multi_cleanup curl_multi_info_read curl_multi_strerror curl_multi_socket curl_multi_socket_action curl_multi_socket_all curl_multi_timeout curl_multi_setopt curl_multi_assign curl_multi_wait])
+
+#page
+#### data structures
+
+AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],0)
+AC_CHECK_TYPE([struct curl_tlssessioninfo],
+  [AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],1)],
+  [AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],0)],
+  VICARE_INCLUDES)
+AC_DEFINE_UNQUOTED([HAVE_CURL_TLSSESSIONINFO],
+  $vicare_curl_have_curl_tlssessioninfo,
+  [availability of curl_tlssessioninfo])
 
 #page
 #### finish

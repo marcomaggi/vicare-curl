@@ -88,6 +88,9 @@
     curl-msg.msg			curl-msg.easy_handle
     curl-msg.data.whatever		curl-msg.data.result
 
+    ;; accessors for "struct curl_tlssessioninfo"
+    curl-tlssessioninfo.backend		curl-tlssessioninfo.internals
+
     ;; easy API
     curl-easy-init			curl-easy-cleanup
     curl-easy-reset
@@ -325,6 +328,15 @@
 
 (define-syntax-rule (curl-certinfo.certinfo struct)
   (foreign-call "ikrt_curl_certinfo_certinfo" struct))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_tlssessioninfo"
+
+(define-syntax-rule (curl-tlssessioninfo.backend struct)
+  (foreign-call "ikrt_curl_tlssessioninfo_backend" struct))
+
+(define-syntax-rule (curl-tlssessioninfo.internals struct)
+  (foreign-call "ikrt_curl_tlssessioninfo_internals" struct))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct CURLMsg"

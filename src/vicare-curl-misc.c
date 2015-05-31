@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -892,6 +892,36 @@ ikrt_curl_msg_data_result (ikptr s_struct, ikpcb * pcb)
 {
   ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->data.result);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Accessors for "struct curl_tlssessioninfo".
+ ** ----------------------------------------------------------------- */
+
+ikptr
+ikrt_curl_tlssessioninfo_backend (ikptr s_struct, ikpcb * pcb)
+/* Given a pointer  to a "struct curl_tlssessioninfo",  build and return
+   an exact integer representing the "backend" field. */
+{
+#if ((defined HAVE_CURL_TLSSESSIONINFO) && (1 == HAVE_CURL_TLSSESSIONINFO))
+  struct curl_tlssessioninfo *	S	= IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_integer_from_int(pcb, (int)S->backend);
+#else
+  feature_failure(__func__);
+#endif
+}
+ikptr
+ikrt_curl_tlssessioninfo_internals (ikptr s_struct, ikpcb * pcb)
+/* Given a pointer  to a "struct curl_tlssessioninfo",  build and return
+   an exact integer representing the "internals" field. */
+{
+#if ((defined HAVE_CURL_TLSSESSIONINFO) && (1 == HAVE_CURL_TLSSESSIONINFO))
+  struct curl_tlssessioninfo *	S	= IK_POINTER_DATA_VOIDP(s_struct);
+  return ika_pointer_alloc(pcb, (ikuword_t)S->internals);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 

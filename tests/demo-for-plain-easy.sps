@@ -331,6 +331,43 @@
   #t)
 
 
+(parametrise ((check-test-name	'tls-session-info))
+
+  (check
+      (let ((easy	(curl-easy-init))
+	    (write-cb	(make-curl-write-callback
+			 (lambda ( buffer size nitems outstream)
+			   (* size nitems))))
+	    (debug-cb	(make-curl-debug-callback debug-func)))
+	(unwind-protect
+	    (begin
+	      (curl-easy-setopt easy CURLOPT_URL "https://github.com/")
+	      (curl-easy-setopt easy CURLOPT_CERTINFO #t)
+	      ;;In a way  or the other a WRITEFUNCTION  is always there;
+	      ;;to discard data we have to register a WRITEFUNCTION that
+	      ;;does nothing!!!
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION write-cb)
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA #f)
+	      (when #f
+		(curl-easy-setopt easy CURLOPT_VERBOSE #f)
+		(curl-easy-setopt easy CURLOPT_DEBUGFUNCTION debug-cb)
+		(curl-easy-setopt easy CURLOPT_DEBUGDATA #f))
+	      (curl-easy-perform easy)
+	      (receive (code session-info)
+		  (curl-easy-getinfo easy CURLINFO_TLS_SESSION)
+		(check-pretty-print session-info)
+		(unless (= code CURLE_OK)
+		  (check-pretty-print (curl-easy-strerror code)))
+		code))
+	  ;;Close the connection before releasing the callbacks!!!
+	  (curl-easy-cleanup easy)
+	  (ffi.free-c-callback write-cb)
+	  (ffi.free-c-callback debug-cb)))
+    => CURLE_OK)
+
+  #t)
+
+
 (parametrise ((check-test-name	'raw-data))
 
   (define (write-func buffer size nitems outstream)

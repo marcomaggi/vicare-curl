@@ -155,6 +155,12 @@
     ;; miscellaneous functions
     curl-free					curl-getdate
 
+    ;; Scheme representation of "struct curl_tlssessioninfo"
+    curl-tls-session-info
+    make-curl-tls-session-info			curl-tls-session-info?
+    curl-tls-session-info-backend
+    curl-tls-session-info-internals
+
     ;; accessors for "struct curl_sockaddr"
     curl-sockaddr.family			curl-sockaddr.socktype
     curl-sockaddr.protocol			curl-sockaddr.addrlen
@@ -194,6 +200,9 @@
     ;; accessors for "struct CURLMsg"
     curl-msg.msg				curl-msg.easy_handle
     curl-msg.data.whatever			curl-msg.data.result
+
+    ;; accessors for "struct curl_tlssessioninfo"
+    curl-tlssessioninfo.backend			curl-tlssessioninfo.internals
 
     ;; constants to symbols
     curl-constant-httppost->symbol
@@ -916,11 +925,17 @@
     (if (pair? rv)
 	(let ((retval.type	($car rv))
 	      (retval.value	($cdr rv)))
-	  (cond ((= info CURLINFO_CERTINFO)
+	  ;;NOTE  By using  EQV?  we make  the  tests work  even  when the  CURLINFO_
+	  ;;constants are not defined by the underlying Libcurl.
+	  (cond ((eqv? info CURLINFO_CERTINFO)
 		 (values CURLE_OK (and retval.value
 				       (curl-certinfo.certinfo retval.value))))
-		((= info CURLINFO_PRIVATE)
+		((eqv? info CURLINFO_PRIVATE)
 		 (values CURLE_OK retval.value))
+		((eqv? info CURLINFO_TLS_SESSION)
+		 (values CURLE_OK (and retval.value
+				       (make-curl-tls-session-info (curl-tlssessioninfo.backend   retval.value)
+								   (curl-tlssessioninfo.internals retval.value)))))
 		(else
 		 (cond ((= retval.type CURLINFO_SLIST)
 			(values CURLE_OK (and retval.value
@@ -934,6 +949,47 @@
 		       (else
 			(values CURLE_OK retval.value))))))
       (values rv #f))))
+
+;;; --------------------------------------------------------------------
+
+(define-struct curl-tls-session-info
+  ;;Scheme  representation of  the C  language structure  "curl_tlssessioninfo".  For
+  ;;details:  see the  documentation of  the constant  "CURLINFO_TLS_SESSION" in  the
+  ;;manual page of "curl_easy_getinfo()".
+  ;;
+  (backend
+		;One of the constants in the "enum curl_sslbackend".
+   internals
+		;A pointer object representing the value of the field "internals".
+   ))
+
+(module ()
+
+  (define (printer S port sub-printer)
+    (define-syntax-rule (%display thing)
+      (display thing port))
+    (define-syntax-rule (%write thing)
+      (write thing port))
+    (%display "#[curl-tls-session-info")
+    (%display " backend=")	(%display (let ((X ($curl-tls-session-info-backend S)))
+					    (cond ((eqv? X CURLSSLBACKEND_AXTLS)	'CURLSSLBACKEND_AXTLS)
+						  ((eqv? X CURLSSLBACKEND_CYASSL)	'CURLSSLBACKEND_CYASSL)
+						  ((eqv? X CURLSSLBACKEND_DARWINSSL)	'CURLSSLBACKEND_DARWINSSL)
+						  ((eqv? X CURLSSLBACKEND_GNUTLS)	'CURLSSLBACKEND_GNUTLS)
+						  ((eqv? X CURLSSLBACKEND_GSKIT)	'CURLSSLBACKEND_GSKIT)
+						  ((eqv? X CURLSSLBACKEND_NONE)		'CURLSSLBACKEND_NONE)
+						  ((eqv? X CURLSSLBACKEND_NSS)		'CURLSSLBACKEND_NSS)
+						  ((eqv? X CURLSSLBACKEND_OPENSSL)	'CURLSSLBACKEND_OPENSSL)
+						  ((eqv? X CURLSSLBACKEND_POLARSSL)	'CURLSSLBACKEND_POLARSSL)
+						  ((eqv? X CURLSSLBACKEND_QSOSSL)	'CURLSSLBACKEND_QSOSSL)
+						  ((eqv? X CURLSSLBACKEND_SCHANNEL)	'CURLSSLBACKEND_SCHANNEL)
+						  (else X))))
+    (%display " internals=")	(%display ($curl-tls-session-info-internals S))
+    (%display "]"))
+
+  (set-rtd-printer! (struct-type-descriptor curl-tls-session-info) printer)
+
+  #| end of module |# )
 
 ;;; --------------------------------------------------------------------
 
@@ -1286,6 +1342,15 @@
     (vector-map (lambda (slist)
 		  (curl-slist->list slist))
       rv)))
+
+;;; --------------------------------------------------------------------
+;;; accessors for "struct curl_tlssessioninfo"
+
+(define* (curl-tlssessioninfo.backend {pointer pointer?})
+  (capi.curl-tlssessioninfo.backend pointer))
+
+(define* (curl-tlssessioninfo.internals {pointer pointer?})
+  (capi.curl-tlssessioninfo.internals pointer))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct CURLMsg"

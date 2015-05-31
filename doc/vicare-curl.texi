@@ -856,8 +856,59 @@ The returned value is @false{} or a pointer object referencing the data
 previously registered in the easy handle with @func{curl-easy-setopt}
 and @code{CURLOPT_PRIVATE}; @false{} is returned if the data is the
 @cnull{} pointer.
+
+@item CURLINFO_TLS_SESSION
+The returned value is @false{} or an instance of
+@objtype{curl-tls-session-info}.
 @end table
 @end itemize
+@end defun
+
+
+@deftp {Struct Type} curl-tls-session-info
+Scheme representation of the C language @code{struct
+curl_tlssessioninfo}.  It has the following fields:
+
+@table @code
+@item backend
+An exact integer representing the value of the C struct's field
+@code{backend}.  It one of the constants in the @code{enum
+curl_sslbackend}, among the valid values are:
+
+@example
+CURLSSLBACKEND_AXTLS            CURLSSLBACKEND_CYASSL
+CURLSSLBACKEND_DARWINSSL        CURLSSLBACKEND_GNUTLS
+CURLSSLBACKEND_GSKIT            CURLSSLBACKEND_NONE
+CURLSSLBACKEND_NSS              CURLSSLBACKEND_OPENSSL
+CURLSSLBACKEND_POLARSSL         CURLSSLBACKEND_QSOSSL
+CURLSSLBACKEND_SCHANNEL
+@end example
+
+@item internals
+A pointer object representing the value of the C struct's field
+@code{internals}.
+@end table
+
+For details: see the documentation of the constant
+@code{CURLINFO_TLS_SESSION} in the manual page of
+@curlman{curl_easy_getinfo}.
+@end deftp
+
+
+@defun make-curl-tls-session-info @var{backend} @var{internals}
+Build and return a new instance of @objtype{curl-tls-session-info}.
+@end defun
+
+
+@defun curl-tls-session-info?
+Return @true{} if @var{obj} is an instance of
+@objtype{curl-tls-session-info}; otherwise return @false{}.
+@end defun
+
+
+@defun curl-tls-session-info-backend @var{info}
+@defunx curl-tls-session-info-internals @var{info}
+Accessors for structs of type @objtype{curl-tls-session-info}.
 @end defun
 
 
@@ -4220,12 +4271,13 @@ an @ascii{} bytevector or string describing the associated error.
 
 
 @menu
-* plain cstructs sockaddr::     Accessing @code{struct curl_sockaddr}.
-* plain cstructs fileinfo::     Accessing @code{struct curl_fileinfo}.
-* plain cstructs khkey::        Accessing @code{struct curl_khkey}.
-* plain cstructs forms::        Accessing @code{struct curl_forms} arrays.
-* plain cstructs certinfo::     Accessing @code{struct curl_certinfo}.
-* plain cstructs msg::          Accessing @code{struct CURLMsg}.
+* plain cstructs sockaddr::        Accessing @code{struct curl_sockaddr}.
+* plain cstructs fileinfo::        Accessing @code{struct curl_fileinfo}.
+* plain cstructs khkey::           Accessing @code{struct curl_khkey}.
+* plain cstructs forms::           Accessing @code{struct curl_forms} arrays.
+* plain cstructs certinfo::        Accessing @code{struct curl_certinfo}.
+* plain cstructs msg::             Accessing @code{struct CURLMsg}.
+* plain cstructs tlssessioninfo::  Accessing @code{struct curl_tlssessioninfo}.
 @end menu
 
 @c page
@@ -4492,6 +4544,40 @@ whatever} in the union @code{data}.
 Given a pointer to an instance of @code{struct CURLMsg}, return an exact
 integer representing the value of the field @code{CURLcode result} in
 the union @code{data}.
+@end defun
+
+@c page
+@node plain cstructs tlssessioninfo
+@subsection Accessing @code{struct curl_tlssessioninfo}
+
+
+The following bindings are exported by the library @library{vicare net
+curl}.
+
+
+@defun curl-tlssessioninfo.backend @var{pointer}
+Given a pointer to an instance of @code{struct curl_tlssessioninfo},
+return an exact integer representing the value of the field
+@code{backend}.
+
+The returned value is one of the constants in the @code{enum
+curl_sslbackend}, among the valid values are:
+
+@example
+CURLSSLBACKEND_AXTLS            CURLSSLBACKEND_CYASSL
+CURLSSLBACKEND_DARWINSSL        CURLSSLBACKEND_GNUTLS
+CURLSSLBACKEND_GSKIT            CURLSSLBACKEND_NONE
+CURLSSLBACKEND_NSS              CURLSSLBACKEND_OPENSSL
+CURLSSLBACKEND_POLARSSL         CURLSSLBACKEND_QSOSSL
+CURLSSLBACKEND_SCHANNEL
+@end example
+@end defun
+
+
+@defun curl-tlssessioninfo.internals @var{pointer}
+Given a pointer to an instance of @code{struct curl_tlssessioninfo},
+return a pointer object representing the value of the field
+@code{internals}.
 @end defun
 
 @c page

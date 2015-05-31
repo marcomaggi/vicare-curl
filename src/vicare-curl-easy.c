@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -163,7 +163,27 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else {
+  }
+#if ((defined HAVE_CURL_TLSSESSIONINFO) && (1 == HAVE_CURL_TLSSESSIONINFO))
+  else if (CURLINFO_TLS_SESSION == info) {
+    /* If successful: return a pair whose  car is false and whose cdr is
+       the pointer to the C language struct. */
+    struct curl_tlssessioninfo *	result;
+    rv = curl_easy_getinfo(easy, info, &result);
+    if (CURLE_OK == rv) {
+      ikptr s_pair = ika_pair_alloc(pcb);
+      pcb->root0 = &s_pair;
+      {
+	IK_ASS(IK_CAR(s_pair), IK_FALSE);
+	IK_ASS(IK_CDR(s_pair),
+	       ((result)? ika_pointer_alloc(pcb, (ik_ulong)result) : IK_FALSE));
+      }
+      pcb->root0 = NULL;
+      return s_pair;
+    }
+  }
+#endif
+  else {
     switch (CURLINFO_TYPEMASK & info) {
     case CURLINFO_SLIST: {
       struct curl_slist *	result;
