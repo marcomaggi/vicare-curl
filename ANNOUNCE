@@ -32,7 +32,9 @@ and as backup at:
 	    <https://bitbucket.org/marcomaggi/vicare-curl/>
 
   The last  time the author  bothered to  update this paragraph,  he had
-tested Libcurl version 7.42.1; the Libcurl library is available at:
+tested Libcurl  version 7.42.1;  however, Vicare/cURL  is written  to be
+used  with previous  versions of  Libcurl, too;  the Libcurl  library is
+available at:
 
 		     <http://curl.haxx.se/libcurl/>
 

@@ -628,31 +628,45 @@ ikrt_curl_share_strerror (ikptr s_errcode, ikpcb * pcb)
  ** Accessors for "struct curl_sockaddr".
  ** ----------------------------------------------------------------- */
 
-typedef struct curl_sockaddr	ik_curl_sockaddr_t;
-
 ikptr
 ikrt_curl_sockaddr_family (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_SOCKADDR) && (1 == HAVE_CURL_SOCKADDR))
+  struct curl_sockaddr *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->family);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_sockaddr_socktype (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_SOCKADDR) && (1 == HAVE_CURL_SOCKADDR))
+  struct curl_sockaddr *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->socktype);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_sockaddr_protocol (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_SOCKADDR) && (1 == HAVE_CURL_SOCKADDR))
+  struct curl_sockaddr *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->protocol);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_sockaddr_addrlen (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_SOCKADDR) && (1 == HAVE_CURL_SOCKADDR))
+  struct curl_sockaddr *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_uint(pcb, S->addrlen);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 /* ------------------------------------------------------------------ */
@@ -660,8 +674,12 @@ ikrt_curl_sockaddr_addrlen (ikptr s_struct, ikpcb * pcb)
 ikptr
 ikrt_curl_sockaddr_addr (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_sockaddr_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_SOCKADDR) && (1 == HAVE_CURL_SOCKADDR))
+  struct curl_sockaddr *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_bytevector_from_memory_block(pcb, &(S->addr), S->addrlen);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 
@@ -669,91 +687,145 @@ ikrt_curl_sockaddr_addr (ikptr s_struct, ikpcb * pcb)
  ** Accessors for "struct curl_fileinfo".
  ** ----------------------------------------------------------------- */
 
-typedef struct curl_fileinfo	ik_curl_fileinfo_t;
-
 ikptr
 ikrt_curl_fileinfo_filename (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)(S->filename));
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_filetype (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->filetype);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_time (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_sint64(pcb, (int64_t)(S->time));
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_perm (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_uint(pcb, S->perm);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_uid (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->uid);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_gid (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_uint(pcb, S->gid);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_size (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_off_t(pcb, S->size);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_hardlinks (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_ulong(pcb, S->hardlinks);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_strings_time (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->strings.time);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_strings_perm (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->strings.perm);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_strings_user (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->strings.user);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_strings_group (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->strings.group);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_strings_target (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->strings.target);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_fileinfo_flags (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_fileinfo_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_FILEINFO) && (1 == HAVE_CURL_FILEINFO))
+  struct curl_fileinfo *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_uint(pcb, S->flags);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 
@@ -761,12 +833,11 @@ ikrt_curl_fileinfo_flags (ikptr s_struct, ikpcb * pcb)
  ** Accessors for "struct curl_khkey".
  ** ----------------------------------------------------------------- */
 
-typedef struct curl_khkey	ik_curl_khkey_t;
-
 ikptr
 ikrt_curl_khkey_key (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_khkey_t *	S  = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_KHKEY) && (1 == HAVE_CURL_KHKEY))
+  struct curl_khkey *	S  = IK_POINTER_DATA_VOIDP(s_struct);
   ikptr			rv = ika_pair_alloc(pcb);
   pcb->root0 = &rv;
   {
@@ -782,6 +853,9 @@ ikrt_curl_khkey_key (ikptr s_struct, ikpcb * pcb)
   }
   pcb->root0 = NULL;
   return rv;
+#else
+  feature_failure(__func__);
+#endif
 }
 
 
@@ -789,13 +863,15 @@ ikrt_curl_khkey_key (ikptr s_struct, ikpcb * pcb)
  ** Accessors for "struct curl_forms".
  ** ----------------------------------------------------------------- */
 
-typedef struct curl_forms	ik_curl_forms_t;
-
 ikptr
 ikrt_curl_forms_sizeof (ikptr s_number_of_items, ikpcb * pcb)
 {
+#if ((defined HAVE_CURL_FORMS) && (1 == HAVE_CURL_FORMS))
   int	nmemb = IK_UNFIX(s_number_of_items);
-  return ika_integer_from_int(pcb, nmemb*sizeof(ik_curl_forms_t));
+  return ika_integer_from_int(pcb, nmemb*sizeof(struct curl_forms));
+#else
+  feature_failure(__func__);
+#endif
 }
 
 /* ------------------------------------------------------------------ */
@@ -803,18 +879,26 @@ ikrt_curl_forms_sizeof (ikptr s_number_of_items, ikpcb * pcb)
 ikptr
 ikrt_curl_forms_option (ikptr s_array_of_structs, ikptr s_index, ikpcb * pcb)
 {
-  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+#if ((defined HAVE_CURL_FORMS) && (1 == HAVE_CURL_FORMS))
+  struct curl_forms *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
   int			idx = IK_UNFIX(s_index);
   return ika_integer_from_int(pcb, S[idx].option);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_forms_option_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_value, ikpcb * pcb)
 {
-  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+#if ((defined HAVE_CURL_FORMS) && (1 == HAVE_CURL_FORMS))
+  struct curl_forms *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
   int			idx = IK_UNFIX(s_index);
   CURLformoption	val = ik_integer_to_int(s_value);
   S[idx].option = val;
   return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
 }
 
 /* ------------------------------------------------------------------ */
@@ -822,19 +906,27 @@ ikrt_curl_forms_option_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_val
 ikptr
 ikrt_curl_forms_value (ikptr s_array_of_structs, ikptr s_index, ikpcb * pcb)
 {
-  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+#if ((defined HAVE_CURL_FORMS) && (1 == HAVE_CURL_FORMS))
+  struct curl_forms *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
   int			idx = IK_UNFIX(s_index);
   const char *		val = S[idx].value;
   return (val)? ika_bytevector_from_cstring(pcb, val) : IK_FALSE;
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_forms_value_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_value, ikpcb * pcb)
 {
-  ik_curl_forms_t *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
+#if ((defined HAVE_CURL_FORMS) && (1 == HAVE_CURL_FORMS))
+  struct curl_forms *	S   = IK_VOIDP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_array_of_structs);
   int			idx = IK_UNFIX(s_index);
   char *		val = IK_CHARP_FROM_POINTER_OR_MBLOCK(s_value);
   S[idx].value = val;
   return IK_VOID;
+#else
+  feature_failure(__func__);
+#endif
 }
 
 
@@ -842,15 +934,14 @@ ikrt_curl_forms_value_set (ikptr s_array_of_structs, ikptr s_index, ikptr s_valu
  ** Accessors for "struct curl_certinfo".
  ** ----------------------------------------------------------------- */
 
-typedef struct curl_certinfo	ik_curl_certinfo_t;
-
 ikptr
 ikrt_curl_certinfo_certinfo (ikptr s_struct, ikpcb * pcb)
 /* Given  a pointer  to a  "struct  curl_certinfo", build  and return  a
    vector of pointer object referencing the individual slists. */
 {
-  ik_curl_certinfo_t *	S	= IK_POINTER_DATA_VOIDP(s_struct);
-  ikptr			rv	= ika_vector_alloc_and_init(pcb, S->num_of_certs);
+#if ((defined HAVE_CURL_CERTINFO) && (1 == HAVE_CURL_CERTINFO))
+  struct curl_certinfo *	S	= IK_POINTER_DATA_VOIDP(s_struct);
+  ikptr				rv	= ika_vector_alloc_and_init(pcb, S->num_of_certs);
   pcb->root0 = &rv;
   {
     int		i;
@@ -860,6 +951,9 @@ ikrt_curl_certinfo_certinfo (ikptr s_struct, ikpcb * pcb)
   }
   pcb->root0 = NULL;
   return rv;
+#else
+  feature_failure(__func__);
+#endif
 }
 
 
@@ -867,31 +961,45 @@ ikrt_curl_certinfo_certinfo (ikptr s_struct, ikpcb * pcb)
  ** Accessors for "struct CURLMsg".
  ** ----------------------------------------------------------------- */
 
-typedef struct CURLMsg		ik_curl_msg_t;
-
 ikptr
 ikrt_curl_msg_msg (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_MSG) && (1 == HAVE_CURL_MSG))
+  struct CURLMsg *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->msg);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_msg_easy_handle (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_MSG) && (1 == HAVE_CURL_MSG))
+  struct CURLMsg *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->easy_handle);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_msg_data_whatever (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_MSG) && (1 == HAVE_CURL_MSG))
+  struct CURLMsg *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_pointer_alloc(pcb, (ik_ulong)S->data.whatever);
+#else
+  feature_failure(__func__);
+#endif
 }
 ikptr
 ikrt_curl_msg_data_result (ikptr s_struct, ikpcb * pcb)
 {
-  ik_curl_msg_t *	S = IK_POINTER_DATA_VOIDP(s_struct);
+#if ((defined HAVE_CURL_MSG) && (1 == HAVE_CURL_MSG))
+  struct CURLMsg *	S = IK_POINTER_DATA_VOIDP(s_struct);
   return ika_integer_from_int(pcb, S->data.result);
+#else
+  feature_failure(__func__);
+#endif
 }
 
 

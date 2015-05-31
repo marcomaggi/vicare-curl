@@ -122,6 +122,7 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
   CURL *	easy	= IK_CURL_EASY(s_easy);
   CURLINFO	info	= ik_integer_to_int(s_info);
   CURLcode	rv;
+#if ((defined HAVE_CURL_CERTINFO) && (1 == HAVE_CURL_CERTINFO))
   if (CURLINFO_CERTINFO == info) {
     /* The header file of cURL  version 7.27.0 classifies this option as
        returning a  slist, but  this is not  true: the  returned pointer
@@ -143,7 +144,10 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  } else if (CURLINFO_PRIVATE == info) {
+  } else
+#endif
+#if ((defined HAVE_CURLINFO_PRIVATE) && (1 == HAVE_CURLINFO_PRIVATE))
+  if (CURLINFO_PRIVATE == info) {
     /* The header file of cURL  version 7.27.0 classifies this option as
        returning a string, but this is not true: the returned pointer is
        a "void *"  referencing whatever data was registered  in the easy
@@ -163,9 +167,10 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  }
+  } else
+#endif
 #if ((defined HAVE_CURL_TLSSESSIONINFO) && (1 == HAVE_CURL_TLSSESSIONINFO))
-  else if (CURLINFO_TLS_SESSION == info) {
+  if (CURLINFO_TLS_SESSION == info) {
     /* If successful: return a pair whose  car is false and whose cdr is
        the pointer to the C language struct. */
     struct curl_tlssessioninfo *	result;
@@ -181,9 +186,9 @@ ikrt_curl_easy_getinfo (ikptr s_easy, ikptr s_info, ikpcb * pcb)
       pcb->root0 = NULL;
       return s_pair;
     }
-  }
+  } else
 #endif
-  else {
+  {
     switch (CURLINFO_TYPEMASK & info) {
     case CURLINFO_SLIST: {
       struct curl_slist *	result;

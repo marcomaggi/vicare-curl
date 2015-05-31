@@ -178,8 +178,10 @@ supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
 @acronym{FILE}).
 
 The last time the author bothered to update this paragraph, he had
-tested @value{FOREIGN_PACKAGE} version @value{FOREIGN_VERSION}; the
-@value{FOREIGN_PACKAGE} library is available at:
+tested @value{FOREIGN_PACKAGE} version @value{FOREIGN_VERSION}; however,
+@value{PACKAGE} is written to be used with previous versions of
+@var{FOREIGN_PACKAGE}, too.  The @value{FOREIGN_PACKAGE} library is
+available at:
 
 @center @value{FOREIGN_URL}
 

@@ -632,6 +632,15 @@ VICARE_CONSTANT_TESTS([CURLINFO_NONE
   CURLINFO_LASTONE
   CURLINFO_HTTP_CODE])
 
+dnl For CURLINFO_PRIVATE we also need the HAVE_ define.
+AS_VAR_SET([vicare_curl_have_curlinfo_private],0)
+AS_IF([test "$vicare_cv_valueof_CURLINFO_PRIVATE" = "#f"],
+  [AS_VAR_SET([vicare_curl_have_curlinfo_private],0)],
+  [AS_VAR_SET([vicare_curl_have_curlinfo_private],1)])
+AC_DEFINE_UNQUOTED([HAVE_CURLINFO_PRIVATE],
+  $vicare_curl_have_curlinfo_private,
+  [availability of CURLINFO_PRIVATE])
+
 dnl typedef enum curl_closepolicy
 VICARE_CONSTANT_TESTS([CURLCLOSEPOLICY_NONE
   CURLCLOSEPOLICY_OLDEST
@@ -783,14 +792,23 @@ AC_CHECK_FUNCS([curl_multi_init curl_multi_add_handle curl_multi_remove_handle c
 #page
 #### data structures
 
-AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],0)
-AC_CHECK_TYPE([struct curl_tlssessioninfo],
-  [AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],1)],
-  [AS_VAR_SET([vicare_curl_have_curl_tlssessioninfo],0)],
-  VICARE_INCLUDES)
-AC_DEFINE_UNQUOTED([HAVE_CURL_TLSSESSIONINFO],
-  $vicare_curl_have_curl_tlssessioninfo,
-  [availability of curl_tlssessioninfo])
+AC_DEFUN([VICARE_CURL_HAVE_STRUCT],
+  [AS_VAR_SET([vicare_curl_have_$1],0)
+   AC_CHECK_TYPE([struct $1],
+     [AS_VAR_SET([vicare_curl_have_$1],1)],
+     [AS_VAR_SET([vicare_curl_have_$1],0)],
+     VICARE_INCLUDES)
+   AC_DEFINE_UNQUOTED([HAVE_$2],
+     $vicare_curl_have_$1,
+     [availability of $1])])
+
+VICARE_CURL_HAVE_STRUCT([curl_tlssessioninfo],[CURL_TLSSESSIONINFO])
+VICARE_CURL_HAVE_STRUCT([curl_sockaddr],[CURL_SOCKADDR])
+VICARE_CURL_HAVE_STRUCT([curl_fileinfo],[CURL_FILEINFO])
+VICARE_CURL_HAVE_STRUCT([curl_khkey],[CURL_KHKEY])
+VICARE_CURL_HAVE_STRUCT([curl_forms],[CURL_FORMS])
+VICARE_CURL_HAVE_STRUCT([curl_certinfo],[CURL_CERTINFO])
+VICARE_CURL_HAVE_STRUCT([CURLMsg],[CURL_MSG])
 
 #page
 #### finish

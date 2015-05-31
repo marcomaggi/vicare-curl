@@ -26,7 +26,8 @@ supported protocols (HTTP, HTTPS, FTP, FTPS, TFTP, DICT, TELNET, LDAP or
 FILE).
 
   The last  time the author  bothered to  update this paragraph,  he had
-tested Libcurl version 7.42.1.
+tested Libcurl  version 7.42.1;  however, Vicare/cURL  is written  to be
+used with previous versions of Libcurl, too.
 
   This package makes use of the GNU Autotools.
 
