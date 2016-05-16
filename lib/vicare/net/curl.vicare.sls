@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015, 2016 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -449,25 +449,26 @@
 (define* (curl-version-info {version-code non-negative-fixnum?})
   (receive-and-return (rv)
       (capi.curl-version-info (type-descriptor curl-version-info-data) version-code)
-    (define-inline (b->s S G)
-      (S rv (let ((b (G rv)))
-	      (and b (ascii->string b)))))
-    (b->s set-curl-version-info-data-version!
-	  curl-version-info-data-version)
-    (b->s set-curl-version-info-data-host!
-	  curl-version-info-data-host)
-    (b->s set-curl-version-info-data-ssl-version!
-	  curl-version-info-data-ssl-version)
-    (b->s set-curl-version-info-data-libz-version!
-	  curl-version-info-data-libz-version)
-    (b->s set-curl-version-info-data-ares!
-	  curl-version-info-data-ares)
-    (b->s set-curl-version-info-data-libidn!
-	  curl-version-info-data-libidn)
-    (b->s set-curl-version-info-data-libssh-version!
-	  curl-version-info-data-libssh-version)
-    (set-curl-version-info-data-protocols!
-     rv (map ascii->string (curl-version-info-data-protocols rv)))))
+    (internal-body
+      (define-inline (b->s S G)
+	(S rv (let ((b (G rv)))
+		(and b (ascii->string b)))))
+      (b->s set-curl-version-info-data-version!
+	    curl-version-info-data-version)
+      (b->s set-curl-version-info-data-host!
+	    curl-version-info-data-host)
+      (b->s set-curl-version-info-data-ssl-version!
+	    curl-version-info-data-ssl-version)
+      (b->s set-curl-version-info-data-libz-version!
+	    curl-version-info-data-libz-version)
+      (b->s set-curl-version-info-data-ares!
+	    curl-version-info-data-ares)
+      (b->s set-curl-version-info-data-libidn!
+	    curl-version-info-data-libidn)
+      (b->s set-curl-version-info-data-libssh-version!
+	    curl-version-info-data-libssh-version)
+      (set-curl-version-info-data-protocols!
+       rv (map ascii->string (curl-version-info-data-protocols rv))))))
 
 (define* (curl-version-info-features->symbols {S curl-version-info-data?})
   (let loop ((result   '())
