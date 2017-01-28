@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,13 +25,14 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-;;;  (prefix (vicare ffi) ffi.)
-  (vicare checks))
+#!vicare
+(program (test-vicare-curl-version)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** testing Vicare Libcurl bindings, version functions\n")
@@ -92,5 +93,7 @@
 ;;;; done
 
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file

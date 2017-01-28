@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013, 2015, 2016 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015, 2016, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,7 +26,8 @@
 
 
 #!vicare
-(library (vicare net curl (0 4 2015 5 28))
+(library (vicare net curl (0 4 2017 1 27))
+  (options typed-language)
   (foreign-library "vicare-curl")
   (export
 
@@ -48,8 +49,6 @@
     curl-version-info-data-ares			curl-version-info-data-ares-num
     curl-version-info-data-libidn		curl-version-info-data-iconv-ver-num
     curl-version-info-data-libssh-version
-    curl-version-info-data.vicare-arguments-validation
-    false-or-curl-version-info-data.vicare-arguments-validation
 
     ;; initialisation and finalisation functions
     curl-global-init				curl-global-init-mem
@@ -71,10 +70,6 @@
     (rename (%make-curl-form-data		make-curl-form-data))
     curl-form-data-string
     curl-form-data-custom-destructor		set-curl-form-data-custom-destructor!
-    curl-form-data.vicare-arguments-validation
-    curl-form-data/alive.vicare-arguments-validation
-    false-or-curl-form-data.vicare-arguments-validation
-    false-or-curl-form-data/alive.vicare-arguments-validation
 
     ;; basic URL string escaping
     curl-escape					curl-escape/string
@@ -89,10 +84,6 @@
     curl-share
     curl-share?					curl-share?/alive
     curl-share-custom-destructor		set-curl-share-custom-destructor!
-    curl-share.vicare-arguments-validation
-    curl-share/alive.vicare-arguments-validation
-    false-or-curl-share.vicare-arguments-validation
-    false-or-curl-share/alive.vicare-arguments-validation
 
     ;; easy API
     curl-easy-init				curl-easy-cleanup
@@ -107,10 +98,6 @@
     curl-easy
     curl-easy?					curl-easy?/alive
     curl-easy-custom-destructor			set-curl-easy-custom-destructor!
-    curl-easy.vicare-arguments-validation
-    curl-easy/alive.vicare-arguments-validation
-    false-or-curl-easy.vicare-arguments-validation
-    false-or-curl-easy/alive.vicare-arguments-validation
 
     ;; multi API
     curl-multi-init				curl-multi-cleanup
@@ -126,18 +113,12 @@
     curl-multi
     curl-multi?					curl-multi?/alive
     curl-multi-custom-destructor		set-curl-multi-custom-destructor!
-    curl-multi.vicare-arguments-validation
-    curl-multi/alive.vicare-arguments-validation
-    false-or-curl-multi.vicare-arguments-validation
-    false-or-curl-multi/alive.vicare-arguments-validation
 
     curl-waitfd
     make-curl-waitfd				curl-waitfd?
     curl-waitfd-fd
     curl-waitfd-events
     curl-waitfd-revents
-    curl-waitfd.vicare-arguments-validation
-    false-or-curl-waitfd.vicare-arguments-validation
 
     ;; callback makers
     make-curl-write-callback			make-curl-read-callback
@@ -183,8 +164,6 @@
     curl-fileinfo-strings.time			curl-fileinfo-strings.perm
     curl-fileinfo-strings.user			curl-fileinfo-strings.group
     curl-fileinfo-strings.target		curl-fileinfo-flags
-    curl-fileinfo.vicare-arguments-validation
-    false-or-curl-fileinfo.vicare-arguments-validation
 
     ;; accessors for "struct curl_khkey"
     curl-khkey.key
@@ -261,22 +240,20 @@
     curl-constant-wait-poll->symbol
     curl-constant-cselect->symbol
     curl-constant-mopt->symbol)
-  (import (vicare (or (0 4 2015 5 (>= 28))
-		      (0 4 2015 (>= 6))
-		      (0 4 (>= 2016))))
+  (import (vicare (0 4 2017 1 (>= 10)))
+    (prefix (vicare system structs) structs::)
     (vicare net curl constants (0 4 2015 5 28))
     (prefix (vicare net curl unsafe-capi (0 4 2015 5 28))
-	    capi.)
+	    capi::)
     (vicare system $fx)
     (vicare system $pairs)
     (prefix (vicare ffi (or (0 4 2015 5 (>= 28))
 			    (0 4 2015 (>= 6))
 			    (0 4 (>= 2016))))
-	    ffi.)
+	    ffi::)
     (vicare ffi foreign-pointer-wrapper)
-    (prefix (vicare platform words) words.)
+    (prefix (vicare platform words) words::)
     (vicare language-extensions syntaxes)
-    (vicare arguments validation)
     (vicare arguments general-c-buffers))
 
 
@@ -297,7 +274,7 @@
 (define (assert-curl-share-parameter who parameter option)
   (unless (cond ((or (= option CURLSHOPT_SHARE)
 		     (= option CURLSHOPT_UNSHARE))
-		 (words.signed-int? parameter))
+		 (words::signed-int? parameter))
 		(else
 		 (or (not parameter)
 		     (pointer? parameter))))
@@ -309,51 +286,6 @@
   (or (not obj)
       (and (vector? obj)
 	   (vector-for-all curl-waitfd? obj))))
-
-
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (pointer/memory-block who obj)
-  (or (pointer? obj)
-      (memory-block? obj))
-  (assertion-violation who "expected pointer or memory block as argument" obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (file-descriptor who obj)
-  (and (fixnum? obj)
-       ($fx<= 0 obj))
-  (assertion-violation who "expected non-negative fixnum as file descriptor argument" obj))
-
-(define-argument-validation (action-socket-descriptor who obj)
-  (and (fixnum? obj)
-       (or ($fx= obj CURL_SOCKET_TIMEOUT)
-	   ($fx<= 0 obj)))
-  (assertion-violation who
-    "expected CURL_SOCKET_TIMEOUT or non-negative fixnum as socket descriptor argument"
-    obj))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (curl-share-parameter who parameter option)
-  (cond ((or (= option CURLSHOPT_SHARE)
-	     (= option CURLSHOPT_UNSHARE))
-	 (words.signed-int? parameter))
-	(else
-	 (or (not parameter)
-	     (pointer? parameter))))
-  (assertion-violation who
-    "invalid matching between \"curl-share\" option and parameter"
-    parameter option))
-
-;;; --------------------------------------------------------------------
-
-(define-argument-validation (vector-of-curl-waitfd/false who obj)
-  (or (not obj)
-      (and (vector? obj)
-	   (vector-for-all curl-waitfd? obj)))
-  (assertion-violation who "expected vector of structs of type curl-waitfd" obj))
 
 
 ;;;; helpers
@@ -374,25 +306,25 @@
 ;;;; version functions
 
 (define (vicare-curl-version-interface-current)
-  (capi.vicare-curl-version-interface-current))
+  (capi::vicare-curl-version-interface-current))
 
 (define (vicare-curl-version-interface-revision)
-  (capi.vicare-curl-version-interface-revision))
+  (capi::vicare-curl-version-interface-revision))
 
 (define (vicare-curl-version-interface-age)
-  (capi.vicare-curl-version-interface-age))
+  (capi::vicare-curl-version-interface-age))
 
 (define (vicare-curl-version)
-  (ascii->string (capi.vicare-curl-version)))
+  (ascii->string (capi::vicare-curl-version)))
 
 ;;; --------------------------------------------------------------------
 
 (define (curl-version)
-  (ascii->string (capi.curl-version)))
+  (ascii->string (capi::curl-version)))
 
 ;;; --------------------------------------------------------------------
 
-(define-struct-extended curl-version-info-data
+(structs::define-struct curl-version-info-data
   (age
 		;Age of the returned struct.
    version
@@ -448,7 +380,7 @@
 
 (define* (curl-version-info {version-code non-negative-fixnum?})
   (receive-and-return (rv)
-      (capi.curl-version-info (type-descriptor curl-version-info-data) version-code)
+      (capi::curl-version-info (type-descriptor curl-version-info-data) version-code)
     (internal-body
       (define-inline (b->s S G)
 	(S rv (let ((b (G rv)))
@@ -516,24 +448,24 @@
 
 ;;;; global initialisation and finalisation functions
 
-(define* (curl-global-init {flags words.signed-long?})
-  (capi.curl-global-init flags))
+(define* (curl-global-init {flags words::signed-long?})
+  (capi::curl-global-init flags))
 
-(define* (curl-global-init-mem {flags words.signed-long?}
+(define* (curl-global-init-mem {flags words::signed-long?}
 			       {malloc-callback false-or-pointer?} {free-callback false-or-pointer?} {realloc-callback false-or-pointer?}
 			       {strdup-callback false-or-pointer?} {calloc-callback false-or-pointer?})
-  (capi.curl-global-init-mem flags
+  (capi::curl-global-init-mem flags
 			     malloc-callback free-callback realloc-callback
 			     strdup-callback calloc-callback))
 
 (define (curl-global-cleanup)
-  (capi.curl-global-cleanup))
+  (capi::curl-global-cleanup))
 
 ;;; --------------------------------------------------------------------
 
 (define make-curl-malloc-callback
   ;; void *(*curl_malloc_callback)(size_t size)
-  (let ((maker (ffi.make-c-callback-maker 'pointer '(size_t))))
+  (let ((maker (ffi::make-c-callback-maker 'pointer '(size_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (number-of-bytes)
 	       (guard (E (else
@@ -543,7 +475,7 @@
 
 (define make-curl-free-callback
   ;; void (*curl_free_callback)(void *ptr)
-  (let ((maker (ffi.make-c-callback-maker 'void '(pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'void '(pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (ptr)
 	       (guard (E (else
@@ -553,7 +485,7 @@
 
 (define make-curl-realloc-callback
   ;; void *(*curl_realloc_callback)(void *ptr, size_t size)
-  (let ((maker (ffi.make-c-callback-maker 'pointer '(pointer size_t))))
+  (let ((maker (ffi::make-c-callback-maker 'pointer '(pointer size_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (ptr number-of-bytes)
 	       (guard (E (else
@@ -563,7 +495,7 @@
 
 (define make-curl-strdup-callback
   ;; char *(*curl_strdup_callback)(const char *str)
-  (let ((maker (ffi.make-c-callback-maker 'pointer '(pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'pointer '(pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (ptr)
 	       (guard (E (else
@@ -573,7 +505,7 @@
 
 (define make-curl-calloc-callback
   ;; void *(*curl_calloc_callback)(size_t nmemb, size_t size)
-  (let ((maker (ffi.make-c-callback-maker 'pointer '(size_t size_t))))
+  (let ((maker (ffi::make-c-callback-maker 'pointer '(size_t size_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (number-of-items item-size)
 	       (guard (E (else
@@ -591,16 +523,17 @@
    (with-general-c-strings
        ((string^ string))
      (string-to-bytevector string->utf8)
-     (capi.curl-slist-append slist string^))))
+     (capi::curl-slist-append slist string^))))
 
 (define* (curl-slist-free-all {slist false-or-pointer?})
-  (capi.curl-slist-free-all slist))
+  (capi::curl-slist-free-all slist)
+  (values))
 
 (define* (curl-slist->list {slist false-or-pointer?})
-  (map ascii->string (reverse (capi.curl-slist->list slist))))
+  (map ascii->string (reverse (capi::curl-slist->list slist))))
 
 (define* (list->curl-slist {list-of-strings list-of-strings?})
-  (fold-left (lambda (slist str)
+  (fold-left (lambda ({_ <top>} slist str)
 	       (curl-slist-append slist str))
     #f list-of-strings))
 
@@ -609,7 +542,7 @@
 
 (define-foreign-pointer-wrapper curl-form-data
   (fields pointer-to-last)
-  (foreign-destructor capi.curl-formfree)
+  (foreign-destructor capi::curl-formfree)
   (collector-struct-type #f))
 
 (define (%struct-curl-form-data-printer S port sub-printer)
@@ -631,8 +564,8 @@
 
 (module (curl-formadd)
 
-  (define-inline (%normalise-val val)
-    (cond ((words.signed-long? val)
+  (define (%normalise-val val)
+    (cond ((words::signed-long? val)
 	   val)
 	  ((string? val)
 	   (string->ascii val))
@@ -640,7 +573,7 @@
 	   val)))
 
   (define (a-value? obj)
-    (or (words.signed-long? obj)
+    (or (words::signed-long? obj)
 	(string? obj)
 	(bytevector? obj)
 	(pointer? obj)
@@ -653,9 +586,9 @@
     ((post opt1 val1 {optend curl-form-end?})
      (curl-formadd post opt1 val1))
 
-    (({post curl-form-data?} {opt1 words.signed-int?} {val1 a-value?})
-     (capi.curl-formadd-1 post ($curl-form-data-pointer-to-last post)
-			  opt1 (%normalise-val val1)))
+    (({post curl-form-data?} {opt1 words::signed-int?} {val1 a-value?})
+     (capi::curl-formadd-1 post ($curl-form-data-pointer-to-last post)
+			   opt1 (%normalise-val val1)))
 
     ((post opt1 val1 opt2 val2 {optend curl-form-end?})
      (curl-formadd post
@@ -663,16 +596,16 @@
 		   opt2 val2))
 
     (({post curl-form-data?}
-      {opt1 words.signed-int?} {val1 a-value?}
-      {opt2 words.signed-int?} {val2 a-value?})
-     (capi.curl-formadd-2 post ($curl-form-data-pointer-to-last post)
-			  opt1 (%normalise-val val1)
-			  opt2 (%normalise-val val2)))
+      {opt1 words::signed-int?} {val1 a-value?}
+      {opt2 words::signed-int?} {val2 a-value?})
+     (capi::curl-formadd-2 post ($curl-form-data-pointer-to-last post)
+			   opt1 (%normalise-val val1)
+			   opt2 (%normalise-val val2)))
 
     (({post curl-form-data?}
-      {opt1 words.signed-int?} {val1 a-value?}
-      {opt2 words.signed-int?} {val2 a-value?}
-      {opt3 words.signed-int?} {val3 a-value?}
+      {opt1 words::signed-int?} {val1 a-value?}
+      {opt2 words::signed-int?} {val2 a-value?}
+      {opt3 words::signed-int?} {val3 a-value?}
       {optend curl-form-end?})
      (curl-formadd post
 		   opt1 val1
@@ -680,19 +613,19 @@
 		   opt3 val3))
 
     (({post curl-form-data?}
-      {opt1 words.signed-int?} {val1 a-value?}
-      {opt2 words.signed-int?} {val2 a-value?}
-      {opt3 words.signed-int?} {val3 a-value?})
-     (capi.curl-formadd-3 post ($curl-form-data-pointer-to-last post)
-			  opt1 (%normalise-val val1)
-			  opt2 (%normalise-val val2)
-			  opt3 (%normalise-val val3)))
+      {opt1 words::signed-int?} {val1 a-value?}
+      {opt2 words::signed-int?} {val2 a-value?}
+      {opt3 words::signed-int?} {val3 a-value?})
+     (capi::curl-formadd-3 post ($curl-form-data-pointer-to-last post)
+			   opt1 (%normalise-val val1)
+			   opt2 (%normalise-val val2)
+			   opt3 (%normalise-val val3)))
 
     (({post curl-form-data?}
-      {opt1 words.signed-int?} {val1 a-value?}
-      {opt2 words.signed-int?} {val2 a-value?}
-      {opt3 words.signed-int?} {val3 a-value?}
-      {opt4 words.signed-int?} {val4 a-value?}
+      {opt1 words::signed-int?} {val1 a-value?}
+      {opt2 words::signed-int?} {val2 a-value?}
+      {opt3 words::signed-int?} {val3 a-value?}
+      {opt4 words::signed-int?} {val4 a-value?}
       {optend curl-form-end?})
      (curl-formadd post
 		   opt1 val1
@@ -701,31 +634,32 @@
 		   opt4 val4))
 
     (({post curl-form-data?}
-      {opt1 words.signed-int?} {val1 a-value?}
-      {opt2 words.signed-int?} {val2 a-value?}
-      {opt3 words.signed-int?} {val3 a-value?}
-      {opt4 words.signed-int?} {val4 a-value?})
-     (capi.curl-formadd-4 post ($curl-form-data-pointer-to-last post)
-			  opt1 (%normalise-val val1)
-			  opt2 (%normalise-val val2)
-			  opt3 (%normalise-val val3)
-			  opt4 (%normalise-val val4)))
+      {opt1 words::signed-int?} {val1 a-value?}
+      {opt2 words::signed-int?} {val2 a-value?}
+      {opt3 words::signed-int?} {val3 a-value?}
+      {opt4 words::signed-int?} {val4 a-value?})
+     (capi::curl-formadd-4 post ($curl-form-data-pointer-to-last post)
+			   opt1 (%normalise-val val1)
+			   opt2 (%normalise-val val2)
+			   opt3 (%normalise-val val3)
+			   opt4 (%normalise-val val4)))
 
     #| end of CASE-DEFINE* |# )
 
   #| end of module |# )
 
-(define* (curl-formget {post curl-form-data?} {custom-data false-or-pointer?} {callback ffi.false-or-c-callback?})
-  (capi.curl-formget post custom-data callback))
+(define* (curl-formget {post curl-form-data?} {custom-data false-or-pointer?} {callback ffi::false-or-c-callback?})
+  (capi::curl-formget post custom-data callback))
 
 (define* (curl-formfree {post curl-form-data?})
-  ($curl-form-data-finalise post))
+  ($curl-form-data-finalise post)
+  (values))
 
 ;;; --------------------------------------------------------------------
 
 (define make-curl-formget-callback
   ;; size_t curl_formget_callback (void *arg, const char *buf, size_t len)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer pointer size_t))))
+  (let ((maker (ffi::make-c-callback-maker 'size_t '(pointer pointer size_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data cstring.ptr cstring.len)
 	       (guard (E (else
@@ -738,15 +672,15 @@
 (define* (curl-form-data-string {post curl-form-data?})
   (if (pointer-null? (curl-form-data-pointer post))
       ""
-    (let* ((data "")
+    (let* (({data <string>} "")
 	   (cb   (make-curl-formget-callback
 		  (lambda (custom-data cstring.ptr cstring.len)
 		    (set! data (string-append data (cstring->string cstring.ptr cstring.len)))
 		    cstring.len))))
       (unwind-protect
-	  (and (not (curl-formget post #f cb))
-	       data)
-	(ffi.free-c-callback cb)))))
+	  (let ((rv (curl-formget post #f cb)))
+	    (and (not rv) data))
+	(ffi::free-c-callback cb)))))
 
 
 ;;;; basic URL string escaping
@@ -758,7 +692,7 @@
    (assert-general-c-string-and-length __who__ str.data str.len)
    (with-general-c-strings
        ((str.data^ str.data))
-     (capi.curl-escape str.data^ str.len))))
+     (capi::curl-escape str.data^ str.len))))
 
 (case-define* curl-unescape
   ((str.data)
@@ -767,7 +701,7 @@
    (assert-general-c-string-and-length __who__ str.data str.len)
    (with-general-c-strings
        ((str.data^ str.data))
-     (capi.curl-unescape str.data^ str.len))))
+     (capi::curl-unescape str.data^ str.len))))
 
 ;;; --------------------------------------------------------------------
 
@@ -789,7 +723,7 @@
 ;;;; shared configuration option sets
 
 (define-foreign-pointer-wrapper curl-share
-  (foreign-destructor capi.curl-share-cleanup)
+  (foreign-destructor capi::curl-share-cleanup)
   (collector-struct-type #f))
 
 (define (%struct-curl-share-printer S port sub-printer)
@@ -804,18 +738,18 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-share-init)
-  (let ((rv (capi.curl-share-init)))
+  (let ((rv (capi::curl-share-init)))
     (and rv (make-curl-share/owner rv))))
 
-(define* (curl-share-setopt {share curl-share?/alive} {option words.signed-int?} parameter)
+(define* (curl-share-setopt {share curl-share?/alive} {option words::signed-int?} parameter)
   (assert-curl-share-parameter __who__ parameter option)
-  (capi.curl-share-setopt share option parameter))
+  (capi::curl-share-setopt share option parameter))
 
 (define* (curl-share-cleanup {share curl-share?})
   ($curl-share-finalise share))
 
-(define* (curl-share-strerror {errcode words.signed-int?})
-  (capi.curl-share-strerror errcode))
+(define* (curl-share-strerror {errcode words::signed-int?})
+  (capi::curl-share-strerror errcode))
 
 (define (curl-share-strerror/string errcode)
   (ascii->string (curl-share-strerror errcode)))
@@ -825,7 +759,7 @@
 (define make-curl-lock-function
   ;; void curl_lock_function (CURL *handle, curl_lock_data data,
   ;;                          curl_lock_access locktype, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'void '(pointer signed-int signed-int pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'void '(pointer signed-int signed-int pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle data locktype userptr)
 	       (guard (E (else
@@ -840,7 +774,7 @@
 
 (define make-curl-unlock-function
   ;; void curl_unlock_function (CURL *handle, curl_lock_data data, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'void '(pointer signed-int pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'void '(pointer signed-int pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle data userptr)
 	       (guard (E (else
@@ -857,7 +791,7 @@
 ;;;; easy API
 
 (define-foreign-pointer-wrapper curl-easy
-  (foreign-destructor capi.curl-easy-cleanup)
+  (foreign-destructor capi::curl-easy-cleanup)
   (collector-struct-type curl-multi))
 
 (define (%struct-curl-easy-printer S port sub-printer)
@@ -873,7 +807,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-easy-init)
-  (let ((rv (capi.curl-easy-init)))
+  (let ((rv (capi::curl-easy-init)))
     (and rv
 	 ;;This struct instance has no collector.
 	 (make-curl-easy/owner rv #f))))
@@ -882,13 +816,13 @@
   ($curl-easy-finalise easy))
 
 (define* (curl-easy-reset {easy curl-easy?/alive})
-  (capi.curl-easy-reset easy))
+  (capi::curl-easy-reset easy))
 
 ;;; --------------------------------------------------------------------
 
 (module (curl-easy-setopt)
 
-  (define* (curl-easy-setopt {easy curl-easy?/alive} {option words.signed-int?} parameter)
+  (define* (curl-easy-setopt {easy curl-easy?/alive} {option words::signed-int?} parameter)
     (cond ((= CURLOPT_SHARE option)
 	   (%curl-easy-setopt/share easy option parameter))
 	  ((<= CURLOPTTYPE_OFF_T option)
@@ -899,7 +833,7 @@
 	   (%curl-easy-setopt/object-pointer easy option parameter))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
-	       (capi.curl-easy-setopt easy option (if parameter 1 0))
+	       (capi::curl-easy-setopt easy option (if parameter 1 0))
 	     (%curl-easy-setopt/type-long easy option parameter)))
 	  (else
 	   (procedure-argument-violation __who__
@@ -907,27 +841,27 @@
 	     easy option parameter))))
 
   (define* (%curl-easy-setopt/share easy option {parameter curl-share?/alive})
-    (capi.curl-easy-setopt easy option ($curl-share-pointer parameter)))
+    (capi::curl-easy-setopt easy option ($curl-share-pointer parameter)))
 
-  (define* (%curl-easy-setopt/type-off-t easy option {parameter words.off_t?})
-    (capi.curl-easy-setopt easy option parameter))
+  (define* (%curl-easy-setopt/type-off-t easy option {parameter words::off_t?})
+    (capi::curl-easy-setopt easy option parameter))
 
   (define* (%curl-easy-setopt/function-pointer easy option {parameter false-or-pointer?})
-    (capi.curl-easy-setopt easy option parameter))
+    (capi::curl-easy-setopt easy option parameter))
 
   (define* (%curl-easy-setopt/object-pointer easy option {parameter (or not general-c-string?)})
     (with-general-c-strings/false
 	((parameter^ parameter))
       (string-to-bytevector string->utf8)
-      (capi.curl-easy-setopt easy option parameter^)))
+      (capi::curl-easy-setopt easy option parameter^)))
 
-  (define* (%curl-easy-setopt/type-long easy option {parameter words.signed-long?})
-    (capi.curl-easy-setopt easy option parameter))
+  (define* (%curl-easy-setopt/type-long easy option {parameter words::signed-long?})
+    (capi::curl-easy-setopt easy option parameter))
 
   #| end of module |# )
 
-(define* (curl-easy-getinfo {easy curl-easy?/alive} {info words.signed-int?})
-  (let ((rv (capi.curl-easy-getinfo easy info)))
+(define* (curl-easy-getinfo {easy curl-easy?/alive} {info words::signed-int?})
+  (let ((rv (capi::curl-easy-getinfo easy info)))
     (if (pair? rv)
 	(let ((retval.type	($car rv))
 	      (retval.value	($cdr rv)))
@@ -958,7 +892,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-struct curl-tls-session-info
+(structs::define-struct curl-tls-session-info
   ;;Scheme  representation of  the C  language structure  "curl_tlssessioninfo".  For
   ;;details:  see the  documentation of  the constant  "CURLINFO_TLS_SESSION" in  the
   ;;manual page of "curl_easy_getinfo()".
@@ -993,21 +927,21 @@
     (%display " internals=")	(%display ($curl-tls-session-info-internals S))
     (%display "]"))
 
-  (set-rtd-printer! (struct-type-descriptor curl-tls-session-info) printer)
+  (structs::set-struct-type-printer! (struct-type-descriptor curl-tls-session-info) printer)
 
   #| end of module |# )
 
 ;;; --------------------------------------------------------------------
 
 (define* (curl-easy-perform {easy curl-easy?/alive})
-  (capi.curl-easy-perform easy))
+  (capi::curl-easy-perform easy))
 
 (define* (curl-easy-duphandle {easy curl-easy?/alive})
-  (let ((rv (capi.curl-easy-duphandle easy)))
+  (let ((rv (capi::curl-easy-duphandle easy)))
     (and rv (make-curl-easy/owner rv #f))))
 
-(define* (curl-easy-pause {easy curl-easy?/alive} {bitmask words.signed-int?})
-  (capi.curl-easy-pause easy bitmask))
+(define* (curl-easy-pause {easy curl-easy?/alive} {bitmask words::signed-int?})
+  (capi::curl-easy-pause easy bitmask))
 
 ;;; --------------------------------------------------------------------
 
@@ -1016,7 +950,7 @@
    (curl-easy-recv easy buffer.data #f))
   (({easy curl-easy?/alive} {buffer.data general-c-buffer?} buffer.len)
    (assert-general-c-buffer-and-length __who__ buffer.data buffer.len)
-   (let ((rv (capi.curl-easy-recv easy buffer.data buffer.len)))
+   (let ((rv (capi::curl-easy-recv easy buffer.data buffer.len)))
      (if (pair? rv)
 	 (values ($car rv) ($cdr rv))
        (values rv #f)))))
@@ -1029,7 +963,7 @@
    (with-general-c-strings
        ((buffer.data^ buffer.data))
      (string-to-bytevector string->utf8)
-     (let ((rv (capi.curl-easy-send easy buffer.data^ buffer.len)))
+     (let ((rv (capi::curl-easy-send easy buffer.data^ buffer.len)))
        (if (pair? rv)
 	   (values ($car rv) ($cdr rv))
 	 (values rv #f))))))
@@ -1044,7 +978,7 @@
    (with-general-c-strings
        ((chars.data^ chars.data))
      (string-to-bytevector string->utf8)
-     (capi.curl-easy-escape easy chars.data^ chars.len))))
+     (capi::curl-easy-escape easy chars.data^ chars.len))))
 
 (case-define* curl-easy-unescape
   ((easy chars.data)
@@ -1054,7 +988,7 @@
    (with-general-c-strings
        ((chars.data^ chars.data))
      (string-to-bytevector string->utf8)
-     (capi.curl-easy-unescape easy chars.data^ chars.len))))
+     (capi::curl-easy-unescape easy chars.data^ chars.len))))
 
 (case-define* curl-easy-escape/string
   ((easy chars.data)
@@ -1074,15 +1008,15 @@
 
 ;;; --------------------------------------------------------------------
 
-(define* (curl-easy-strerror {code words.signed-int?})
-  (let ((rv (capi.curl-easy-strerror code)))
+(define* (curl-easy-strerror {code words::signed-int?})
+  (let ((rv (capi::curl-easy-strerror code)))
     (and rv (ascii->string rv))))
 
 
 ;;;; multi API
 
 (define-foreign-pointer-wrapper curl-multi
-  (foreign-destructor capi.curl-multi-cleanup)
+  (foreign-destructor capi::curl-multi-cleanup)
   (collector-struct-type #f)
   (collected-struct-type curl-easy))
 
@@ -1099,7 +1033,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (curl-multi-init)
-  (let ((rv (capi.curl-multi-init)))
+  (let ((rv (capi::curl-multi-init)))
     (and rv (make-curl-multi/owner rv))))
 
 (define* (curl-multi-cleanup {multi curl-multi?})
@@ -1111,14 +1045,14 @@
   (if ($curl-multi-contains-curl-easy? multi easy)
       CURLM_OK
     (receive-and-return (rv)
-	(capi.curl-multi-add-handle multi easy)
+	(capi::curl-multi-add-handle multi easy)
       (when (= rv CURLM_OK)
 	($curl-multi-register-curl-easy! multi easy)))))
 
 (define* (curl-multi-remove-handle {multi curl-multi?/alive} {easy curl-easy?})
   (if ($curl-multi-contains-curl-easy? multi easy)
       (receive-and-return (rv)
-	  (capi.curl-multi-remove-handle multi easy)
+	  (capi::curl-multi-remove-handle multi easy)
 	(when (= rv CURLM_OK)
 	  ($curl-multi-forget-curl-easy! multi easy)))
     CURLM_OK))
@@ -1133,7 +1067,7 @@
 
 (module (curl-multi-setopt)
 
-  (define* (curl-multi-setopt {multi curl-multi?/alive} {option words.signed-int?} parameter)
+  (define* (curl-multi-setopt {multi curl-multi?/alive} {option words::signed-int?} parameter)
     (cond ((<= CURLOPTTYPE_OFF_T option)
 	   (%curl-multi-setopt/type-off-t multi option parameter))
 	  ((<= CURLOPTTYPE_FUNCTIONPOINT option)
@@ -1142,27 +1076,27 @@
 	   (%curl-multi-setopt/object-pointer multi option parameter))
 	  ((<= CURLOPTTYPE_LONG option)
 	   (if (boolean? parameter)
-	       (capi.curl-multi-setopt multi option (if parameter 1 0))
+	       (capi::curl-multi-setopt multi option (if parameter 1 0))
 	     (%curl-multi-setopt/type-long multi option parameter)))
 	  (else
 	   (procedure-argument-violation __who__
 	     "invalid parameter type for selected option"
 	     multi option parameter))))
 
-  (define* (%curl-multi-setopt/type-off-t multi option {parameter words.off_t?})
-    (capi.curl-multi-setopt multi option parameter))
+  (define* (%curl-multi-setopt/type-off-t multi option {parameter words::off_t?})
+    (capi::curl-multi-setopt multi option parameter))
 
   (define* (%curl-multi-setopt/function-pointer multi option {parameter false-or-pointer?})
-    (capi.curl-multi-setopt multi option parameter))
+    (capi::curl-multi-setopt multi option parameter))
 
   (define* (%curl-multi-setopt/object-pointer multi option {parameter (or not general-c-string?)})
     (with-general-c-strings/false
 	((parameter^ parameter))
       (string-to-bytevector string->utf8)
-      (capi.curl-multi-setopt multi option parameter^)))
+      (capi::curl-multi-setopt multi option parameter^)))
 
-  (define* (%curl-multi-setopt/type-long multi option {parameter words.signed-long?})
-    (capi.curl-multi-setopt multi option parameter))
+  (define* (%curl-multi-setopt/type-long multi option {parameter words::signed-long?})
+    (capi::curl-multi-setopt multi option parameter))
 
   #| end of module |# )
 
@@ -1172,52 +1106,52 @@
 			   {read-fds	(or not general-c-sticky-buffer?)}
 			   {write-fds	(or not general-c-sticky-buffer?)}
 			   {exc-fds	(or not general-c-sticky-buffer?)})
-  (let ((rv (capi.curl-multi-fdset multi read-fds write-fds exc-fds)))
+  (let ((rv (capi::curl-multi-fdset multi read-fds write-fds exc-fds)))
     (values ($car rv)
 	    ($cdr rv))))
 
 (case-define* curl-multi-socket-action
   ((multi sock-fd)
    (curl-multi-socket-action multi sock-fd 0))
-  (({multi curl-multi?/alive} {sock-fd action-socket-descriptor?} {ev-bitmask words.signed-int?})
-   (let ((rv (capi.curl-multi-socket-action multi sock-fd ev-bitmask)))
+  (({multi curl-multi?/alive} {sock-fd action-socket-descriptor?} {ev-bitmask words::signed-int?})
+   (let ((rv (capi::curl-multi-socket-action multi sock-fd ev-bitmask)))
      (values ($car rv)
 	     ($cdr rv)))))
 
 (define* (curl-multi-socket {multi curl-multi?/alive} {sock-fd file-descriptor?})
   ;;This is deprecated.
   ;;
-  (let ((rv (capi.curl-multi-socket multi sock-fd)))
+  (let ((rv (capi::curl-multi-socket multi sock-fd)))
     (values ($car rv)
 	    ($cdr rv))))
 
 (define* (curl-multi-socket-all {multi curl-multi?/alive})
   ;;This is deprecated.
   ;;
-  (capi.curl-multi-socket-all multi))
+  (capi::curl-multi-socket-all multi))
 
 ;;; --------------------------------------------------------------------
 
 (define* (curl-multi-perform {multi curl-multi?/alive})
-  (let ((rv (capi.curl-multi-perform multi)))
+  (let ((rv (capi::curl-multi-perform multi)))
     (values ($car rv)
 	    ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 
 (define* (curl-multi-timeout {multi curl-multi?/alive})
-  (let ((rv (capi.curl-multi-timeout multi)))
+  (let ((rv (capi::curl-multi-timeout multi)))
     (if (pair? rv)
 	(values ($car rv)
 		($cdr rv))
       (values rv #f))))
 
 (define* (curl-multi-assign {multi curl-multi?/alive} {sock file-descriptor?} {custom-data false-or-pointer?})
-  (capi.curl-multi-assign multi sock custom-data))
+  (capi::curl-multi-assign multi sock custom-data))
 
 ;;; --------------------------------------------------------------------
 
-(define-struct-extended curl-waitfd
+(structs::define-struct curl-waitfd
   (fd
 		;Fixnum representing a socket descriptor.
    events
@@ -1226,44 +1160,45 @@
 		;A fixnum representing a "short int" bitmask of events.
    ))
 
-(define* (curl-multi-wait {multi curl-multi?/alive} {extra-fds false-or-vector-of-curl-waitfd?} {timeout words.signed-int?})
-  (let ((rv (capi.curl-multi-wait multi extra-fds timeout)))
+(define* (curl-multi-wait {multi curl-multi?/alive} {extra-fds false-or-vector-of-curl-waitfd?} {timeout words::signed-int?})
+  (let ((rv (capi::curl-multi-wait multi extra-fds timeout)))
     (values ($car rv) ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 
 (define* (curl-multi-info-read {multi curl-multi?/alive})
-  (let ((rv (capi.curl-multi-info-read multi)))
+  (let ((rv (capi::curl-multi-info-read multi)))
     (values ($car rv) ($cdr rv))))
 
-(define* (curl-multi-strerror {code words.signed-int?})
-  (let ((rv (capi.curl-multi-strerror code)))
+(define* (curl-multi-strerror {code words::signed-int?})
+  (let ((rv (capi::curl-multi-strerror code)))
     (and rv (ascii->string rv))))
 
 
 ;;;; miscellaneous functions
 
 (define* (curl-free {pointer false-or-pointer?})
-  (capi.curl-free pointer))
+  (capi::curl-free pointer)
+  (values))
 
 (define* (curl-getdate {date general-c-string?})
   (with-general-c-strings
       ((date^ date))
-    (capi.curl-getdate date^)))
+    (capi::curl-getdate date^)))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_sockaddr"
 
-(%define-raw-struct-accessor curl-sockaddr.family	capi.curl-sockaddr.family)
-(%define-raw-struct-accessor curl-sockaddr.socktype	capi.curl-sockaddr.socktype)
-(%define-raw-struct-accessor curl-sockaddr.protocol	capi.curl-sockaddr.protocol)
-(%define-raw-struct-accessor curl-sockaddr.addrlen	capi.curl-sockaddr.addrlen)
-(%define-raw-struct-accessor curl-sockaddr.addr		capi.curl-sockaddr.addr)
+(%define-raw-struct-accessor curl-sockaddr.family	capi::curl-sockaddr.family)
+(%define-raw-struct-accessor curl-sockaddr.socktype	capi::curl-sockaddr.socktype)
+(%define-raw-struct-accessor curl-sockaddr.protocol	capi::curl-sockaddr.protocol)
+(%define-raw-struct-accessor curl-sockaddr.addrlen	capi::curl-sockaddr.addrlen)
+(%define-raw-struct-accessor curl-sockaddr.addr		capi::curl-sockaddr.addr)
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_fileinfo"
 
-(define-struct-extended curl-fileinfo
+(structs::define-struct curl-fileinfo
   (filename
    filetype
    time
@@ -1299,53 +1234,53 @@
    (%accessor->string curl-fileinfo.strings.target)
    (curl-fileinfo.flags		stru)))
 
-(%define-raw-struct-accessor curl-fileinfo.filename	capi.curl-fileinfo.filename)
-(%define-raw-struct-accessor curl-fileinfo.filetype	capi.curl-fileinfo.filetype)
-(%define-raw-struct-accessor curl-fileinfo.time		capi.curl-fileinfo.time)
-(%define-raw-struct-accessor curl-fileinfo.perm		capi.curl-fileinfo.perm)
-(%define-raw-struct-accessor curl-fileinfo.uid		capi.curl-fileinfo.uid)
-(%define-raw-struct-accessor curl-fileinfo.gid		capi.curl-fileinfo.gid)
-(%define-raw-struct-accessor curl-fileinfo.size		capi.curl-fileinfo.size)
-(%define-raw-struct-accessor curl-fileinfo.hardlinks	capi.curl-fileinfo.hardlinks)
-(%define-raw-struct-accessor curl-fileinfo.strings.time	capi.curl-fileinfo.strings.time)
-(%define-raw-struct-accessor curl-fileinfo.strings.perm	capi.curl-fileinfo.strings.perm)
-(%define-raw-struct-accessor curl-fileinfo.strings.user	capi.curl-fileinfo.strings.user)
-(%define-raw-struct-accessor curl-fileinfo.strings.group capi.curl-fileinfo.strings.group)
-(%define-raw-struct-accessor curl-fileinfo.strings.target capi.curl-fileinfo.strings.target)
-(%define-raw-struct-accessor curl-fileinfo.flags	capi.curl-fileinfo.flags)
+(%define-raw-struct-accessor curl-fileinfo.filename	capi::curl-fileinfo.filename)
+(%define-raw-struct-accessor curl-fileinfo.filetype	capi::curl-fileinfo.filetype)
+(%define-raw-struct-accessor curl-fileinfo.time		capi::curl-fileinfo.time)
+(%define-raw-struct-accessor curl-fileinfo.perm		capi::curl-fileinfo.perm)
+(%define-raw-struct-accessor curl-fileinfo.uid		capi::curl-fileinfo.uid)
+(%define-raw-struct-accessor curl-fileinfo.gid		capi::curl-fileinfo.gid)
+(%define-raw-struct-accessor curl-fileinfo.size		capi::curl-fileinfo.size)
+(%define-raw-struct-accessor curl-fileinfo.hardlinks	capi::curl-fileinfo.hardlinks)
+(%define-raw-struct-accessor curl-fileinfo.strings.time	capi::curl-fileinfo.strings.time)
+(%define-raw-struct-accessor curl-fileinfo.strings.perm	capi::curl-fileinfo.strings.perm)
+(%define-raw-struct-accessor curl-fileinfo.strings.user	capi::curl-fileinfo.strings.user)
+(%define-raw-struct-accessor curl-fileinfo.strings.group capi::curl-fileinfo.strings.group)
+(%define-raw-struct-accessor curl-fileinfo.strings.target capi::curl-fileinfo.strings.target)
+(%define-raw-struct-accessor curl-fileinfo.flags	capi::curl-fileinfo.flags)
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_khkey"
 
 (define* (curl-khkey.key {stru pointer?})
-  (let ((rv (capi.curl-khkey.key stru)))
+  (let ((rv (capi::curl-khkey.key stru)))
     (values ($car rv) ($cdr rv))))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors and mutators for "struct curl_forms" arrays
 
 (define* (curl-forms-sizeof-array {number-of-structs non-negative-fixnum?})
-  (capi.curl-forms-sizeof-array number-of-structs))
+  (capi::curl-forms-sizeof-array number-of-structs))
 
 (define* (curl-forms.option {pointer general-c-buffer?} {index non-negative-fixnum?})
-  (capi.curl-forms.option pointer index))
+  (capi::curl-forms.option pointer index))
 
 (define* (curl-forms.value {pointer general-c-buffer?} {index non-negative-fixnum?})
-  (capi.curl-forms.value pointer index))
+  (capi::curl-forms.value pointer index))
 
-(define* (curl-forms.option-set! {pointer general-c-buffer?} {index non-negative-fixnum?} {value words.signed-int?})
-  (let ((rv (capi.curl-forms.option-set! pointer index value)))
+(define* (curl-forms.option-set! {pointer general-c-buffer?} {index non-negative-fixnum?} {value words::signed-int?})
+  (let ((rv (capi::curl-forms.option-set! pointer index value)))
     (and rv (ascii->string rv))))
 
 (define* (curl-forms.value-set! {pointer general-c-buffer?} {index non-negative-fixnum?} {value pointer-or-memory-block?})
-  (capi.curl-forms.value-set! pointer index value))
+  (capi::curl-forms.value-set! pointer index value))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct curl_certinfo"
 
 (define* (curl-certinfo.certinfo {pointer pointer?})
-  (let ((rv (capi.curl-certinfo.certinfo pointer)))
-    (vector-map (lambda (slist)
+  (let ((rv (capi::curl-certinfo.certinfo pointer)))
+    (vector-map (lambda ({_ <top>} slist)
 		  (curl-slist->list slist))
       rv)))
 
@@ -1353,21 +1288,21 @@
 ;;; accessors for "struct curl_tlssessioninfo"
 
 (define* (curl-tlssessioninfo.backend {pointer pointer?})
-  (capi.curl-tlssessioninfo.backend pointer))
+  (capi::curl-tlssessioninfo.backend pointer))
 
 (define* (curl-tlssessioninfo.internals {pointer pointer?})
-  (capi.curl-tlssessioninfo.internals pointer))
+  (capi::curl-tlssessioninfo.internals pointer))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors for "struct CURLMsg"
 
-(%define-raw-struct-accessor curl-msg.msg		capi.curl-msg.msg)
-(%define-raw-struct-accessor curl-msg.data.whatever	capi.curl-msg.data.whatever)
-(%define-raw-struct-accessor curl-msg.data.result	capi.curl-msg.data.result)
+(%define-raw-struct-accessor curl-msg.msg		capi::curl-msg.msg)
+(%define-raw-struct-accessor curl-msg.data.whatever	capi::curl-msg.data.whatever)
+(%define-raw-struct-accessor curl-msg.data.result	capi::curl-msg.data.result)
 
 (define* (curl-msg.easy_handle {stru pointer?})
   ;;This struct instance has no collector.
-  (make-curl-easy/owner (capi.curl-msg.easy_handle stru) #f))
+  (make-curl-easy/owner (capi::curl-msg.easy_handle stru) #f))
 
 
 ;;;; callback makers: easy API
@@ -1383,7 +1318,7 @@
 
 (define make-curl-write-callback
   ;; size_t curl_write_callback (char *buffer, size_t size, size_t nitems, void *outstream)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (buffer size nitems outstream)
 	       (guard (E (else
@@ -1394,7 +1329,7 @@
 
 (define make-curl-read-callback
   ;; size_t curl_read_callback (char *buffer, size_t size, size_t nitems, void *instream)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (buffer size nitems instream)
 	       (guard (E (else
@@ -1405,7 +1340,7 @@
 
 (define make-curl-ioctl-callback
   ;; curlioerr curl_ioctl_callback (CURL *handle, int cmd, void *clientp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle cmd custom-data)
 	       (guard (E (else
@@ -1417,7 +1352,7 @@
 
 (define make-curl-seek-callback
   ;; int curl_seek_callback (void *instream, curl_off_t offset, int origin)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t signed-int))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer off_t signed-int))))
     (lambda (user-scheme-callback)
       (maker (lambda (instream offset origin)
 	       (guard (E (else
@@ -1428,7 +1363,7 @@
 
 (define make-curl-socket-option-callback
   ;; int curl_sockopt_callback (void *clientp, curl_socket_t curlfd, curlsocktype purpose)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer signed-int signed-int))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data curlfd purpose)
 	       (guard (E (else
@@ -1439,7 +1374,7 @@
 (define make-curl-open-socket-callback
   ;; curl_socket_t curl_opensocket_callback (void *clientp, curlsocktype purpose,
   ;;                                         struct curl_sockaddr *address)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer signed-int pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data purpose address)
 	       (guard (E (else
@@ -1449,7 +1384,7 @@
 
 (define make-curl-close-socket-callback
   ;; int curl_close-socket_callback (void *clientp, curl_socket_t item)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-int))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer signed-int))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data item)
 	       (guard (E (else
@@ -1461,7 +1396,7 @@
   ;; int curl_progress_callback (void *clientp,
   ;;                             double dltotal, double dlnow,
   ;;                             double ultotal, double ulnow)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer double double double double))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer double double double double))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
 	       (guard (E (else
@@ -1474,7 +1409,7 @@
 
 (define make-curl-header-callback
   ;; size_t (noproto) (void *ptr, size_t size, size_t nmemb, void *userdata)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (header-buffer size nmemb custom-data)
 	       (guard (E (else
@@ -1486,7 +1421,7 @@
 (define make-curl-debug-callback
   ;; int curl_debug_callback (CURL *handle, curl_infotype type, char *data,
   ;;                          size_t size, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
+  (let ((maker (ffi::make-c-callback-maker 'signed-int
 					  '(pointer signed-int pointer size_t pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle type data size custom-data)
@@ -1499,7 +1434,7 @@
 
 (define make-curl-ssl-ctx-callback
   ;; CURLcode curl_ssl_ctx_callback (CURL *curl, void *ssl_ctx, void *userptr)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer pointer pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle ssl-ctx custom-data)
 	       (guard (E (else
@@ -1512,7 +1447,7 @@
 
 (define make-curl-conv-to-network-callback
   ;; CURLcode callback (void * buffer, size_t size)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer size_t))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer size_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (buffer size)
 	       (guard (E (else
@@ -1530,7 +1465,7 @@
 
 (define make-curl-interleave-callback
   ;; size_t callback (void *ptr, size_t size, size_t nmemb, void * userdata)
-  (let ((maker (ffi.make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'size_t '(pointer size_t size_t pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (buffer size nmemb custom-data)
 	       (guard (E (else
@@ -1540,7 +1475,7 @@
 
 (define make-curl-chunk-begin-callback
   ;; long curl_chunk_bgn_callback (const void *transfer_info, void *ptr, int remains)
-  (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer pointer signed-int))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-long '(pointer pointer signed-int))))
     (lambda (user-scheme-callback)
       (maker (lambda (transfer-info custom-data remains)
 	       (guard (E (else
@@ -1551,7 +1486,7 @@
 
 (define make-curl-chunk-end-callback
   ;;long curl_chunk_end_callback (void *ptr)
-  (let ((maker (ffi.make-c-callback-maker 'signed-long '(pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-long '(pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data)
 	       (guard (E (else
@@ -1561,7 +1496,7 @@
 
 (define make-curl-fnmatch-callback
   ;; int curl_fnmatch_callback (void *ptr, const char *pattern, const char *string)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer pointer pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer pointer pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data pattern string)
 	       (guard (E (else
@@ -1573,7 +1508,7 @@
   ;; int curl_sshkeycallback (CURL *easy, const struct curl_khkey *knownkey,
   ;;                          const struct curl_khkey *foundkey, enum curl_khmatch,
   ;;                          void *clientp);
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
+  (let ((maker (ffi::make-c-callback-maker 'signed-int
 					  '(pointer pointer pointer signed-int pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle knownkey foundkey khmatch custom-data)
@@ -1590,7 +1525,7 @@
 (define make-curl-socket-callback
   ;; int curl_socket_callback (CURL *easy, curl_socket_t s, int what, void *userp,
   ;;                           void *socketp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int
+  (let ((maker (ffi::make-c-callback-maker 'signed-int
 					  '(pointer signed-int signed-int pointer pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle sock what callback-custom-data socket-custom-data)
@@ -1605,7 +1540,7 @@
 
 (define make-curl-multi-timer-callback
   ;; int curl_multi_timer_callback (CURLM *multi, long timeout_ms, void *userp)
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer signed-long pointer))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer signed-long pointer))))
     (lambda (user-scheme-callback)
       (maker (lambda (handle timeout-ms custom-data)
 	       (guard (E (else
@@ -1618,7 +1553,7 @@
   ;; int curl_xferinfo_callback (void *clientp,
   ;;                             curl_off_t dltotal, curl_off_t dlnow,
   ;;                             curl_off_t ultotal, curl_off_t ulnow);
-  (let ((maker (ffi.make-c-callback-maker 'signed-int '(pointer off_t off_t off_t off_t))))
+  (let ((maker (ffi::make-c-callback-maker 'signed-int '(pointer off_t off_t off_t off_t))))
     (lambda (user-scheme-callback)
       (maker (lambda (custom-data dltotal dlnow ultotal ulnow)
 	       (guard (E (else
@@ -2410,12 +2345,12 @@
 
 ;;;; done
 
-(set-rtd-printer! (type-descriptor curl-version-info-data)
-		  %struct-curl-version-info-data-printer)
-(set-rtd-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
-(set-rtd-printer! (type-descriptor curl-share)		%struct-curl-share-printer)
-(set-rtd-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
-(set-rtd-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
+(structs::set-struct-type-printer! (type-descriptor curl-version-info-data)
+  %struct-curl-version-info-data-printer)
+(structs::set-struct-type-printer! (type-descriptor curl-form-data)	%struct-curl-form-data-printer)
+(structs::set-struct-type-printer! (type-descriptor curl-share)		%struct-curl-share-printer)
+(structs::set-struct-type-printer! (type-descriptor curl-easy)		%struct-curl-easy-printer)
+(structs::set-struct-type-printer! (type-descriptor curl-multi)		%struct-curl-multi-printer)
 
 #| end of library |# )
 

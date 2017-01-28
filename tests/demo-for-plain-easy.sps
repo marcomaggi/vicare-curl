@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,14 +25,16 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-  (prefix (vicare ffi) ffi.)
-  (vicare language-extensions syntaxes)
-  (vicare checks))
+#!vicare
+(program (demo-for-plain-easy)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (prefix (vicare ffi) ffi::)
+    (vicare language-extensions syntaxes)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** demonstrating Vicare Libcurl bindings, easy API\n")
@@ -96,8 +98,8 @@
 	      (curl-easy-perform easy))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
   (check	;follow location
@@ -116,8 +118,8 @@
 	      (curl-easy-perform easy))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
   (collect))
@@ -152,8 +154,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
 ;;; --------------------------------------------------------------------
@@ -185,8 +187,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
 ;;; --------------------------------------------------------------------
@@ -218,8 +220,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
 ;;; --------------------------------------------------------------------
@@ -251,8 +253,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
 ;;; --------------------------------------------------------------------
@@ -285,8 +287,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
   #t)
 
@@ -324,8 +326,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
   #t)
@@ -361,8 +363,8 @@
 		code))
 	  ;;Close the connection before releasing the callbacks!!!
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback debug-cb)))
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback debug-cb)))
     => CURLE_OK)
 
   #t)
@@ -470,5 +472,7 @@
 ;;;; done
 
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file

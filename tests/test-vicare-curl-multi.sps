@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,20 +25,21 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-  #;(vicare language-extensions syntaxes)
-  (prefix (vicare ffi) ffi.)
-  (vicare checks))
+#!vicare
+(program (test-vicare-curl-multi)
+  (options typed-language)
+  (import (vicare)
+    (prefix (vicare system structs) structs::)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** testing Vicare Libcurl bindings, multi API\n")
 
 (assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
-#;(struct-guardian-logger #t)
+#;(structs::struct-guardian-logger #t)
 
 
 ;;;; helpers
@@ -46,7 +47,7 @@
 
 
 (parametrise ((check-test-name			'init)
-	      (struct-guardian-logger		#f))
+	      (structs::struct-guardian-logger		#f))
 
   (check	;this will be garbage collected
       (let ((multi (curl-multi-init)))
@@ -250,5 +251,7 @@
 
 (collect)
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file

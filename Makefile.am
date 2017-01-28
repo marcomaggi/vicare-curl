@@ -115,13 +115,7 @@ VICARE_CURL_PLAIN_TESTS		= \
 	tests/test-vicare-curl-easy.sps		\
 	tests/test-vicare-curl-multi.sps
 
-# VICARE_CURL_NAU_TESTS		= \
-# 	tests/test-nausicaa-curl.sps
-
 TESTS	= $(VICARE_CURL_PLAIN_TESTS)
-# if WANT_NAUSICAA
-# TESTS	+= $(VICARE_CURL_NAU_TESTS)
-# endif
 
 EXTRA_DIST += \
 	$(VICARE_CURL_PLAIN_TESTS)		\

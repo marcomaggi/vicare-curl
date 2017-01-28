@@ -7,7 +7,7 @@
 
 
 
-  Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
+  Copyright (C) 2012, 2013, 2015, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 
   This program is  free software: you can redistribute  it and/or modify
   it under the  terms of the GNU General Public  License as published by
@@ -192,30 +192,35 @@ ikrt_curl_formadd_2 (ikptr s_form_data, ikptr s_last_item,
   int			isint1		= IK_IS_INTEGER(s_value_1);
   int			isint2		= IK_IS_INTEGER(s_value_2);
   CURLFORMcode		rv;
-  if (isint1 && isint2)
+  /* ik_print(s_option_1); */
+  /* ik_print(s_value_1); */
+  /* ik_print(s_option_2); */
+  /* ik_print(s_value_2); */
+  if (isint1 && isint2) {
     rv = curl_formadd
       (&first_item, &last_item,
        ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
        ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
        CURLFORM_END);
-  else if (isint1)
+  } else if (isint1) {
     rv = curl_formadd
       (&first_item, &last_item,
        ik_integer_to_int(s_option_1), ik_integer_to_long(s_value_1),
        ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
        CURLFORM_END);
-  else if (isint2)
+  } else if (isint2) {
     rv = curl_formadd
       (&first_item, &last_item,
        ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
        ik_integer_to_int(s_option_2), ik_integer_to_long(s_value_2),
        CURLFORM_END);
-  else
+  } else {
     rv = curl_formadd
       (&first_item, &last_item,
        ik_integer_to_int(s_option_1), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_1),
        ik_integer_to_int(s_option_2), IK_CHARP_FROM_BYTEVECTOR_OR_POINTER_OR_MBLOCK(s_value_2),
        CURLFORM_END);
+  }
   IK_POINTER_SET(s_form_data_ptr, first_item);
   IK_POINTER_SET(s_last_item, last_item);
   return ika_integer_from_curlcode(pcb, rv);

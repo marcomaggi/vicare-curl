@@ -33,12 +33,12 @@
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2012, 2013, 2015
+@set COPYRIGHT_YEARS            2012, 2013, 2015, 2017
 
 @c ------------------------------------------------------------
 
 @set FOREIGN_PACKAGE            Libcurl
-@set FOREIGN_VERSION            7.42.1
+@set FOREIGN_VERSION            7.52.1
 @set FOREIGN_URL                @url{http:/@//@/curl.haxx.se/@/libcurl/@/}
 @set FOREIGN_SCHEME_LIB         @library{vicare net curl}
 @set GITHUB_URL                 @url{http://github.com/marcomaggi/@value{PACKAGE_NICKNAME}}
@@ -194,14 +194,14 @@ constant value defined in the C language header @file{curl/curl.h}.
 
 The following Scheme libraries are installed:
 
-@table @library
-@item vicare net curl
+@table @asis
+@item @library{vicare net curl}
 It exports one binding for each @curl{} public function.  All the Scheme
 function names are directly derived from the C function names by
 replacing underscore characters @samp{_} with dash characters @samp{-};
 so @cfunc{curl_global_init} becomes @func{curl-global-init}.
 
-@item vicare net curl unsafe-capi
+@item @library{vicare net curl unsafe-capi}
 @cindex @library{vicare net curl unsafe-api}, library
 @cindex Library @library{vicare net curl unsafe-api}
 It exports one keyword syntactic binding for each @curl{} public
@@ -214,13 +214,13 @@ These syntaxes expand to a direct call to the C language wrapper
 functions in the @value{PACKAGE} library; they are not meant to be
 called in normal usage of the package.
 
-@item vicare net curl constants
+@item @library{vicare net curl constants}
 @cindex @library{vicare net curl constants}, library
 @cindex Library @library{vicare net curl constants}
 It exports one binding for each constant value defined in the C language
 headers @file{curl/curl.h}.
 
-@item vicare net curl features
+@item @library{vicare net curl features}
 @cindex @library{vicare net curl features}, library
 @cindex Library @library{vicare net curl features}
 It exports one identifier syntax binding for each @code{HAVE_} constant
@@ -1253,12 +1253,14 @@ using @func{curl-multi-perform}, @func{curl-multi-fdset} and the multi
 timer callback:
 
 @smallexample
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.))
+#!vicare
+(program (demo)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (prefix (vicare ffi) ffi.)
+    (prefix (vicare posix) px.))
 
 (define-inline (%pretty-print ?thing)
   (pretty-print ?thing (current-error-port)))
@@ -1282,7 +1284,7 @@ timer callback:
 
 (let* ((multi           (curl-multi-init))
        (easy            (curl-easy-init))
-       (milliseconds    -1)
+       (@{milliseconds <exact-integer>@}    -1)
        (rfdset          (px.make-fd-set-pointer))
        (wfdset          (px.make-fd-set-pointer))
        (write-cb        (make-curl-write-callback write-func))
@@ -1327,6 +1329,7 @@ timer callback:
     (ffi.free-c-callback timer-cb)
     (free rfdset)
     (free wfdset)))
+#| end of program |# )
 @end smallexample
 
 The following example downloads the page at @url{http://google.com/}
@@ -3853,6 +3856,8 @@ Given an instance of @code{curl-form-data} extract a string representing
 the current contents; if successful return the string, else return
 @false{}.
 @end defun
+
+
 @defun curl-formget @var{httppost} @var{custom-data} @var{callback}
 Invoke a @var{callback} for each line of content in @var{httppost}; when
 successful return @false{}, else return @true{}.
@@ -3914,9 +3919,12 @@ discarded and the callback returns the fixnum zero.
 Here is a meaningless usage of the callback:
 
 @example
-(import (rnrs)
-  (vicare net curl)
-  (vicare net curl constants))
+(program (demo)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (prefix (vicare ffi) ffi::))
 
 (assert (= CURLE_OK (curl-global-init CURL_GLOBAL_ALL)))
 
@@ -3928,7 +3936,7 @@ Here is a meaningless usage of the callback:
   CURLFORM_COPYCONTENTS "contents"
   CURLFORM_END)
 
-(define data "")
+(define @{data <string>@} "")
 (define callback
   (make-curl-formget-callback
     (lambda (custom-data cstring.ptr cstring.len)
@@ -3939,8 +3947,9 @@ Here is a meaningless usage of the callback:
 
 (curl-formget http-post #f callback)
 
-(ffi.free-c-callback callback)
+(ffi::free-c-callback callback)
 (curl-formfree http-post)
+#| end of program |# )
 @end example
 
 @c page

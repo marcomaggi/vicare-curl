@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,12 +25,14 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (prefix (vicare ffi) ffi.)
-  (vicare language-extensions syntaxes))
+#!vicare
+(program (demo-for-plain-documentation)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (prefix (vicare ffi) ffi::)
+    (vicare language-extensions syntaxes))
 
 
 ;;;; helpers
@@ -90,7 +92,7 @@
 	    (flush-output-port (current-output-port)))
 	;;Close the connection before releasing the callbacks!!!
 	(curl-easy-cleanup easy)
-	(ffi.free-c-callback write-cb)))
+	(ffi::free-c-callback write-cb)))
     ))
 
 
@@ -126,11 +128,12 @@
 	    (flush-output-port (current-output-port)))
 	;;Close the connection before releasing the callbacks!!!
 	(curl-easy-cleanup easy)
-	(ffi.free-c-callback write-cb)))
+	(ffi::free-c-callback write-cb)))
     ))
 
 
 ;;;; done
 
+#| end of program |# )
 
 ;;; end of file

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013, 2015 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2015, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,16 +25,18 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-  (prefix (vicare ffi) ffi.)
-  (prefix (vicare posix) px.)
-  (vicare language-extensions syntaxes)
-  (vicare platform constants)
-  (vicare checks))
+#!vicare
+(program (demo-for-plain-multi)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (prefix (vicare ffi) ffi::)
+    (prefix (vicare posix) px::)
+    (vicare language-extensions syntaxes)
+    (vicare platform constants)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** demonstrating Vicare Libcurl bindings, multi API\n")
@@ -109,8 +111,8 @@
 	    (curl-multi-cleanup multi)
 	    ;;Close the connection before releasing the callbacks!!!
 	    (curl-easy-cleanup easy)
-	    (ffi.free-c-callback write-cb)
-	    (ffi.free-c-callback debug-cb))))
+	    (ffi::free-c-callback write-cb)
+	    (ffi::free-c-callback debug-cb))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -132,8 +134,8 @@
 		(values code still-running)))))
 	(let ((multi	(curl-multi-init))
 	      (easy	(curl-easy-init))
-	      (rfdset	(px.make-fd-set-pointer))
-	      (wfdset	(px.make-fd-set-pointer))
+	      (rfdset	(px::make-fd-set-pointer))
+	      (wfdset	(px::make-fd-set-pointer))
 	      (write-cb	(make-curl-write-callback write-func)))
 	  (unwind-protect
 	      (begin
@@ -149,14 +151,14 @@
 				    (curl-multi-timeout multi)))
 			(when (and (= code CURLM_OK)
 				   (<= 0 milliseconds))
-			  (px.FD_ZERO rfdset)
-			  (px.FD_ZERO wfdset)
+			  (px::FD_ZERO rfdset)
+			  (px::FD_ZERO wfdset)
 			  (let-values (((code max-fd)
 					(curl-multi-fdset multi rfdset wfdset #f))
 				       ((secs nsecs)
 					(div-and-mod milliseconds 1000)))
 			    (when (= code CURLM_OK)
-			      (px.select-from-sets (+ 1 max-fd) rfdset wfdset #f secs nsecs)
+			      (px::select-from-sets (+ 1 max-fd) rfdset wfdset #f secs nsecs)
 			      (loop))))))))
 		(let-values (((msg nmsgs)
 			      (curl-multi-info-read multi)))
@@ -166,7 +168,7 @@
 	    ;;Close handles before releasing the callbacks!!!
 	    (curl-multi-cleanup multi)
 	    (curl-easy-cleanup easy)
-	    (ffi.free-c-callback write-cb)
+	    (ffi::free-c-callback write-cb)
 	    (free rfdset)
 	    (free wfdset))))
     => #t)
@@ -191,8 +193,8 @@
 	(let* ((multi		(curl-multi-init))
 	       (easy		(curl-easy-init))
 	       (milliseconds	-1)
-	       (rfdset		(px.make-fd-set-pointer))
-	       (wfdset		(px.make-fd-set-pointer))
+	       (rfdset		(px::make-fd-set-pointer))
+	       (wfdset		(px::make-fd-set-pointer))
 	       (write-cb	(make-curl-write-callback write-func))
 	       (timer-cb	(make-curl-multi-timer-callback
 				 (lambda (multi ms custom-data)
@@ -211,14 +213,14 @@
 				(%curl-multi-perform multi)))
 		    (when (and (not (zero? still-running))
 			       (<= 0 milliseconds))
-		      (px.FD_ZERO rfdset)
-		      (px.FD_ZERO wfdset)
+		      (px::FD_ZERO rfdset)
+		      (px::FD_ZERO wfdset)
 		      (let-values (((code max-fd)
 				    (curl-multi-fdset multi rfdset wfdset #f))
 				   ((secs nsecs)
 				    (div-and-mod milliseconds 1000)))
 			(when (= code CURLM_OK)
-			  (px.select-from-sets (+ 1 max-fd) rfdset wfdset #f secs nsecs)
+			  (px::select-from-sets (+ 1 max-fd) rfdset wfdset #f secs nsecs)
 			  (loop))))))
 		(let-values (((msg nmsgs)
 			      (curl-multi-info-read multi)))
@@ -228,8 +230,8 @@
 	    ;;Close handles before releasing the callbacks!!!
 	    (curl-multi-cleanup multi)
 	    (curl-easy-cleanup easy)
-	    (ffi.free-c-callback write-cb)
-	    (ffi.free-c-callback timer-cb)
+	    (ffi::free-c-callback write-cb)
+	    (ffi::free-c-callback timer-cb)
 	    (free rfdset)
 	    (free wfdset))))
     => #t)
@@ -239,17 +241,18 @@
 
 (parametrise ((check-test-name	'select))
 
-  (define-struct pending-socks
-    (rd-requests
+  (define-record-type pending-socks
+    (fields
+      (mutable rd-requests)
 		;Null or a list of  socket descriptors for which reading
 		;is requested.
-     wr-requests
+      (mutable wr-requests)
 		;Null or a list of  socket descriptors for which writing
 		;is requested.
-     rw-requests
+      (mutable rw-requests)
 		;Null or a list of  socket descriptors for which reading
 		;or writing is requested.
-     ))
+      #| end of fields |# ))
 
   (define (%make-pending-socks)
     (make-pending-socks '() '() '()))
@@ -260,37 +263,37 @@
     (pending-socks-remove-from-rw-requests! ps sock-fd))
 
   (define (pending-socks-remove-from-rd-requests! ps sock-fd)
-    (set-pending-socks-rd-requests! ps (remq sock-fd (pending-socks-rd-requests ps))))
+    (pending-socks-rd-requests-set! ps (remq sock-fd (pending-socks-rd-requests ps))))
 
   (define (pending-socks-remove-from-wr-requests! ps sock-fd)
-    (set-pending-socks-wr-requests! ps (remq sock-fd (pending-socks-wr-requests ps))))
+    (pending-socks-wr-requests-set! ps (remq sock-fd (pending-socks-wr-requests ps))))
 
   (define (pending-socks-remove-from-rw-requests! ps sock-fd)
-    (set-pending-socks-rw-requests! ps (remq sock-fd (pending-socks-rw-requests ps))))
+    (pending-socks-rw-requests-set! ps (remq sock-fd (pending-socks-rw-requests ps))))
 
   (define (pending-socks-rd-request! ps sock-fd)
-    (set-pending-socks-rd-requests! ps (cons sock-fd (pending-socks-rd-requests ps))))
+    (pending-socks-rd-requests-set! ps (cons sock-fd (pending-socks-rd-requests ps))))
 
   (define (pending-socks-wr-request! ps sock-fd)
-    (set-pending-socks-wr-requests! ps (cons sock-fd (pending-socks-wr-requests ps))))
+    (pending-socks-wr-requests-set! ps (cons sock-fd (pending-socks-wr-requests ps))))
 
   (define (pending-socks-rw-request! ps sock-fd)
-    (set-pending-socks-rw-requests!
+    (pending-socks-rw-requests-set!
      ps (cons sock-fd (pending-socks-rw-requests ps))))
 
-  #;(define (pending-socks-clean-rd-requests! ps)
-  (set-pending-socks-rd-requests! ps '()))
+  ;; (define (pending-socks-clean-rd-requests! ps)
+  ;;   (pending-socks-rd-requests-set! ps '()))
 
-  #;(define (pending-socks-clean-wr-requests! ps)
-  (set-pending-socks-wr-requests! ps '()))
+  ;; (define (pending-socks-clean-wr-requests! ps)
+  ;;   (pending-socks-wr-requests-set! ps '()))
 
-  #;(define (pending-socks-clean-rw-requests! ps)
-  (set-pending-socks-rw-requests! ps '()))
+  ;; (define (pending-socks-clean-rw-requests! ps)
+  ;;   (pending-socks-rw-requests-set! ps '()))
 
   (define (%curl-multi-socket-action multi sock-fd events)
     (let loop ()
-      (let-values (((code still-running)
-		    (curl-multi-socket-action multi sock-fd events)))
+      (receive (code still-running)
+	  (curl-multi-socket-action multi sock-fd events)
 	(if (= code CURLM_CALL_MULTI_PERFORM)
 	    (loop)
 	  (values code still-running)))))
@@ -331,14 +334,14 @@
       ;;socket descriptors ready  for reading; null or a  list of socket
       ;;descriptors ready for writing.
       ;;
-      (let ((fdsets (px.make-fd-set-bytevector 3)))
+      (let ((fdsets (px::make-fd-set-bytevector 3)))
 	(%set-requests rd-requests fdsets 0)
 	(%set-requests wr-requests fdsets 1)
 	(%set-requests rw-requests fdsets 0)
 	(%set-requests rw-requests fdsets 1)
 	(cond ((let-values (((secs nsecs)
 			     (div-and-mod milliseconds 1000)))
-		 (px.select-from-sets-array FD_SETSIZE fdsets secs nsecs))
+		 (px::select-from-sets-array FD_SETSIZE fdsets secs nsecs))
 	       => (lambda (fdsets)
 		    (values (%filter-ready (append rd-requests rw-requests)
 					   fdsets 0)
@@ -356,7 +359,7 @@
 	(if (null? requests)
 	    ready
 	  (let ((sock-fd (car requests)))
-	    (if (px.FD_ISSET sock-fd fdsets idx)
+	    (if (px::FD_ISSET sock-fd fdsets idx)
 		(loop (cons sock-fd ready) (cdr requests))
 	      (loop ready (cdr requests)))))))
 
@@ -365,7 +368,7 @@
       ;;index IDX; return unspecified values.
       ;;
       (for-each (lambda (sock-fd)
-		  (px.FD_SET sock-fd fdsets idx))
+		  (px::FD_SET sock-fd fdsets idx))
 	requests))
 
     #| end of module |# )
@@ -419,9 +422,9 @@
 	  ;;Close handles before releasing the callbacks!!!
 	  (curl-multi-cleanup multi)
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback timer-cb)
-	  (ffi.free-c-callback socket-cb)
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback timer-cb)
+	  (ffi::free-c-callback socket-cb)
 	  (forget-to-avoid-collecting pending-socks-pointer)))
     => #t)
 
@@ -430,17 +433,18 @@
 
 (parametrise ((check-test-name	'wait))
 
-  (define-struct pending-socks
-    (rd-requests
+  (define-record-type pending-socks
+    (fields
+      (mutable rd-requests)
 		;Null or a list of  socket descriptors for which reading
 		;is requested.
-     wr-requests
+      (mutable wr-requests)
 		;Null or a list of  socket descriptors for which writing
 		;is requested.
-     rw-requests
+      (mutable rw-requests)
 		;Null or a list of  socket descriptors for which reading
 		;or writing is requested.
-     ))
+      #| end of fields |# ))
 
   (define (%make-pending-socks)
     (make-pending-socks '() '() '()))
@@ -451,30 +455,29 @@
     (pending-socks-remove-from-rw-requests! ps sock-fd))
 
   (define (pending-socks-remove-from-rd-requests! ps sock-fd)
-    (set-pending-socks-rd-requests! ps (remq sock-fd (pending-socks-rd-requests ps))))
+    (pending-socks-rd-requests-set! ps (remq sock-fd (pending-socks-rd-requests ps))))
 
   (define (pending-socks-remove-from-wr-requests! ps sock-fd)
-    (set-pending-socks-wr-requests! ps (remq sock-fd (pending-socks-wr-requests ps))))
+    (pending-socks-wr-requests-set! ps (remq sock-fd (pending-socks-wr-requests ps))))
 
   (define (pending-socks-remove-from-rw-requests! ps sock-fd)
-    (set-pending-socks-rw-requests! ps (remq sock-fd (pending-socks-rw-requests ps))))
+    (pending-socks-rw-requests-set! ps (remq sock-fd (pending-socks-rw-requests ps))))
 
   (define (pending-socks-rd-request! ps sock-fd)
-    (set-pending-socks-rd-requests! ps (cons sock-fd (pending-socks-rd-requests ps))))
+    (pending-socks-rd-requests-set! ps (cons sock-fd (pending-socks-rd-requests ps))))
 
   (define (pending-socks-wr-request! ps sock-fd)
-    (set-pending-socks-wr-requests! ps (cons sock-fd (pending-socks-wr-requests ps))))
+    (pending-socks-wr-requests-set! ps (cons sock-fd (pending-socks-wr-requests ps))))
 
   (define (pending-socks-rw-request! ps sock-fd)
-    (set-pending-socks-rw-requests!
-     ps (cons sock-fd (pending-socks-rw-requests ps))))
+    (pending-socks-rw-requests-set! ps (cons sock-fd (pending-socks-rw-requests ps))))
 
 ;;; --------------------------------------------------------------------
 
   (define (%curl-multi-socket-action multi sock-fd events)
     (let loop ()
-      (let-values (((code still-running)
-		    (curl-multi-socket-action multi sock-fd events)))
+      (receive (code still-running)
+	  (curl-multi-socket-action multi sock-fd events)
 	(if (= code CURLM_CALL_MULTI_PERFORM)
 	    (loop)
 	  (values code still-running)))))
@@ -560,9 +563,9 @@
 	  ;;Close handles before releasing the callbacks!!!
 	  (curl-multi-cleanup multi)
 	  (curl-easy-cleanup easy)
-	  (ffi.free-c-callback write-cb)
-	  (ffi.free-c-callback timer-cb)
-	  (ffi.free-c-callback socket-cb)
+	  (ffi::free-c-callback write-cb)
+	  (ffi::free-c-callback timer-cb)
+	  (ffi::free-c-callback socket-cb)
 	  (forget-to-avoid-collecting pending-socks-pointer)))
     => #t)
 
@@ -573,5 +576,7 @@
 
 (collect)
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file

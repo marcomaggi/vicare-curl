@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012, 2013 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2013, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,14 +25,16 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-  #;(vicare language-extensions syntaxes)
-  (prefix (vicare ffi) ffi.)
-  (vicare checks))
+#!vicare
+(program (test-vicare-curl-core)
+  (options typed-language)
+  (import (vicare)
+    (prefix (vicare system structs) structs::)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (prefix (vicare ffi) ffi::)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** testing Vicare Libcurl bindings, core functions\n")
@@ -42,17 +44,23 @@
 
 ;;;; helpers
 
+(define-syntax no-values
+  (syntax-rules ()
+    ((_ ?expr)
+     (receive ()
+	 ?expr
+       #t))))
 
 
 (parametrise ((check-test-name	'misc))
 
   (check
-      (curl-free (null-pointer))
-    => (void))
+      (no-values (curl-free (null-pointer)))
+    => #t)
 
   (check
-      (curl-free #f)
-    => (void))
+      (no-values (curl-free #f))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -67,25 +75,25 @@
 
   (check
       (let ((slist (curl-slist-append #f "ciao")))
-	(curl-slist-free-all slist))
-    => (void))
+	(no-values (curl-slist-free-all slist)))
+    => #t)
 
   (check
       (let ((slist (curl-slist-append (null-pointer) "ciao")))
-	(curl-slist-free-all slist))
-    => (void))
+	(no-values (curl-slist-free-all slist)))
+    => #t)
 
   (check
       (let ((slist (curl-slist-append "ciao")))
-	(curl-slist-free-all slist))
-    => (void))
+	(no-values (curl-slist-free-all slist)))
+    => #t)
 
   (check
       (let* ((slist (curl-slist-append "ciao"))
 	     (slist (curl-slist-append slist "hello"))
 	     (slist (curl-slist-append slist "salut")))
-	(curl-slist-free-all slist))
-    => (void))
+	(no-values (curl-slist-free-all slist)))
+    => #t)
 
   (check
       (let* ((slist (curl-slist-append "ciao"))
@@ -118,11 +126,11 @@
 
 
 (parametrise ((check-test-name		'formdata)
-	      (struct-guardian-logger	#f))
+	      (structs::struct-guardian-logger	#f))
 
   (check
-      (curl-formfree (make-curl-form-data))
-    => (void))
+      (no-values (curl-formfree (make-curl-form-data)))
+    => #t)
 
   (check
       (let ((post (make-curl-form-data)))
@@ -135,7 +143,7 @@
 				      CURLFORM_COPYNAME "name"
 				      CURLFORM_COPYCONTENTS "contents"
 				      CURLFORM_END)))
-	(when (and #f (= rv CURL_FORMADD_OK))
+	(when (and #t (= rv CURL_FORMADD_OK))
 	  ;;Notice  that  the  generated  string  contains  some  random
 	  ;;characters to define a unique  boundary for the contents, so
 	  ;;we cannot CHECK the result.
@@ -156,7 +164,7 @@
 	;; (check-pretty-print
 	;;  (list (curl-constant-form-add->symbol rv1)
 	;;        (curl-constant-form-add->symbol rv2)))
-	(when (and #f
+	(when (and #t
 		   (= rv1 CURL_FORMADD_OK)
 		   (= rv2 CURL_FORMADD_OK))
 	  ;;Notice  that  the  generated  string  contains  some  random
@@ -174,7 +182,7 @@
 				      CURLFORM_COPYNAME "name"
 				      CURLFORM_COPYCONTENTS "contents"
 				      CURLFORM_END)))
-	(let* ((data	"")
+	(let* (({data <string>}	"")
 	       (cb	(make-curl-formget-callback
 			 (lambda (custom-data cstring.ptr cstring.len)
 			   (set! data (string-append data
@@ -187,14 +195,14 @@
 		    ;;(check-pretty-print data)
 		    rv)
 		rv)
-	    (ffi.free-c-callback cb)
+	    (ffi::free-c-callback cb)
 	    (curl-formfree post))))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((data	"")
+      (let* (({data <string>}	"")
 	     (cb	(make-curl-formget-callback
 			 (lambda (custom-data cstring.ptr cstring.len)
 			   (set! data (string-append data
@@ -213,14 +221,14 @@
 		(curl-formget post #f cb)
 	      rv)
 ;;;(check-pretty-print data)
-	  (ffi.free-c-callback cb)
+	  (ffi::free-c-callback cb)
 	  (curl-formfree post)))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((data	"")
+      (let* (({data <string>}	"")
 	     (cb	(make-curl-formget-callback
 			 (lambda (custom-data cstring.ptr cstring.len)
 			   (set! data (string-append data
@@ -238,14 +246,14 @@
 		(curl-formget post #f cb)
 	      rv)
 ;;;(check-pretty-print data)
-	  (ffi.free-c-callback cb)
+	  (ffi::free-c-callback cb)
 	  (curl-formfree post)))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((data	"")
+      (let* (({data <string>}	"")
 	     (cb	(make-curl-formget-callback
 			 (lambda (custom-data cstring.ptr cstring.len)
 			   (set! data (string-append data
@@ -265,7 +273,7 @@
 		(curl-formget post #f cb)
 	      rv)
 ;;;(check-pretty-print data)
-	  (ffi.free-c-callback cb)
+	  (ffi::free-c-callback cb)
 	  #;(curl-formfree post)))
     => #f)
 
@@ -277,8 +285,8 @@
        (let ((httppost (make-curl-form-data)))
 	 (set-curl-form-data-custom-destructor! httppost (lambda (httppost)
 							   (add-result 123)))
-	 (curl-formfree httppost)))
-    => `(,(void) (123)))
+	 (no-values (curl-formfree httppost))))
+    => '(#t (123)))
 
   (collect))
 
@@ -311,7 +319,7 @@
 
 
 (parametrise ((check-test-name		'shares)
-	      (struct-guardian-logger	#f))
+	      (structs::struct-guardian-logger	#f))
 
   (check
       (let ((share (curl-share-init)))
@@ -363,7 +371,7 @@
 	(unwind-protect
 	    (curl-share-setopt share CURLSHOPT_LOCKFUNC cb)
 	  (curl-share-cleanup share)
-	  (ffi.free-c-callback cb)))
+	  (ffi::free-c-callback cb)))
     => CURLSHE_OK)
 
   (check
@@ -405,5 +413,7 @@
 ;;;; done
 
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file

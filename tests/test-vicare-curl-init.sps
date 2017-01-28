@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (C) 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (C) 2012, 2017 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,14 +25,15 @@
 ;;;
 
 
-#!r6rs
-(import (vicare)
-  (vicare net curl)
-  (vicare net curl constants)
-  (vicare net curl features)
-  #;(vicare language-extensions syntaxes)
-  (prefix (vicare ffi) ffi.)
-  (vicare checks))
+#!vicare
+(program (test-vicare-curl-init)
+  (options typed-language)
+  (import (vicare)
+    (vicare net curl)
+    (vicare net curl constants)
+    (vicare net curl features)
+    (prefix (vicare ffi) ffi::)
+    (vicare checks))
 
 (check-set-mode! 'report-failed)
 (check-display "*** testing Vicare Libcurl bindings, init functions\n")
@@ -61,11 +62,11 @@
 	      (curl-global-init-mem CURL_GLOBAL_ALL
 				    malloc free realloc strdup calloc)
 	      (curl-global-cleanup))
-	  (ffi.free-c-callback malloc)
-	  (ffi.free-c-callback free)
-	  (ffi.free-c-callback realloc)
-	  (ffi.free-c-callback strdup)
-	  (ffi.free-c-callback calloc)))
+	  (ffi::free-c-callback malloc)
+	  (ffi::free-c-callback free)
+	  (ffi::free-c-callback realloc)
+	  (ffi::free-c-callback strdup)
+	  (ffi::free-c-callback calloc)))
     => CURLE_OK)
 
   #t)
@@ -74,5 +75,7 @@
 ;;;; done
 
 (check-report)
+
+#| end of program |# )
 
 ;;; end of file
