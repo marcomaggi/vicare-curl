@@ -18,8 +18,8 @@ Topics
 ---------------
 
 This package  is a  distribution of  C and  Scheme libraries  for Vicare
-Scheme, an  R6RS compliant  Scheme implementation; it  provides bindings
-for the Libcurl C language library.
+Scheme, a Scheme  language implementation; it provides  bindings for the
+Libcurl C language library.
 
   cURL is a tool to transfer data from  or to a server, using one of the
 supported protocols (HTTP, HTTPS, FTP, FTPS, TFTP, DICT, TELNET, LDAP or

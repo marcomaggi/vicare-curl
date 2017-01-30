@@ -5,7 +5,7 @@ Subject: [announce] Vicare/cURL revision 0.4d1
 
 
 This package  is a  distribution of  C and  Scheme libraries  for Vicare
-Scheme, an R6RS compliant Scheme implementation  in the form of a native
+Scheme,  a  Scheme language  implementation  in  the  form of  a  native
 compiler for x86 architectures, officially supporting GNU+Linux systems;
 it provides bindings for the Libcurl C language library.
 

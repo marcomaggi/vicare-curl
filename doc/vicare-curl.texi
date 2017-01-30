@@ -65,15 +65,13 @@ cURL
 @c ------------------------------------------------------------
 
 @copying
-This document describes version @version{} of @value{PACKAGE}, a
-distribution of C and Scheme libraries for Vicare Scheme, an @rnrs{6}
-compliant Scheme implementation; it provides bindings for the
+This document describes version @version{} of @value{PACKAGE}, a distribution of C and Scheme
+libraries for Vicare Scheme, a Scheme language implementation; it provides bindings for the
 @value{FOREIGN_PACKAGE} C language library.
 
-@curl{} is a tool to transfer data from or to a server, using one of the
-supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
-@acronym{TFTP}, @acronym{DICT}, @acronym{TELNET}, @acronym{LDAP} or
-@acronym{FILE}).
+@curl{} is a tool to transfer data from or to a server, using one of the supported protocols
+(@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS}, @acronym{TFTP}, @acronym{DICT}, @acronym{TELNET},
+@acronym{LDAP} or @acronym{FILE}).
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -144,7 +142,18 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* plain::                       Plain interface.
+* version::                     @curl{} version informations.
+* init::                        Global initialisation and
+                                finalisation.
+* easy::                        Easy operations.
+* multi::                       Multi operations.
+* callbacks::                   Callback makers.
+* slists::                      String lists.
+* forms::                       Multipart/formdata composition.
+* shares::                      Shared configuration option sets.
+* cstructs::                    Accessing C language data structures.
+* misc::                        Miscellaneous functions.
+* symbols::                     Constant to symbol conversions.
 
 Appendices
 
@@ -166,22 +175,19 @@ Indexes
 @chapter Overview of the package
 
 
-Vicare Scheme is an @rnrs{6} compliant Scheme language implementation in
-the form of a native compiler for x86 architectures, officially
-supporting @gnu{}+Linux systems.  @value{PACKAGE} is a distribution of C
-language and Scheme language libraries for Vicare Scheme; it provides
-bindings for the @value{FOREIGN_PACKAGE} C language library.
+Vicare Scheme is Scheme language implementation in the form of a native compiler for x86
+architectures, officially supporting @gnu{}+Linux systems.  @value{PACKAGE} is a distribution of C
+language and Scheme language libraries for Vicare Scheme; it provides bindings for the
+@value{FOREIGN_PACKAGE} C language library.
 
 @curl{} is a tool to transfer data from or to a server, using one of the
 supported protocols (@http{}, @acronym{HTTPS}, @ftp{}, @acronym{FTPS},
 @acronym{TFTP}, @acronym{DICT}, @acronym{TELNET}, @acronym{LDAP} or
 @acronym{FILE}).
 
-The last time the author bothered to update this paragraph, he had
-tested @value{FOREIGN_PACKAGE} version @value{FOREIGN_VERSION}; however,
-@value{PACKAGE} is written to be used with previous versions of
-@var{FOREIGN_PACKAGE}, too.  The @value{FOREIGN_PACKAGE} library is
-available at:
+The last time the author bothered to update this paragraph, he had tested @value{FOREIGN_PACKAGE}
+version @value{FOREIGN_VERSION}; however, @value{PACKAGE} is written to be used with previous
+versions of @value{FOREIGN_PACKAGE}, too.  The @value{FOREIGN_PACKAGE} library is available at:
 
 @center @value{FOREIGN_URL}
 
@@ -192,7 +198,8 @@ for each @value{FOREIGN_PACKAGE} public function; additionally the
 library @library{vicare net curl constants} exports one binding for each
 constant value defined in the C language header @file{curl/curl.h}.
 
-The following Scheme libraries are installed:
+The Scheme libraries are implemented using Vicare's typed language.  The following Scheme libraries
+are installed:
 
 @table @asis
 @item @library{vicare net curl}
@@ -228,35 +235,16 @@ defined by the @command{configure} script, expanding to @true{} or
 @false{}.
 @end table
 
+Scheme libraries are installed under the directory:
+
+@center @file{$(libdir)/vicare-scheme}
+
 This document contains only a brief description of the functions: refer
 to the @value{FOREIGN_PACKAGE}'s documentation for details.
 
 @c page
-@node plain
-@chapter Plain interface
-
-
-@cindex @library{vicare net curl}, library
-@cindex Library @library{vicare net curl}
-
-@menu
-* plain version::               @curl{} version informations.
-* plain init::                  Global initialisation and
-                                finalisation.
-* plain easy::                  Easy operations.
-* plain multi::                 Multi operations.
-* plain callbacks::             Callback makers.
-* plain slists::                String lists.
-* plain forms::                 Multipart/formdata composition.
-* plain shares::                Shared configuration option sets.
-* plain cstructs::              Accessing C language data structures.
-* plain misc::                  Miscellaneous functions.
-* plain symbols::               Constant to symbol conversions.
-@end menu
-
-@c page
-@node plain version
-@section @curl{} version informations
+@node version
+@chapter @curl{} version informations
 
 
 The installed C library follows version numbering as established by the
@@ -458,23 +446,9 @@ is set.
 @end example
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-version-info-data @var{obj}
-@deffnx {Validation Clause} false-or-curl-version-info-data @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-version-info-data?}; the second
-clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain init
-@section Global initialisation and finalisation
+@node init
+@chapter Global initialisation and finalisation
 
 
 The following bindings are exported by the library @library{vicare net
@@ -573,24 +547,24 @@ handle raw memory allocation:
 @end example
 
 @c page
-@node plain easy
-@section Easy operations
+@node easy
+@chapter Easy operations
 
 
 @menu
-* plain easy struct::           Easy operations handle.
-* plain easy init::             Easy initialisation and finalisation.
-* plain easy config::           Selecting options for easy operations.
-* plain easy perform::          Performing easy operations.
-* plain easy info::             Retrieving transfer informations.
-* plain easy data::             Sending and receiving raw data.
-* plain easy escape::           Escaping @aurl{} strings.
-* plain easy misc::             Miscellaneous functions.
+* easy struct::           Easy operations handle.
+* easy init::             Easy initialisation and finalisation.
+* easy config::           Selecting options for easy operations.
+* easy perform::          Performing easy operations.
+* easy info::             Retrieving transfer informations.
+* easy data::             Sending and receiving raw data.
+* easy escape::           Escaping @aurl{} strings.
+* easy misc::             Miscellaneous functions.
 @end menu
 
 @c page
-@node plain easy struct
-@subsection Easy operations handle
+@node easy struct
+@section Easy operations handle
 
 
 The following bindings are exported by the library @library{vicare net
@@ -669,30 +643,9 @@ Notice that @var{func} can be used to associate some state to
 @end example
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-easy @var{obj}
-@deffnx {Validation Clause} false-or-curl-easy @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-easy?}; the
-second clause also accepts @false{}.
-@end deffn
-
-
-@deffn {Validation Clause} curl-easy/alive @var{obj}
-@deffnx {Validation Clause} false-or-curl-easy/alive @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-easy?/alive};
-the second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain easy init
-@subsection Easy initialisation and finalisation
+@node easy init
+@section Easy initialisation and finalisation
 
 
 The following bindings are exported by the library @library{vicare net
@@ -726,8 +679,8 @@ unspecified values.  @curlman{curl_easy_reset}.
 @end defun
 
 @c page
-@node plain easy config
-@subsection Selecting options for easy operations
+@node easy config
+@section Selecting options for easy operations
 
 
 The following bindings are exported by the library @library{vicare net
@@ -768,8 +721,8 @@ instance of @code{curl-share}.
 @end defun
 
 @c page
-@node plain easy perform
-@subsection Performing easy operations
+@node easy perform
+@section Performing easy operations
 
 
 The following bindings are exported by the library @library{vicare net
@@ -798,8 +751,8 @@ combination of the @code{CURLPAUSE_} constants: @code{CURLPAUSE_RECV},
 @end defun
 
 @c page
-@node plain easy info
-@subsection Retrieving transfer informations
+@node easy info
+@section Retrieving transfer informations
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1044,8 +997,8 @@ short):
 @end example
 
 @c page
-@node plain easy data
-@subsection Sending and receiving raw data
+@node easy data
+@section Sending and receiving raw data
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1094,8 +1047,8 @@ buffer from which sent data will be read.
 @end defun
 
 @c page
-@node plain easy escape
-@subsection Escaping @aurl{} strings
+@node easy escape
+@section Escaping @aurl{} strings
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1136,8 +1089,8 @@ Like @func{curl-easy-unescape}, but return a string.
 @end defun
 
 @c page
-@node plain easy misc
-@subsection Miscellaneous functions
+@node easy misc
+@section Miscellaneous functions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1151,26 +1104,26 @@ error code; if @var{code} is invalid, return @false{}.
 @end defun
 
 @c page
-@node plain multi
-@section Multi operations
+@node multi
+@chapter Multi operations
 
 
 @menu
-* plain multi examples::        Some simple usage examples.
-* plain multi struct::          Multi operations handle.
-* plain multi init::            Multi initialisation and finalisation.
-* plain multi easy::            Adding and removing easy handles.
-* plain multi config::          Selecting options for multi operations.
-* plain multi perform::         Performing multi operations.
-* plain multi sockets::         Performing multi operations with
+* multi examples::        Some simple usage examples.
+* multi struct::          Multi operations handle.
+* multi init::            Multi initialisation and finalisation.
+* multi easy::            Adding and removing easy handles.
+* multi config::          Selecting options for multi operations.
+* multi perform::         Performing multi operations.
+* multi sockets::         Performing multi operations with
                                 socket descriptors.
-* plain multi misc::            Miscellaneous functions for multi
+* multi misc::            Miscellaneous functions for multi
                                 handles.
 @end menu
 
 @c page
-@node plain multi examples
-@subsection Some simple usage examples
+@node multi examples
+@section Some simple usage examples
 
 
 The following example downloads the page at @url{http://google.com/}
@@ -1549,8 +1502,8 @@ multi timer callback:
 @end smallexample
 
 @c page
-@node plain multi struct
-@subsection Multi operations handle
+@node multi struct
+@section Multi operations handle
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1630,30 +1583,9 @@ Notice that @var{func} can be used to associate some state to
 @end example
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-multi @var{obj}
-@deffnx {Validation Clause} false-or-curl-multi @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-multi?}; the
-second clause also accepts @false{}.
-@end deffn
-
-
-@deffn {Validation Clause} curl-multi/alive @var{obj}
-@deffnx {Validation Clause} false-or-curl-multi/alive @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-multi?/alive};
-the second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain multi init
-@subsection Multi initialisation and finalisation
+@node multi init
+@section Multi initialisation and finalisation
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1685,8 +1617,8 @@ handles from the context of @var{multi}.
 @end defun
 
 @c page
-@node plain multi easy
-@subsection Adding and removing easy handles
+@node multi easy
+@section Adding and removing easy handles
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1747,8 +1679,8 @@ Here is a meaningless example of adding and removing:
 @end example
 
 @c page
-@node plain multi config
-@subsection Selecting options for multi operations
+@node multi config
+@section Selecting options for multi operations
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1833,8 +1765,8 @@ Here are meaningless examples of setting options:
 @end example
 
 @c page
-@node plain multi perform
-@subsection Performing multi operations
+@node multi perform
+@section Performing multi operations
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1908,22 +1840,22 @@ Here is an example of performance:
 @end smallexample
 
 @c page
-@node plain multi sockets
-@subsection Performing multi operations with socket descriptors
+@node multi sockets
+@section Performing multi operations with socket descriptors
 
 
 @menu
-* plain multi sockets fdsets::  Using file descriptor sets and @func{select}.
-* plain multi sockets polls::   Using file descriptors and @func{poll}.
-* plain multi sockets action::  Performing actions.
-* plain multi sockets data::    Associating custom data to file
+* multi sockets fdsets::  Using file descriptor sets and @func{select}.
+* multi sockets polls::   Using file descriptors and @func{poll}.
+* multi sockets action::  Performing actions.
+* multi sockets data::    Associating custom data to file
                                 descriptors.
-* plain multi sockets depre::   Deprecated functions.
+* multi sockets depre::   Deprecated functions.
 @end menu
 
 @c page
-@node plain multi sockets fdsets
-@subsubsection Using file descriptor sets and @func{select}
+@node multi sockets fdsets
+@subsection Using file descriptor sets and @func{select}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -1954,8 +1886,8 @@ allocated and used.
 @end defun
 
 @c page
-@node plain multi sockets polls
-@subsubsection Using file descriptors and @func{poll}
+@node multi sockets polls
+@subsection Using file descriptors and @func{poll}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2183,23 +2115,9 @@ The following is a usage example for @func{curl-multi-wait} and
     (forget-to-avoid-collecting pending-socks-pointer)))
 @end smallexample
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-waitfd @var{obj}
-@deffnx {Validation Clause} false-or-curl-waitfd @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-waitfd?}; the
-second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain multi sockets action
-@subsubsection Performing actions
+@node multi sockets action
+@subsection Performing actions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2252,8 +2170,8 @@ else return the values: a @code{CURLM_} error code and @false{}.
 @end defun
 
 @c page
-@node plain multi sockets data
-@subsubsection Associating custom data to file descriptors
+@node multi sockets data
+@subsection Associating custom data to file descriptors
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2273,8 +2191,8 @@ internally converted to a @cnull{} pointer.
 @end defun
 
 @c page
-@node plain multi sockets depre
-@subsubsection Deprecated functions
+@node multi sockets depre
+@subsection Deprecated functions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2291,8 +2209,8 @@ This function is deprecated.  @curlman{curl_multi_socket_all}.
 @end defun
 
 @c page
-@node plain multi misc
-@subsection Miscellaneous functions for multi handles
+@node multi misc
+@section Miscellaneous functions for multi handles
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2314,8 +2232,8 @@ An exact integer representing the number of messages from the queue.
 
 @curlman{curl_multi_info_read}.
 
-We can access the fields of a @code{CURLMsg} structure with the
-@code{curl-msg} functions; @ref{plain cstructs msg} for details.
+We can access the fields of a @code{CURLMsg} structure with the @code{curl-msg} functions;
+@ref{cstructs msg} for details.
 @end defun
 
 
@@ -2326,48 +2244,48 @@ if no message is available.  @curlman{curl_multi_strerror}.
 @end defun
 
 @c page
-@node plain callbacks
-@section Callback makers
+@node callbacks
+@chapter Callback makers
 
 
 @menu
 Easy @api{} callbacks
 
-* plain callbacks write::       Receiving data from a file transfer.
-* plain callbacks read::        Sending data to a file transfer.
-* plain callbacks ioctl::       Special control of a file transfer.
-* plain callbacks seek::        Seeking into an outgoing file.
-* plain callbacks sockopt::     Additional options for socket
+* callbacks write::       Receiving data from a file transfer.
+* callbacks read::        Sending data to a file transfer.
+* callbacks ioctl::       Special control of a file transfer.
+* callbacks seek::        Seeking into an outgoing file.
+* callbacks sockopt::     Additional options for socket
                                 descriptors.
-* plain callbacks opensocket::  Opening a socket descriptor.
-* plain callbacks closesocket:: Closing a socket descriptor.
-* plain callbacks progress::    Tracking file transfer progress.
-* plain callbacks header::      Receiving headers from file transfer.
-* plain callbacks debug::       Debugging callback.
-* plain callbacks sslctx::      OpenSSL context configuration.
-* plain callbacks tonet::       Converting from host encoding to
+* callbacks opensocket::  Opening a socket descriptor.
+* callbacks closesocket:: Closing a socket descriptor.
+* callbacks progress::    Tracking file transfer progress.
+* callbacks header::      Receiving headers from file transfer.
+* callbacks debug::       Debugging callback.
+* callbacks sslctx::      OpenSSL context configuration.
+* callbacks tonet::       Converting from host encoding to
                                 network encoding.
-* plain callbacks fromnet::     Converting from network encoding to
+* callbacks fromnet::     Converting from network encoding to
                                 host encoding.
-* plain callbacks fromutf8::    Converting from @utf{}-8 to
+* callbacks fromutf8::    Converting from @utf{}-8 to
                                 host encoding.
-* plain callbacks interleave::  Processing interleaved @acronym{RTP} data.
-* plain callbacks chunk::       Processing informations about
+* callbacks interleave::  Processing interleaved @acronym{RTP} data.
+* callbacks chunk::       Processing informations about
                                 chunks of data.
-* plain callbacks fnmatch::     Implementing wildcard matching.
-* plain callbacks sshkey::      Accepting or rejecting @acronym{SSH} connections.
-* plain callbacks xferinfo::    Getting notifications of timeouts.
+* callbacks fnmatch::     Implementing wildcard matching.
+* callbacks sshkey::      Accepting or rejecting @acronym{SSH} connections.
+* callbacks xferinfo::    Getting notifications of timeouts.
 
 Multi @api{} callbacks
 
-* plain callbacks socket::      Getting informations about
+* callbacks socket::      Getting informations about
                                 socket status.
-* plain callbacks mtimer::      Getting notifications of timeouts.
+* callbacks mtimer::      Getting notifications of timeouts.
 @end menu
 
 @c page
-@node plain callbacks write
-@subsection Receiving data from a file transfer
+@node callbacks write
+@section Receiving data from a file transfer
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2423,8 +2341,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks read
-@subsection Sending data to a file transfer
+@node callbacks read
+@section Sending data to a file transfer
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2484,8 +2402,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks ioctl
-@subsection Special control of a file transfer
+@node callbacks ioctl
+@section Special control of a file transfer
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2539,8 +2457,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks seek
-@subsection Seeking into an outgoing file
+@node callbacks seek
+@section Seeking into an outgoing file
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2596,8 +2514,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks sockopt
-@subsection Additional options for socket descriptors
+@node callbacks sockopt
+@section Additional options for socket descriptors
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2653,8 +2571,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks opensocket
-@subsection Opening a socket descriptor
+@node callbacks opensocket
+@section Opening a socket descriptor
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2692,7 +2610,7 @@ type @code{curlsocktype}: @code{CURLSOCKTYPE_IPCXN},
 @item
 A pointer object referencing an instance of @code{struct curl_sockaddr};
 such data structure can be accessed with the @code{curl-sockaddr.}
-functions, @ref{plain misc, curl-sockaddr}.
+functions, @ref{misc, curl-sockaddr}.
 @end enumerate
 
 @var{user-scheme-callback} must return a single value being the exact
@@ -2713,8 +2631,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks closesocket
-@subsection Closing a socket descriptor
+@node callbacks closesocket
+@section Closing a socket descriptor
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2763,8 +2681,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks progress
-@subsection Tracking file transfer progress
+@node callbacks progress
+@section Tracking file transfer progress
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2825,8 +2743,8 @@ callback caller is @code{1}; else the value returned is @code{0}.
 @end defun
 
 @c page
-@node plain callbacks header
-@subsection Receiving headers from file transfer
+@node callbacks header
+@section Receiving headers from file transfer
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2879,8 +2797,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks debug
-@subsection Debugging callback
+@node callbacks debug
+@section Debugging callback
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2940,8 +2858,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks sslctx
-@subsection OpenSSL context configuration
+@node callbacks sslctx
+@section OpenSSL context configuration
 
 
 The following bindings are exported by the library @library{vicare net
@@ -2995,8 +2913,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks tonet
-@subsection Converting from host encoding to network encoding
+@node callbacks tonet
+@section Converting from host encoding to network encoding
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3043,8 +2961,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks fromnet
-@subsection Converting from network encoding to host encoding
+@node callbacks fromnet
+@section Converting from network encoding to host encoding
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3091,8 +3009,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks fromutf8
-@subsection Converting from @utf{}-8 to host encoding
+@node callbacks fromutf8
+@section Converting from @utf{}-8 to host encoding
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3139,8 +3057,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks interleave
-@subsection Processing interleaved @acronym{RTP} data
+@node callbacks interleave
+@section Processing interleaved @acronym{RTP} data
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3193,8 +3111,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks chunk
-@subsection Processing informations about chunks of data
+@node callbacks chunk
+@section Processing informations about chunks of data
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3283,8 +3201,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks fnmatch
-@subsection Implementing wildcard matching
+@node callbacks fnmatch
+@section Implementing wildcard matching
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3338,8 +3256,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks sshkey
-@subsection Accepting or rejecting @acronym{SSH} connections
+@node callbacks sshkey
+@section Accepting or rejecting @acronym{SSH} connections
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3404,8 +3322,8 @@ exceptions.
 @end defun
 
 @c page
-@node plain callbacks xferinfo
-@subsection Getting notifications of timeouts
+@node callbacks xferinfo
+@section Getting notifications of timeouts
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3464,8 +3382,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain callbacks socket
-@subsection Getting informations about socket status
+@node callbacks socket
+@section Getting informations about socket status
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3530,8 +3448,8 @@ Discard the values returned by @var{user-scheme-callback}; always return
 @end defun
 
 @c page
-@node plain callbacks mtimer
-@subsection Getting notifications of timeouts
+@node callbacks mtimer
+@section Getting notifications of timeouts
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3585,8 +3503,8 @@ should take care of handling its own exceptions.
 @end defun
 
 @c page
-@node plain slists
-@section String lists
+@node slists
+@chapter String lists
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3644,20 +3562,20 @@ Convert a list of strings to and from a @code{curl-list}.
 @end defun
 
 @c page
-@node plain forms
-@section Multipart/formdata composition
+@node forms
+@chapter Multipart/formdata composition
 
 
 @menu
-* plain forms structs::         @http{} post data structures.
-* plain forms init::            Initialisation and finalisation.
-* plain forms adding::          Adding data to @http{} post.
-* plain forms inspect::         Inspecting @http{} post data.
+* forms structs::         @http{} post data structures.
+* forms init::            Initialisation and finalisation.
+* forms adding::          Adding data to @http{} post.
+* forms inspect::         Inspecting @http{} post data.
 @end menu
 
 @c page
-@node plain forms structs
-@subsection @http{} post data structures
+@node forms structs
+@section @http{} post data structures
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3721,30 +3639,9 @@ associated to @var{httppost}; if we do:
 we can easily associate values to @var{httppost}.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-form-data @var{obj}
-@deffnx {Validation Clause} false-or-curl-form-data @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-form-data?}; the
-second clause also accepts @false{}.
-@end deffn
-
-
-@deffn {Validation Clause} curl-form-data/alive @var{obj}
-@deffnx {Validation Clause} false-or-curl-form-data/alive @var{obj}
-Succeed if @var{obj} satisfies the predicate
-@func{curl-form-data?/alive}; the second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain forms init
-@subsection Initialisation and finalisation
+@node forms init
+@section Initialisation and finalisation
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3768,8 +3665,8 @@ subsequent times nothing happens.
 @end defun
 
 @c page
-@node plain forms adding
-@subsection Adding data to @http{} post
+@node forms adding
+@section Adding data to @http{} post
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3843,8 +3740,8 @@ other contents
 @end example
 
 @c page
-@node plain forms inspect
-@subsection Inspecting @http{} post data
+@node forms inspect
+@section Inspecting @http{} post data
 
 
 The following bindings are exported by the library @library{vicare net
@@ -3953,26 +3850,26 @@ Here is a meaningless usage of the callback:
 @end example
 
 @c page
-@node plain shares
-@section Shared configuration option sets
+@node shares
+@chapter Shared configuration option sets
 
 
 @value{FOREIGN_PACKAGE} allows us to share entities and configuration
 options among easy handles through shared sets called @dfn{shares}.
 
 @menu
-* plain shares examples::       Shares examples.
-* plain shares structs::        Shares data structures.
-* plain shares init::           Initialisation and finalisation
+* shares examples::       Shares examples.
+* shares structs::        Shares data structures.
+* shares init::           Initialisation and finalisation
                                 of shares.
-* plain shares opts::           Registering in shares.
-* plain shares callbacks::      Preparing callback functions.
-* plain shares misc::           Miscellaneous shares functions.
+* shares opts::           Registering in shares.
+* shares callbacks::      Preparing callback functions.
+* shares misc::           Miscellaneous shares functions.
 @end menu
 
 @c page
-@node plain shares examples
-@subsection Shares examples
+@node shares examples
+@section Shares examples
 
 
 Random options setting:
@@ -4017,8 +3914,8 @@ Random options setting:
 @end example
 
 @c page
-@node plain shares structs
-@subsection Shares data structures
+@node shares structs
+@section Shares data structures
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4084,30 +3981,9 @@ associated to @var{share}; if we do:
 we can easily associate values to @var{share}.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-share @var{obj}
-@deffnx {Validation Clause} false-or-curl-share @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-share?}; the
-second clause also accepts @false{}.
-@end deffn
-
-
-@deffn {Validation Clause} curl-share/alive @var{obj}
-@deffnx {Validation Clause} false-or-curl-share/alive @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-share?/alive};
-the second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain shares init
-@subsection Initialisation and finalisation of shares
+@node shares init
+@section Initialisation and finalisation of shares
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4138,8 +4014,8 @@ them before finalising @var{share}.
 @end defun
 
 @c page
-@node plain shares opts
-@subsection Registering in shares
+@node shares opts
+@section Registering in shares
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4160,8 +4036,8 @@ pointer object or @false{}, which will be converted to @cnull{}.
 @end defun
 
 @c page
-@node plain shares callbacks
-@subsection Preparing callback functions
+@node shares callbacks
+@section Preparing callback functions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4261,8 +4137,8 @@ discarded and the callback returns @code{(void)}.
 @end defun
 
 @c page
-@node plain shares misc
-@subsection Miscellaneous shares functions
+@node shares misc
+@section Miscellaneous shares functions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4277,23 +4153,23 @@ an @ascii{} bytevector or string describing the associated error.
 @end defun
 
 @c page
-@node plain cstructs
-@section Accessing C language data structures
+@node cstructs
+@chapter Accessing C language data structures
 
 
 @menu
-* plain cstructs sockaddr::        Accessing @code{struct curl_sockaddr}.
-* plain cstructs fileinfo::        Accessing @code{struct curl_fileinfo}.
-* plain cstructs khkey::           Accessing @code{struct curl_khkey}.
-* plain cstructs forms::           Accessing @code{struct curl_forms} arrays.
-* plain cstructs certinfo::        Accessing @code{struct curl_certinfo}.
-* plain cstructs msg::             Accessing @code{struct CURLMsg}.
-* plain cstructs tlssessioninfo::  Accessing @code{struct curl_tlssessioninfo}.
+* cstructs sockaddr::        Accessing @code{struct curl_sockaddr}.
+* cstructs fileinfo::        Accessing @code{struct curl_fileinfo}.
+* cstructs khkey::           Accessing @code{struct curl_khkey}.
+* cstructs forms::           Accessing @code{struct curl_forms} arrays.
+* cstructs certinfo::        Accessing @code{struct curl_certinfo}.
+* cstructs msg::             Accessing @code{struct CURLMsg}.
+* cstructs tlssessioninfo::  Accessing @code{struct curl_tlssessioninfo}.
 @end menu
 
 @c page
-@node plain cstructs sockaddr
-@subsection Accessing @code{struct curl_sockaddr}
+@node cstructs sockaddr
+@section Accessing @code{struct curl_sockaddr}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4312,8 +4188,8 @@ holding the whole @code{struct sockaddr} field.
 @end defun
 
 @c page
-@node plain cstructs fileinfo
-@subsection Accessing @code{struct curl_fileinfo}
+@node cstructs fileinfo
+@section Accessing @code{struct curl_fileinfo}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4419,23 +4295,9 @@ referenced by a pointer object.  When a struct field is of type
 @code{char *}: the corresponding accessor returns a pointer object.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Arguments validation
-
-The following bindings are meant to be used along the library
-@library{vicare arguments validation}.
-
-
-@deffn {Validation Clause} curl-fileinfo @var{obj}
-@deffnx {Validation Clause} false-or-curl-fileinfo @var{obj}
-Succeed if @var{obj} satisfies the predicate @func{curl-fileinfo?}; the
-second clause also accepts @false{}.
-@end deffn
-
 @c page
-@node plain cstructs khkey
-@subsection Accessing @code{struct curl_khkey}
+@node cstructs khkey
+@section Accessing @code{struct curl_khkey}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4457,8 +4319,8 @@ A bytevector holding the key data.
 @end defun
 
 @c page
-@node plain cstructs forms
-@subsection Accessing @code{struct curl_forms} arrays
+@node cstructs forms
+@section Accessing @code{struct curl_forms} arrays
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4503,8 +4365,8 @@ holding an array of @code{struct curl_forms}, store the pointer from
 @end defun
 
 @c page
-@node plain cstructs certinfo
-@subsection Accessing @code{struct curl_certinfo}
+@node cstructs certinfo
+@section Accessing @code{struct curl_certinfo}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4523,8 +4385,8 @@ vector of lists of strings.
 @end defun
 
 @c page
-@node plain cstructs msg
-@subsection Accessing @code{struct CURLMsg}
+@node cstructs msg
+@section Accessing @code{struct CURLMsg}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4558,8 +4420,8 @@ the union @code{data}.
 @end defun
 
 @c page
-@node plain cstructs tlssessioninfo
-@subsection Accessing @code{struct curl_tlssessioninfo}
+@node cstructs tlssessioninfo
+@section Accessing @code{struct curl_tlssessioninfo}
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4592,8 +4454,8 @@ return a pointer object representing the value of the field
 @end defun
 
 @c page
-@node plain misc
-@section Miscellaneous functions
+@node misc
+@chapter Miscellaneous functions
 
 
 The following bindings are exported by the library @library{vicare net
@@ -4666,8 +4528,8 @@ must represent an @asciiz{} string.
 @end defun
 
 @c page
-@node plain symbols
-@section Constant to symbol conversions
+@node symbols
+@chapter Constant to symbol conversions
 
 
 The following bindings are exported by the library @library{vicare net
